@@ -951,7 +951,7 @@ class RealMap{
   // spawn at the west end of the longest bridge way (6th October Bridge)
   let bw=null;for(const w2 of ways){if(!w2.b)continue;const cx=w2.p.reduce((a2,q2)=>a2+q2[0],0)/w2.p.length,cz=w2.p.reduce((a2,q2)=>a2+q2[1],0)/w2.p.length;if(Math.hypot(cx+300,cz-1600)>3400)continue;if(!bw||w2.p.length>bw.p.length)bw=w2}
   const si=Math.min(6,bw.p.length-2),sp0=bw.p[si],sp1=bw.p[si+1];const sq=this.query(sp0[0],sp0[1]);this.spawn={x:sp0[0],z:sp0[1],y:(sq?sq.y:sp0[2]||.06)+.02,h:Math.atan2(sp1[0]-sp0[0],sp1[1]-sp0[1])};
-  this.trafficBuild();
+  this.trafficBuild();this.pedBuild();
   // minimal HUD
   if(!$('realHud')){const h=document.createElement('div');h.id='realHud';h.hidden=true;h.style.cssText='position:fixed;inset:0;z-index:2;pointer-events:none;direction:rtl';
    h.innerHTML='<div style="position:absolute;top:calc(var(--sat) + 10px);left:50%;transform:translateX(-50%);padding:6px 16px;border-radius:14px" class="glass"><small>طرق مصر - © OpenStreetMap contributors</small></div>'+
@@ -1003,12 +1003,39 @@ class RealMap{
   if(tm.instanceColor)tm.instanceColor.needsUpdate=true;
   const p=pl,sn=Math.sin(p.h),cs=Math.cos(p.h);
   for(const a of this.ag){for(const o1 of[-1.2,1.2]){const px=p.x+sn*o1,pz=p.z+cs*o1,dx2=px-a.x,dz2=pz-a.z,d=Math.hypot(dx2,dz2);if(d<2.6&&d>.01){const nx=dx2/d,nz=dz2/d,ov=2.6-d;p.x+=nx*ov*.65;p.z+=nz*ov*.65;a.v*=.85;const wv=p.wv(),vin=wv[0]*nx+wv[1]*nz;if(vin<0)p.setWv(wv[0]-1.2*vin*nx,wv[1]-1.2*vin*nz)}}}}
+ // ---------- v51: pedestrians on the sidewalks ----------
+ pedBuild(){const pw=[];for(const w2 of this.ways){if(w2.b||w2.c>4)continue;let L=0;const cum=[0];for(let k=1;k<w2.p.length;k++){L+=Math.hypot(w2.p[k][0]-w2.p[k-1][0],w2.p[k][1]-w2.p[k-1][1]);cum.push(L)}if(L>80)pw.push({w:w2,L,cum,hw:W2[w2.c]})}
+  this.pways=pw;if(!pw.length)return;const N=this.low?6:12;this.pd=[];const rnd2=this.trnd,pk=this.tpk;
+  const bg=new T.BoxGeometry(.36,1.02,.24);bg.translate(0,.56,0);
+  const hg2=new T.BoxGeometry(.2,.24,.21);hg2.translate(0,1.2,0);
+  const bm=this.pdB=new T.InstancedMesh(bg,new T.MeshStandardMaterial({roughness:.9,metalness:0}),N),
+   hm=new T.InstancedMesh(hg2,new T.MeshStandardMaterial({color:col(0x8a6748),roughness:.85}),N);
+  this.pdM=[bm,hm];this.pdO=new T.Object3D();this.scene.add(bm,hm);
+  const cc=new T.Color(),pal=[0xd8d2c4,0xefe9dc,0x2c3140,0x3a3f4a,0x6b4a2f,0x7a1f1f,0x244a6a,0x4a5d3a,0xb8b2a0,0x1a1a1c,0xc9c2b2,0x54423a];
+  for(let k=0;k<N;k++){const a={v:rnd2(1,1.7),side:Math.random()<.5?1:-1,ph:rnd2(0,6.3),scl:rnd2(.92,1.08),x:0,z:0,h:0,s:0,dir:1,e:pw[0]};this.pd.push(a);this.pedPlace(a,40,280);bm.setColorAt(k,cc.setHex(pk(pal)))}
+  if(bm.instanceColor)bm.instanceColor.needsUpdate=true}
+ pedPlace(a,minD,maxD){const pw=this.pways,rnd2=this.trnd,pl=this.pl;
+  for(let t=0;t<40;t++){const e=pw[Math.floor(Math.random()*pw.length)],s=rnd2(8,e.L-8),pos=this.posAt(e,s);
+   const d=pl?Math.hypot(pos[0]-pl.x,pos[1]-pl.z):0;if(d<minD||d>maxD)continue;
+   a.e=e;a.s=s;a.dir=Math.random()<.5?1:-1;return}
+  if(maxD<700)return this.pedPlace(a,minD,700);
+  a.e=pw[0];a.s=10;a.dir=1}
+ pedUpd(dt){const pl=this.pl,o=this.pdO,t=this.g.t;
+  for(let k=0;k<this.pd.length;k++){const a=this.pd[k],e=a.e;
+   a.s+=a.dir*a.v*dt;if(a.s>e.L-6||a.s<6){a.s=cl(a.s,6,e.L-6);a.dir=-a.dir;if(Math.random()<.4)a.side=-a.side}
+   const pos=this.posAt(e,a.s),nx2=this.posAt(e,cl(a.s+a.dir*2,0,e.L));let dx=nx2[0]-pos[0],dz=nx2[1]-pos[1];const dl=Math.hypot(dx,dz)||1;dx/=dl;dz/=dl;
+   const off=e.hw+1.4;a.x=pos[0]-dz*off*a.side;a.z=pos[1]+dx*off*a.side;a.h=Math.atan2(dx,dz);
+   if(Math.hypot(a.x-pl.x,a.z-pl.z)>380){this.pedPlace(a,50,300)}
+   const bob=Math.abs(Math.sin(t*7*a.v+a.ph))*.045,sway=Math.sin(t*7*a.v+a.ph)*.05;
+   o.position.set(a.x,(pos[2]||.06)+bob,a.z);o.rotation.set(0,a.h,sway);o.scale.set(a.scl,a.scl,a.scl);o.updateMatrix();
+   for(const m of this.pdM)m.setMatrixAt(k,o.matrix)}
+  for(const m of this.pdM)m.instanceMatrix.needsUpdate=true}
  onRoad(x,z){const q=this.query(x,z);return q&&q.d<q.hw+2.5}
  update(dt){const n=Math.max(1,Math.min(8,Math.ceil(dt*120))),h=dt/n;for(let i=0;i<n;i++)this.sim(h);
   if(this.towerBc)this.towerBc.visible=Math.sin(this.g.t*2.4)>0;
   if(this.tlL){this.tlT=(this.tlT||0)+dt;if(this.tlT>5){this.tlT=0;this.tlP=!this.tlP;const cc=new T.Color();for(let k=0;k<this.tlN;k++)this.tlL.setColorAt(k,cc.set((k%2===0)===this.tlP?0xff3226:0x2fe06a));this.tlL.instanceColor.needsUpdate=true}}
   const p=this.pl,q=this.query(p.x,p.z);let ty=0;if(q){if(q.b&&q.d<q.hw+1.5)ty=q.y;else if(q.y>1&&q.d<q.hw+6)ty=q.y}
-  this.cy+=(ty-this.cy)*Math.min(1,5*dt);if(this.agM)this.trafficUpd(dt)}
+  this.cy+=(ty-this.cy)*Math.min(1,5*dt);if(this.agM)this.trafficUpd(dt);if(this.pdM)this.pedUpd(dt)}
  sim(h){const g=this.g,p=this.pl,k=g.keys;let s=(k.right?1:0)-(k.left?1:0);if(g.opt.tilt&&matchMedia('(pointer:coarse)').matches)s=cl(s+(g.opt.inv?-1:1)*g.tilt/20,-1,1);s=cl(s+(g.wv||0),-1,1);
   const I={steer:s,thr:k.up?1:0,brk:k.down?1:0,hb:k.hb?1:0};p.grip=this.onRoad(p.x,p.z)?1:.85;if(p.dmg>=100)I.thr=0;
   p.step(h,I);const B=this.bounds;if(p.x<B.x0)p.x=B.x0;if(p.x>B.x1)p.x=B.x1;if(p.z<B.z0)p.z=B.z0;if(p.z>B.z1)p.z=B.z1}
