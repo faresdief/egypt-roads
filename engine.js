@@ -260,7 +260,7 @@ class Game{
  x.fillStyle='#FF8A1F';x.save();x.translate(X(this.pl),Z(this.pl));x.rotate(Math.PI-this.pl.h);
  x.beginPath();x.moveTo(0,-5);x.lineTo(3.4,4);x.lineTo(-3.4,4);x.closePath();x.fill();x.restore()}
 }
-window.addEventListener('DOMContentLoaded',()=>{S.game=new Game()});S.Game=Game;})(window.SS);
+window.addEventListener('DOMContentLoaded',()=>{S.game=new Game()});S.Game=Game;S.PRICE=PRICE;})(window.SS);
 if('serviceWorker'in navigator&&location.protocol==='https:')addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})});
 // Standalone boot — طرق مصر: Cairo free-roam only, auto quality scaling.
 (function(S){

@@ -951,7 +951,7 @@ class RealMap{
   // spawn at the west end of the longest bridge way (6th October Bridge)
   let bw=null;for(const w2 of ways){if(!w2.b)continue;const cx=w2.p.reduce((a2,q2)=>a2+q2[0],0)/w2.p.length,cz=w2.p.reduce((a2,q2)=>a2+q2[1],0)/w2.p.length;if(Math.hypot(cx+300,cz-1600)>3400)continue;if(!bw||w2.p.length>bw.p.length)bw=w2}
   const si=Math.min(6,bw.p.length-2),sp0=bw.p[si],sp1=bw.p[si+1];const sq=this.query(sp0[0],sp0[1]);this.spawn={x:sp0[0],z:sp0[1],y:(sq?sq.y:sp0[2]||.06)+.02,h:Math.atan2(sp1[0]-sp0[0],sp1[1]-sp0[1])};
-  this.trafficBuild();this.pedBuild();this.fareBuild();
+  this.trafficBuild();this.pedBuild();this.fareBuild();this.dealerBuild();
   // minimal HUD
   if(!$('realHud')){const h=document.createElement('div');h.id='realHud';h.hidden=true;h.style.cssText='position:fixed;inset:0;z-index:2;pointer-events:none;direction:rtl';
    h.innerHTML='<div style="position:absolute;top:calc(var(--sat) + 10px);left:50%;transform:translateX(-50%);padding:6px 16px;border-radius:14px" class="glass"><small>طرق مصر - © OpenStreetMap contributors</small></div>'+
@@ -1075,12 +1075,54 @@ class RealMap{
     g.popup(this.pDn[Math.floor(Math.random()*this.pDn.length)]+' +'+fx.fare+' جنيه');g.audio.coin();
     this.bcnD.visible=false;this.paxPlace()}}
   const em=$('erMoney');if(em&&em.textContent!==String(g.coins))em.textContent=g.coins}
+ // ---------- v53: the car dealership ----------
+ dealerBuild(){const pw=this.pways;if(!pw||!pw.length)return;
+  const sp2=this.spawn;let best=null,bd=1e9;
+  for(const e of pw){const pos=this.posAt(e,e.L/2),d=Math.hypot(pos[0]-sp2.x,pos[1]-sp2.z);if(d<bd&&d>150){bd=d;best=e}}
+  const e=best||pw[0],pos=this.posAt(e,e.L/2),nx2=this.posAt(e,e.L/2+4);
+  let dx=nx2[0]-pos[0],dz=nx2[1]-pos[1];const dl=Math.hypot(dx,dz)||1;dx/=dl;dz/=dl;
+  const off=e.hw+3.2;
+  this.dlr={x:pos[0]-dz*off,z:pos[1]+dx*off,y:pos[2]||.06,h:Math.atan2(dx,dz)};
+  const sgn=new T.Mesh(new T.BoxGeometry(4.6,1.5,.3),new T.MeshStandardMaterial({color:col(0x141824),emissive:col(0x7ab8ff),emissiveIntensity:.9}));sgn.position.set(this.dlr.x,this.dlr.y+3.4,this.dlr.z);sgn.rotation.y=this.dlr.h;
+  const pl2=new T.Mesh(new T.BoxGeometry(.3,3.2,.3),new T.MeshStandardMaterial({color:col(0x2a2e38),roughness:.8}));pl2.position.set(this.dlr.x,this.dlr.y+1.6,this.dlr.z);
+  const bcn=new T.Mesh(new T.CylinderGeometry(2.2,2.6,30,10,1,true),new T.MeshBasicMaterial({color:0x7ab8ff,transparent:true,opacity:.22,side:T.DoubleSide,depthWrite:false,fog:false}));bcn.position.set(this.dlr.x,this.dlr.y+15,this.dlr.z);
+  this.dlrBcn=bcn;this.scene.add(sgn,pl2,bcn);
+  if(!$('dealerP')){const dv=document.createElement('div');dv.id='dealerP';dv.hidden=true;dv.style.cssText='position:fixed;left:50%;bottom:calc(var(--sab) + 76px);transform:translateX(-50%);z-index:3;direction:rtl';
+   dv.innerHTML='<div class="glass" style="padding:10px 16px;border-radius:18px;text-align:center;min-width:240px">'+
+    '<b style="font-size:15px">معرض العربيات</b><div style="margin:6px 0"><b id="dlName" style="font-size:19px"></b></div>'+
+    '<div id="dlPrice" style="margin:2px 0 8px"></div>'+
+    '<div style="display:flex;gap:8px;justify-content:center;pointer-events:auto">'+
+    '<button class="btn tint" id="dlPr">▶</button><button class="btn primary" id="dlAct"></button><button class="btn tint" id="dlNx">◀</button></div></div>';
+   document.body.appendChild(dv);
+   dv.querySelector('#dlPr').onclick=()=>this.dlMove(-1);dv.querySelector('#dlNx').onclick=()=>this.dlMove(1);
+   dv.querySelector('#dlAct').onclick=()=>this.dlAct()}
+  this.dlI=0;this.dlOpen=false}
+ dlMove(d2){this.dlI=(this.dlI+d2+CARS.length)%CARS.length;this.dlShow();this.g.audio.flash()}
+ dlShow(){const d2=CARS[this.dlI],own=!!this.g.own[d2.id],cur=CARS[this.g.sel].id===d2.id;
+  $('dlName').textContent=d2.name;
+  $('dlPrice').innerHTML=own?(cur?'العربية اللي معاك دلوقتي':'عندك العربية دي'):'السعر: <b>'+S.PRICE[d2.id]+'</b> جنيه';
+  const b=$('dlAct');
+  if(cur){b.textContent='تمام';b.disabled=false}
+  else if(own){b.textContent='سوقها';b.disabled=false}
+  else{b.textContent='اشتريها';b.disabled=this.g.coins<S.PRICE[d2.id];b.style.opacity=b.disabled?.55:1}}
+ dlAct(){const g=this.g,d2=CARS[this.dlI],cur=CARS[g.sel].id===d2.id;
+  if(cur){this.dlClose();return}
+  if(!g.own[d2.id]){const p=S.PRICE[d2.id];if(g.coins<p)return;g.coins-=p;g.own[d2.id]=1;g.saveCoins();g.audio.unlock();g.popup('اتفتحت: '+d2.name)}
+  const ox=this.pl.x,oz=this.pl.z,oh=this.pl.h;g.sel=this.dlI;this.mkCar();
+  this.pl.x=ox;this.pl.z=oz;this.pl.h=oh;this.pl.setWv(0,0);this.ch=oh;
+  this.dlShow();g.popup('ركبت: '+d2.name)}
+ dlClosePanel(){const e=$('dealerP');if(e)e.hidden=true;this.dlOpen=false}
+ dealerUpd(dt){const pl=this.pl,t=this.g.t,d=this.dlr;
+  this.dlrBcn.material.opacity=.16+.1*Math.sin(t*2.4);
+  const dist=Math.hypot(d.x-pl.x,d.z-pl.z);
+  if(!this.dlOpen&&dist<10&&pl.speed*3.6<8){this.dlOpen=true;this.g.keys={};this.dlI=this.g.sel;this.dlShow();$('dealerP').hidden=false;this.g.popup('أهلاً بيك في المعرض')}
+  else if(this.dlOpen&&dist>16)this.dlClosePanel()}
  onRoad(x,z){const q=this.query(x,z);return q&&q.d<q.hw+2.5}
  update(dt){const n=Math.max(1,Math.min(8,Math.ceil(dt*120))),h=dt/n;for(let i=0;i<n;i++)this.sim(h);
   if(this.towerBc)this.towerBc.visible=Math.sin(this.g.t*2.4)>0;
   if(this.tlL){this.tlT=(this.tlT||0)+dt;if(this.tlT>5){this.tlT=0;this.tlP=!this.tlP;const cc=new T.Color();for(let k=0;k<this.tlN;k++)this.tlL.setColorAt(k,cc.set((k%2===0)===this.tlP?0xff3226:0x2fe06a));this.tlL.instanceColor.needsUpdate=true}}
   const p=this.pl,q=this.query(p.x,p.z);let ty=0;if(q){if(q.b&&q.d<q.hw+1.5)ty=q.y;else if(q.y>1&&q.d<q.hw+6)ty=q.y}
-  this.cy+=(ty-this.cy)*Math.min(1,5*dt);if(this.agM)this.trafficUpd(dt);if(this.pdM)this.pedUpd(dt);if(this.fx)this.fareUpd(dt)}
+  this.cy+=(ty-this.cy)*Math.min(1,5*dt);if(this.agM)this.trafficUpd(dt);if(this.pdM)this.pedUpd(dt);if(this.fx)this.fareUpd(dt);if(this.dlr)this.dealerUpd(dt)}
  sim(h){const g=this.g,p=this.pl,k=g.keys;let s=(k.right?1:0)-(k.left?1:0);if(g.opt.tilt&&matchMedia('(pointer:coarse)').matches)s=cl(s+(g.opt.inv?-1:1)*g.tilt/20,-1,1);s=cl(s+(g.wv||0),-1,1);
   const I={steer:s,thr:k.up?1:0,brk:k.down?1:0,hb:k.hb?1:0};p.grip=this.onRoad(p.x,p.z)?1:.85;if(p.dmg>=100)I.thr=0;
   p.step(h,I);const B=this.bounds;if(p.x<B.x0)p.x=B.x0;if(p.x>B.x1)p.x=B.x1;if(p.z<B.z0)p.z=B.z0;if(p.z>B.z1)p.z=B.z1}
@@ -1359,7 +1401,7 @@ class Game{
  x.fillStyle='#FF8A1F';x.save();x.translate(X(this.pl),Z(this.pl));x.rotate(Math.PI-this.pl.h);
  x.beginPath();x.moveTo(0,-5);x.lineTo(3.4,4);x.lineTo(-3.4,4);x.closePath();x.fill();x.restore()}
 }
-window.addEventListener('DOMContentLoaded',()=>{S.game=new Game()});S.Game=Game;})(window.SS);
+window.addEventListener('DOMContentLoaded',()=>{S.game=new Game()});S.Game=Game;S.PRICE=PRICE;})(window.SS);
 if('serviceWorker'in navigator&&location.protocol==='https:')addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})});
 // Standalone boot — طرق مصر: Cairo free-roam only, auto quality scaling.
 (function(S){
