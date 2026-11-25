@@ -951,11 +951,13 @@ class RealMap{
   // spawn at the west end of the longest bridge way (6th October Bridge)
   let bw=null;for(const w2 of ways){if(!w2.b)continue;const cx=w2.p.reduce((a2,q2)=>a2+q2[0],0)/w2.p.length,cz=w2.p.reduce((a2,q2)=>a2+q2[1],0)/w2.p.length;if(Math.hypot(cx+300,cz-1600)>3400)continue;if(!bw||w2.p.length>bw.p.length)bw=w2}
   const si=Math.min(6,bw.p.length-2),sp0=bw.p[si],sp1=bw.p[si+1];const sq=this.query(sp0[0],sp0[1]);this.spawn={x:sp0[0],z:sp0[1],y:(sq?sq.y:sp0[2]||.06)+.02,h:Math.atan2(sp1[0]-sp0[0],sp1[1]-sp0[1])};
-  this.trafficBuild();this.pedBuild();
+  this.trafficBuild();this.pedBuild();this.fareBuild();
   // minimal HUD
   if(!$('realHud')){const h=document.createElement('div');h.id='realHud';h.hidden=true;h.style.cssText='position:fixed;inset:0;z-index:2;pointer-events:none;direction:rtl';
    h.innerHTML='<div style="position:absolute;top:calc(var(--sat) + 10px);left:50%;transform:translateX(-50%);padding:6px 16px;border-radius:14px" class="glass"><small>طرق مصر - © OpenStreetMap contributors</small></div>'+
-   '<div class="glass" style="position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--sab) + 12px);padding:6px 18px;border-radius:16px;text-align:center"><b id="realSpd" style="font-size:28px">0</b> <small>كم/س</small></div>';
+   '<div class="glass" style="position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--sab) + 12px);padding:6px 18px;border-radius:16px;text-align:center"><b id="realSpd" style="font-size:28px">0</b> <small>كم/س</small></div>'
+   +'<div class="glass" style="position:absolute;top:calc(var(--sat) + 10px);inset-inline-start:10px;padding:6px 14px;border-radius:14px"><small>💰 <b id="erMoney">0</b> جنيه</small></div>'
+   +'<div class="glass" id="erFare" style="position:absolute;top:calc(var(--sat) + 10px);inset-inline-end:10px;padding:6px 14px;border-radius:14px"><small>دور على راكب يا كابتن</small></div>';
    document.body.appendChild(h)}
   this.built=true}
  // ---------- v46: ambient traffic on the real roads ----------
@@ -1030,12 +1032,55 @@ class RealMap{
    o.position.set(a.x,(pos[2]||.06)+bob,a.z);o.rotation.set(0,a.h,sway);o.scale.set(a.scl,a.scl,a.scl);o.updateMatrix();
    for(const m of this.pdM)m.setMatrixAt(k,o.matrix)}
   for(const m of this.pdM)m.instanceMatrix.needsUpdate=true}
+ // ---------- v52: passengers, fares and money ----------
+ fareBuild(){const pw=this.pways;if(!pw||!pw.length)return;
+  const bg=new T.BoxGeometry(.36,1.02,.24);bg.translate(0,.56,0);
+  const hg2=new T.BoxGeometry(.2,.24,.21);hg2.translate(0,1.2,0);
+  const bm=new T.Mesh(bg,new T.MeshStandardMaterial({color:col(0xe8e2d2),roughness:.9,emissive:col(0x403a2c),emissiveIntensity:.35})),
+   hm=new T.Mesh(hg2,new T.MeshStandardMaterial({color:col(0x8a6748),roughness:.85}));
+  const grp=this.paxG=new T.Group();grp.add(bm,hm);this.scene.add(grp);
+  const mk2=cc=>{const m2=new T.Mesh(new T.CylinderGeometry(1.2,1.5,26,10,1,true),new T.MeshBasicMaterial({color:cc,transparent:true,opacity:.3,side:T.DoubleSide,depthWrite:false,fog:false}));m2.position.y=13;m2.visible=false;this.scene.add(m2);return m2};
+  this.bcnP=mk2(0x35e08a);this.bcnD=mk2(0xffb02e);
+  this.fx={st:0,pax:{x:0,z:0,y:.06,h:0},dst:null,fare:0,dname:''};
+  this.dests=['الزمالك','المهندسين','كورنيش النيل','الدقي','وسط البلد','الجيزة','المعادي','مدينة نصر','مصر الجديدة','إمبابة','عين شمس','الهرم'];
+  this.pUp=['عايز أروح D يا كابتن','لو سمحت يا أسطى، D','مشوار على D، متأخرش عليا','يلا بينا D يا معلم','D يا كابتن، وانت نجم'];
+  this.pDn=['كده تمام، اتفضل','ربنا يخليك يا كابتن','تسلم إيدك، وصلنا بالسلامة','ممنونك يا معلم'];
+  this.paxPlace()}
+ paxPlace(){const pw=this.pways,pl=this.pl,rnd2=this.trnd,fx=this.fx;
+  for(let t=0;t<60;t++){const e=pw[Math.floor(Math.random()*pw.length)],s=rnd2(8,e.L-8),pos=this.posAt(e,s);
+   const d=pl?Math.hypot(pos[0]-pl.x,pos[1]-pl.z):200;if(d<120||d>350)continue;
+   const nx2=this.posAt(e,cl(s+2,0,e.L));let dx=nx2[0]-pos[0],dz=nx2[1]-pos[1];const dl=Math.hypot(dx,dz)||1;dx/=dl;dz/=dl;
+   fx.pax={x:pos[0]-dz*(e.hw+1.4),z:pos[1]+dx*(e.hw+1.4),y:pos[2]||.06,h:Math.atan2(dx,dz)};
+   this.paxG.visible=true;this.bcnP.visible=true;return}
+  const e0=pw[0],p0=this.posAt(e0,10);fx.pax={x:(pl?pl.x:p0[0])+150,z:(pl?pl.z:p0[1]),y:.06,h:0}}
+ fareUpd(dt){const g=this.g,pl=this.pl,fx=this.fx,t=g.t;
+  const sp=pl.speed*3.6;
+  this.paxG.position.set(fx.pax.x,fx.pax.y+Math.abs(Math.sin(t*3))*.04,fx.pax.z);this.paxG.rotation.y=fx.pax.h+Math.sin(t*.8)*.4;
+  this.bcnP.position.set(fx.pax.x,13+fx.pax.y,fx.pax.z);this.bcnP.material.opacity=.22+.12*Math.sin(t*3);
+  const m$=x=>Math.round(x)+' م';
+  if(fx.st===0){const d=Math.hypot(fx.pax.x-pl.x,fx.pax.z-pl.z);
+   if(d>520)this.paxPlace();
+   const e2=$('erFare');if(e2)e2.innerHTML='<small>أقرب راكب: '+m$(d)+'</small>';
+   if(d<5&&sp<8){fx.st=1;fx.dname=this.dests[Math.floor(Math.random()*this.dests.length)];
+    let best=null;for(let t2=0;t2<60;t2++){const e3=this.pways[Math.floor(Math.random()*this.pways.length)],s3=this.trnd(8,e3.L-8),pos=this.posAt(e3,s3);
+     const dd=Math.hypot(pos[0]-pl.x,pos[1]-pl.z);if(dd>400&&dd<1600){best={x:pos[0],z:pos[1],y:pos[2]||.06,d:dd};break}}
+    if(!best)best={x:pl.x+600,z:pl.z+400,y:.06,d:721};
+    fx.dst=best;fx.fare=10+Math.round(best.d*.045);
+    this.paxG.visible=false;this.bcnP.visible=false;this.bcnD.visible=true;
+    g.popup(this.pUp[Math.floor(Math.random()*this.pUp.length)].replace('D',fx.dname));g.audio.flash()}}
+  else{const d=Math.hypot(fx.dst.x-pl.x,fx.dst.z-pl.z);
+   this.bcnD.position.set(fx.dst.x,13+fx.dst.y,fx.dst.z);this.bcnD.material.opacity=.22+.12*Math.sin(t*3);
+   const e2=$('erFare');if(e2)e2.innerHTML='<small>الوجهة: '+fx.dname+' - '+m$(d)+' ('+fx.fare+' ج)</small>';
+   if(d<6&&sp<8){fx.st=0;g.coins+=fx.fare;g.saveCoins();
+    g.popup(this.pDn[Math.floor(Math.random()*this.pDn.length)]+' +'+fx.fare+' جنيه');g.audio.coin();
+    this.bcnD.visible=false;this.paxPlace()}}
+  const em=$('erMoney');if(em&&em.textContent!==String(g.coins))em.textContent=g.coins}
  onRoad(x,z){const q=this.query(x,z);return q&&q.d<q.hw+2.5}
  update(dt){const n=Math.max(1,Math.min(8,Math.ceil(dt*120))),h=dt/n;for(let i=0;i<n;i++)this.sim(h);
   if(this.towerBc)this.towerBc.visible=Math.sin(this.g.t*2.4)>0;
   if(this.tlL){this.tlT=(this.tlT||0)+dt;if(this.tlT>5){this.tlT=0;this.tlP=!this.tlP;const cc=new T.Color();for(let k=0;k<this.tlN;k++)this.tlL.setColorAt(k,cc.set((k%2===0)===this.tlP?0xff3226:0x2fe06a));this.tlL.instanceColor.needsUpdate=true}}
   const p=this.pl,q=this.query(p.x,p.z);let ty=0;if(q){if(q.b&&q.d<q.hw+1.5)ty=q.y;else if(q.y>1&&q.d<q.hw+6)ty=q.y}
-  this.cy+=(ty-this.cy)*Math.min(1,5*dt);if(this.agM)this.trafficUpd(dt);if(this.pdM)this.pedUpd(dt)}
+  this.cy+=(ty-this.cy)*Math.min(1,5*dt);if(this.agM)this.trafficUpd(dt);if(this.pdM)this.pedUpd(dt);if(this.fx)this.fareUpd(dt)}
  sim(h){const g=this.g,p=this.pl,k=g.keys;let s=(k.right?1:0)-(k.left?1:0);if(g.opt.tilt&&matchMedia('(pointer:coarse)').matches)s=cl(s+(g.opt.inv?-1:1)*g.tilt/20,-1,1);s=cl(s+(g.wv||0),-1,1);
   const I={steer:s,thr:k.up?1:0,brk:k.down?1:0,hb:k.hb?1:0};p.grip=this.onRoad(p.x,p.z)?1:.85;if(p.dmg>=100)I.thr=0;
   p.step(h,I);const B=this.bounds;if(p.x<B.x0)p.x=B.x0;if(p.x>B.x1)p.x=B.x1;if(p.z<B.z0)p.z=B.z0;if(p.z>B.z1)p.z=B.z1}
