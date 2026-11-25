@@ -503,7 +503,8 @@ class AudioEngine{
  if(this.crk>0){this.crk-=1/60;if(Math.random()<.16)this.tone(70+Math.random()*90,.05,'square',.045)}}
  tone(f,d,type,v,w,to){const c=this.ctx;if(!c)return;try{const t=c.currentTime+(w||0),o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.setValueAtTime(f,t);
  if(to)o.frequency.exponentialRampToValueAtTime(to,t+d);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(this.m);o.start(t);o.stop(t+d+.02)}catch(e){}}
- horn(){this.tone(415,.55,'square',.08);this.tone(523,.55,'square',.08)}
+ honkAt(v,p){v=v||.08;p=p||1;this.tone(415*p,.4,'square',v);this.tone(523*p,.4,'square',v)}
+ horn(){this.honkAt(.08,1)}
  thud(){this.tone(110,.3,'sine',.4,0,35)}
  coin(){this.tone(988,.08,'square',.06);this.tone(1319,.2,'square',.06,.08)}
  flash(){this.tone(2200,.12,'triangle',.08)}
@@ -971,7 +972,7 @@ class RealMap{
    hm=new T.InstancedMesh(hg2,new T.MeshBasicMaterial({color:0xfff0c8,fog:false}),N);
   this.agM=[bm,cm,tm,hm];this.agO=new T.Object3D();this.scene.add(bm,cm,tm,hm);
   const cc=new T.Color();for(let k=0;k<N;k++){const a={v:0,cruise:rnd2(8,13),lane:2.4,x:0,z:0,y:.06,h:0,s:0,dir:1,e:tw[0]};this.ag.push(a);this.agPlace(a,k,60);bm.setColorAt(k,cc.setHex(pk([0x9da1a6,0xeeeeee,0x2a3140,0x7a1f1f,0x244a6a,0x6b6b60,0xb8b2a0,0xd8d8d0,0x1a1a1c])))}
-  if(bm.instanceColor)bm.instanceColor.needsUpdate=true}
+  const dc=new T.Color(0x8f1a14);for(let k=0;k<N;k++)tm.setColorAt(k,dc);if(tm.instanceColor)tm.instanceColor.needsUpdate=true;if(bm.instanceColor)bm.instanceColor.needsUpdate=true;this.tlC=new T.Color()}
  agPlace(a,k,minD){const tw=this.tways,rnd2=this.trnd,pl=this.pl;
   for(let t=0;t<30;t++){const e=tw[Math.floor(Math.random()*tw.length)],s=rnd2(15,e.L-15),pos=this.posAt(e,s);
    if(pl&&Math.hypot(pos[0]-pl.x,pos[1]-pl.z)<minD)continue;let ok=true;for(const o of this.ag)if(o!==a&&o.e===e&&Math.abs(o.s-s)<18){ok=false;break}if(!ok)continue;
@@ -980,13 +981,14 @@ class RealMap{
  agCont(a){const e=a.e,rnd2=this.trnd;let best=null,bd=15;for(const e2 of this.tways){if(e2===e)continue;
    for(const end of[[0,1],[e2.L,-1]]){const p=this.posAt(e2,end[0]==0?0:e2.L),d=Math.hypot(p[0]-a.x,p[1]-a.z);if(d<bd){const hd=Math.atan2(Math.sin(a.h)*end[1],Math.cos(a.h)*end[1]);if(Math.abs(wrap(hd-a.h))<1.4){best=[e2,end[1]];bd=d}}}}
   if(best){a.e=best[0];a.dir=best[1];a.s=best[1]>0?4:best[0].L-4}else a.dir=-a.dir}
- trafficUpd(dt){const pl=this.pl,o=this.agO,sig=this.sig,tp=this.tlP;
+ trafficUpd(dt){const pl=this.pl,o=this.agO,sig=this.sig,tp=this.tlP,tm=this.agM[2];
   for(let k=0;k<this.ag.length;k++){const a=this.ag[k],e=a.e;
    const pos=this.posAt(e,a.s),nx2=this.posAt(e,cl(a.s+a.dir*4,0,e.L));let dx=nx2[0]-pos[0],dz=nx2[1]-pos[1];const dl=Math.hypot(dx,dz)||1;dx/=dl;dz/=dl;const rx=-dz,rz=dx;
    let vt=a.cruise;
    if(sig)for(let j=0;j<sig.length;j++){const q2=sig[j],sx=q2[0]+6-a.x,sz=q2[1]+6-a.z,f=sx*dx+sz*dz;if(f>0&&f<42){const l=sx*rx+sz*rz;if(Math.abs(l)<11&&((j%2===0)===tp))vt=Math.min(vt,Math.max(0,(f-7)*.8))}}
    const chk=(ox,oz)=>{const ddx=ox-a.x,ddz=oz-a.z,f=ddx*dx+ddz*dz,l=ddx*rx+ddz*rz;if(f>0&&f<15+a.v&&Math.abs(l)<2.5)vt=Math.min(vt,Math.max(0,(f-5.2)*.7))};
    chk(pl.x,pl.z);for(const o2 of this.ag)if(o2!==a)chk(o2.x,o2.z);
+   if(vt<a.cruise*.55&&a.v<2.5){a.hk=(a.hk||0)-dt;if(a.hk<=0){a.hk=2.5+Math.random()*5;const dd=Math.hypot(a.x-pl.x,a.z-pl.z);if(dd<110)this.g.audio.honkAt(.09*(1-dd/110),.85+Math.random()*.4)}}else if(a.hk===undefined||a.hk<.15)a.hk=.15;
    a.v+=cl(vt-a.v,-9*dt,3*dt);a.s+=a.dir*a.v*dt;
    if(a.s>e.L-5||a.s<5){a.s=cl(a.s,4,e.L-4);const p2=this.posAt(e,a.s);a.x=p2[0];a.z=p2[1];a.h=Math.atan2(dx,dz);this.agCont(a)}
    const pp=this.posAt(e,a.s);a.x=pp[0]+rx*a.lane;a.z=pp[1]+rz*a.lane;a.y=pp[2];
@@ -995,8 +997,10 @@ class RealMap{
     const e3=a.e,p3=this.posAt(e3,a.s),n3=this.posAt(e3,cl(a.s+a.dir*4,0,e3.L));let hx=n3[0]-p3[0],hz=n3[1]-p3[1];const hl=Math.hypot(hx,hz)||1;hx/=hl;hz/=hl;
     a.x=p3[0]-hz*a.lane;a.z=p3[1]+hx*a.lane;a.y=p3[2];a.h=Math.atan2(hx,hz)}
    o.position.set(a.x,a.y+.03,a.z);o.rotation.set(0,a.h,0);o.scale.set(1,1,1);o.updateMatrix();
+   tm.setColorAt(k,this.tlC.setHex(vt<a.v-1?0xff4535:0x8f1a14));
    for(const m of this.agM)m.setMatrixAt(k,o.matrix)}
   for(const m of this.agM)m.instanceMatrix.needsUpdate=true;
+  if(tm.instanceColor)tm.instanceColor.needsUpdate=true;
   const p=pl,sn=Math.sin(p.h),cs=Math.cos(p.h);
   for(const a of this.ag){for(const o1 of[-1.2,1.2]){const px=p.x+sn*o1,pz=p.z+cs*o1,dx2=px-a.x,dz2=pz-a.z,d=Math.hypot(dx2,dz2);if(d<2.6&&d>.01){const nx=dx2/d,nz=dz2/d,ov=2.6-d;p.x+=nx*ov*.65;p.z+=nz*ov*.65;a.v*=.85;const wv=p.wv(),vin=wv[0]*nx+wv[1]*nz;if(vin<0)p.setWv(wv[0]-1.2*vin*nx,wv[1]-1.2*vin*nz)}}}}
  onRoad(x,z){const q=this.query(x,z);return q&&q.d<q.hw+2.5}
