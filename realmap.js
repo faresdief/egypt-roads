@@ -165,6 +165,7 @@ class RealMap{
    for(const end of[[0,1],[e2.L,-1]]){const p=this.posAt(e2,end[0]==0?0:e2.L),d=Math.hypot(p[0]-a.x,p[1]-a.z);if(d<bd){const hd=Math.atan2(Math.sin(a.h)*end[1],Math.cos(a.h)*end[1]);if(Math.abs(wrap(hd-a.h))<1.4){best=[e2,end[1]];bd=d}}}}
   if(best){a.e=best[0];a.dir=best[1];a.s=best[1]>0?4:best[0].L-4}else a.dir=-a.dir}
  trafficUpd(dt){const pl=this.pl,o=this.agO,sig=this.sig,tp=this.tlP,tm=this.agM[2];
+  if(this.fx&&this.fx.hitCd>0)this.fx.hitCd-=dt;
   for(let k=0;k<this.ag.length;k++){const a=this.ag[k],e=a.e;
    const pos=this.posAt(e,a.s),nx2=this.posAt(e,cl(a.s+a.dir*4,0,e.L));let dx=nx2[0]-pos[0],dz=nx2[1]-pos[1];const dl=Math.hypot(dx,dz)||1;dx/=dl;dz/=dl;const rx=-dz,rz=dx;
    let vt=a.cruise;
@@ -185,7 +186,8 @@ class RealMap{
   for(const m of this.agM)m.instanceMatrix.needsUpdate=true;
   if(tm.instanceColor)tm.instanceColor.needsUpdate=true;
   const p=pl,sn=Math.sin(p.h),cs=Math.cos(p.h);
-  for(const a of this.ag){for(const o1 of[-1.2,1.2]){const px=p.x+sn*o1,pz=p.z+cs*o1,dx2=px-a.x,dz2=pz-a.z,d=Math.hypot(dx2,dz2);if(d<2.6&&d>.01){const nx=dx2/d,nz=dz2/d,ov=2.6-d;p.x+=nx*ov*.65;p.z+=nz*ov*.65;a.v*=.85;const wv=p.wv(),vin=wv[0]*nx+wv[1]*nz;if(vin<0)p.setWv(wv[0]-1.2*vin*nx,wv[1]-1.2*vin*nz)}}}}
+  for(const a of this.ag){for(const o1 of[-1.2,1.2]){const px=p.x+sn*o1,pz=p.z+cs*o1,dx2=px-a.x,dz2=pz-a.z,d=Math.hypot(dx2,dz2);if(d<2.6&&d>.01){const nx=dx2/d,nz=dz2/d,ov=2.6-d;p.x+=nx*ov*.65;p.z+=nz*ov*.65;a.v*=.85;
+   if(this.fx&&this.fx.hitCd<=0&&p.speed*3.6>15){this.fx.hits++;this.fx.hitCd=2;if(this.fx.streak>0){this.fx.streak=0;this.g.popup('خبطة! السلسلة اتكسرت')}this.g.audio.thud()}const wv=p.wv(),vin=wv[0]*nx+wv[1]*nz;if(vin<0)p.setWv(wv[0]-1.2*vin*nx,wv[1]-1.2*vin*nz)}}}}
  // ---------- v51: pedestrians on the sidewalks ----------
  pedBuild(){const pw=[];for(const w2 of this.ways){if(w2.b||w2.c>4)continue;let L=0;const cum=[0];for(let k=1;k<w2.p.length;k++){L+=Math.hypot(w2.p[k][0]-w2.p[k-1][0],w2.p[k][1]-w2.p[k-1][1]);cum.push(L)}if(L>80)pw.push({w:w2,L,cum,hw:W2[w2.c]})}
   this.pways=pw;if(!pw.length)return;const N=this.low?6:12;this.pd=[];const rnd2=this.trnd,pk=this.tpk;
@@ -222,9 +224,10 @@ class RealMap{
   const grp=this.paxG=new T.Group();grp.add(bm,hm);this.scene.add(grp);
   const mk2=cc=>{const m2=new T.Mesh(new T.CylinderGeometry(1.2,1.5,26,10,1,true),new T.MeshBasicMaterial({color:cc,transparent:true,opacity:.3,side:T.DoubleSide,depthWrite:false,fog:false}));m2.position.y=13;m2.visible=false;this.scene.add(m2);return m2};
   this.bcnP=mk2(0x35e08a);this.bcnD=mk2(0xffb02e);
-  this.fx={st:0,pax:{x:0,z:0,y:.06,h:0},dst:null,fare:0,dname:''};
+  this.fx={st:0,pax:{x:0,z:0,y:.06,h:0},dst:null,fare:0,dname:'',rush:false,t:0,hits:0,hitCd:0,streak:0};
   this.dests=['الزمالك','المهندسين','كورنيش النيل','الدقي','وسط البلد','الجيزة','المعادي','مدينة نصر','مصر الجديدة','إمبابة','عين شمس','الهرم'];
   this.pUp=['عايز أروح D يا كابتن','لو سمحت يا أسطى، D','مشوار على D، متأخرش عليا','يلا بينا D يا معلم','D يا كابتن، وانت نجم'];
+  this.pRu=['عجلة يا كابتن، ورايا معاد في D','يلا بسرعة يا أسطى، D ومتأخرش عليا','لو لحقتنا D بدري هزودلك الأجرة'];
   this.pDn=['كده تمام، اتفضل','ربنا يخليك يا كابتن','تسلم إيدك، وصلنا بالسلامة','ممنونك يا معلم'];
   this.paxPlace()}
  paxPlace(){const pw=this.pways,pl=this.pl,rnd2=this.trnd,fx=this.fx;
@@ -242,17 +245,23 @@ class RealMap{
   if(fx.st===0){const d=Math.hypot(fx.pax.x-pl.x,fx.pax.z-pl.z);
    if(d>520)this.paxPlace();
    const e2=$('erFare');if(e2)e2.innerHTML='<small>أقرب راكب: '+m$(d)+'</small>';
-   if(d<5&&sp<8){fx.st=1;fx.dname=this.dests[Math.floor(Math.random()*this.dests.length)];
+   if(d<5&&sp<8){fx.st=1;fx.dname=this.dests[Math.floor(Math.random()*this.dests.length)];fx.rush=Math.random()<.35;fx.hits=0;
     let best=null;for(let t2=0;t2<60;t2++){const e3=this.pways[Math.floor(Math.random()*this.pways.length)],s3=this.trnd(8,e3.L-8),pos=this.posAt(e3,s3);
      const dd=Math.hypot(pos[0]-pl.x,pos[1]-pl.z);if(dd>400&&dd<1600){best={x:pos[0],z:pos[1],y:pos[2]||.06,d:dd};break}}
     if(!best)best={x:pl.x+600,z:pl.z+400,y:.06,d:721};
     fx.dst=best;fx.fare=10+Math.round(best.d*.045);
+    if(fx.rush){fx.t=best.d/11+20;fx.fare=Math.round(fx.fare*1.5)}
     this.paxG.visible=false;this.bcnP.visible=false;this.bcnD.visible=true;
-    g.popup(this.pUp[Math.floor(Math.random()*this.pUp.length)].replace('D',fx.dname));g.audio.flash()}}
+    if(fx.rush)g.popup(this.pRu[Math.floor(Math.random()*this.pRu.length)].replace('D',fx.dname));
+    else g.popup(this.pUp[Math.floor(Math.random()*this.pUp.length)].replace('D',fx.dname));g.audio.flash()}}
   else{const d=Math.hypot(fx.dst.x-pl.x,fx.dst.z-pl.z);
-   this.bcnD.position.set(fx.dst.x,13+fx.dst.y,fx.dst.z);this.bcnD.material.opacity=.22+.12*Math.sin(t*3);
-   const e2=$('erFare');if(e2)e2.innerHTML='<small>الوجهة: '+fx.dname+' - '+m$(d)+' ('+fx.fare+' ج)</small>';
-   if(d<6&&sp<8){fx.st=0;g.coins+=fx.fare;g.saveCoins();
+   this.bcnD.position.set(fx.dst.x,13+fx.dst.y,fx.dst.z);this.bcnD.material.opacity=.22+.12*Math.sin(t*(fx.rush?8:3));
+   if(fx.rush){fx.t-=dt;if(fx.t<=0){fx.rush=false;fx.fare=Math.round(fx.fare/1.5);g.popup('اتأخرنا شوية، بس يلا بينا')}}
+   const e2=$('erFare');if(e2)e2.innerHTML='<small>الوجهة: '+fx.dname+' - '+m$(d)+' ('+fx.fare+' ج)'+(fx.rush?' ⏱ '+Math.ceil(fx.t)+' ث':'')+'</small>';
+   if(d<6&&sp<8){fx.st=0;g.coins+=fx.fare;
+    if(fx.hits===0){fx.streak++;if(fx.streak%3===0){g.coins+=60;setTimeout(()=>g.popup('سلسلة نضيفة! '+fx.streak+' مشاوير من غير خبطة +60 جنيه'),900)}}
+    else fx.streak=0;
+    g.saveCoins();
     g.popup(this.pDn[Math.floor(Math.random()*this.pDn.length)]+' +'+fx.fare+' جنيه');g.audio.coin();
     this.bcnD.visible=false;this.paxPlace()}}
   const em=$('erMoney');if(em&&em.textContent!==String(g.coins))em.textContent=g.coins}
