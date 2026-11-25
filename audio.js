@@ -54,7 +54,8 @@ class AudioEngine{
  if(this.crk>0){this.crk-=1/60;if(Math.random()<.16)this.tone(70+Math.random()*90,.05,'square',.045)}}
  tone(f,d,type,v,w,to){const c=this.ctx;if(!c)return;try{const t=c.currentTime+(w||0),o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.setValueAtTime(f,t);
  if(to)o.frequency.exponentialRampToValueAtTime(to,t+d);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(this.m);o.start(t);o.stop(t+d+.02)}catch(e){}}
- horn(){this.tone(415,.55,'square',.08);this.tone(523,.55,'square',.08)}
+ honkAt(v,p){v=v||.08;p=p||1;this.tone(415*p,.4,'square',v);this.tone(523*p,.4,'square',v)}
+ horn(){this.honkAt(.08,1)}
  thud(){this.tone(110,.3,'sine',.4,0,35)}
  coin(){this.tone(988,.08,'square',.06);this.tone(1319,.2,'square',.06,.08)}
  flash(){this.tone(2200,.12,'triangle',.08)}
