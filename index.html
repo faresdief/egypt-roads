@@ -951,13 +951,14 @@ class RealMap{
   // spawn at the west end of the longest bridge way (6th October Bridge)
   let bw=null;for(const w2 of ways){if(!w2.b)continue;const cx=w2.p.reduce((a2,q2)=>a2+q2[0],0)/w2.p.length,cz=w2.p.reduce((a2,q2)=>a2+q2[1],0)/w2.p.length;if(Math.hypot(cx+300,cz-1600)>3400)continue;if(!bw||w2.p.length>bw.p.length)bw=w2}
   const si=Math.min(6,bw.p.length-2),sp0=bw.p[si],sp1=bw.p[si+1];const sq=this.query(sp0[0],sp0[1]);this.spawn={x:sp0[0],z:sp0[1],y:(sq?sq.y:sp0[2]||.06)+.02,h:Math.atan2(sp1[0]-sp0[0],sp1[1]-sp0[1])};
-  this.trafficBuild();this.pedBuild();this.fareBuild();this.dealerBuild();
+  this.trafficBuild();this.pedBuild();this.fareBuild();this.dealerBuild();this.areaBuild();this.feluBuild();this.mosqueBuild();this.sphinxBuild();
   // minimal HUD
   if(!$('realHud')){const h=document.createElement('div');h.id='realHud';h.hidden=true;h.style.cssText='position:fixed;inset:0;z-index:2;pointer-events:none;direction:rtl';
    h.innerHTML='<div style="position:absolute;top:calc(var(--sat) + 10px);left:50%;transform:translateX(-50%);padding:6px 16px;border-radius:14px" class="glass"><small>طرق مصر - © OpenStreetMap contributors</small></div>'+
    '<div class="glass" style="position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--sab) + 12px);padding:6px 18px;border-radius:16px;text-align:center"><b id="realSpd" style="font-size:28px">0</b> <small>كم/س</small></div>'
    +'<div class="glass" style="position:absolute;top:calc(var(--sat) + 10px);inset-inline-start:10px;padding:6px 14px;border-radius:14px"><small>💰 <b id="erMoney">0</b> جنيه</small></div>'
-   +'<div class="glass" id="erFare" style="position:absolute;top:calc(var(--sat) + 10px);inset-inline-end:10px;padding:6px 14px;border-radius:14px"><small>دور على راكب يا كابتن</small></div>';
+   +'<div class="glass" id="erFare" style="position:absolute;top:calc(var(--sat) + 10px);inset-inline-end:10px;padding:6px 14px;border-radius:14px"><small>دور على راكب يا كابتن</small></div>'
+   +'<div class="glass" style="position:absolute;top:calc(var(--sat) + 48px);left:50%;transform:translateX(-50%);padding:3px 14px;border-radius:12px;display:none"><small id="erArea"></small></div>';
    document.body.appendChild(h)}
   this.built=true}
  // ---------- v46: ambient traffic on the real roads ----------
@@ -1065,9 +1066,20 @@ class RealMap{
    if(d>520)this.paxPlace();
    const e2=$('erFare');if(e2)e2.innerHTML='<small>أقرب راكب: '+m$(d)+'</small>';
    if(d<5&&sp<8){fx.st=1;fx.dname=this.dests[Math.floor(Math.random()*this.dests.length)];fx.rush=Math.random()<.35;fx.hits=0;
-    let best=null;for(let t2=0;t2<60;t2++){const e3=this.pways[Math.floor(Math.random()*this.pways.length)],s3=this.trnd(8,e3.L-8),pos=this.posAt(e3,s3);
+    let zn=null;for(const z2 of this.zones||[])if(z2.n===fx.dname){zn=z2;break}
+    let best=null;
+    if(zn&&zn.nile){for(let t2=0;t2<80&&!best;t2++){const e3=this.pways[Math.floor(Math.random()*this.pways.length)],s3=this.trnd(8,e3.L-8),pos=this.posAt(e3,s3);
+      if(this.nearNile(pos[0],pos[1],300)&&(t2>60||Math.hypot(pos[0]-pl.x,pos[1]-pl.z)>150))best={x:pos[0],z:pos[1],y:pos[2]||.06,d:Math.hypot(pos[0]-pl.x,pos[1]-pl.z)}}
+     if(!best){const ns=this.nileS[Math.floor(Math.random()*this.nileS.length)];let bd=1e18;
+      for(const e3 of this.pways){const pos=this.posAt(e3,e3.L/2),dx=pos[0]-ns[0],dz=pos[1]-ns[1],d2=dx*dx+dz*dz;if(d2<bd){bd=d2;best={x:pos[0],z:pos[1],y:pos[2]||.06,d:Math.hypot(pos[0]-pl.x,pos[1]-pl.z)}}}}}
+    else if(zn){let bc=null,bcd=1e18;
+     for(let t2=0;t2<80&&!best;t2++){const e3=this.pways[Math.floor(Math.random()*this.pways.length)],s3=this.trnd(8,e3.L-8),pos=this.posAt(e3,s3),dx=pos[0]-zn.x,dz=pos[1]-zn.z,d2=dx*dx+dz*dz,dd=Math.hypot(pos[0]-pl.x,pos[1]-pl.z);
+      if(d2<bcd){bcd=d2;bc={x:pos[0],z:pos[1],y:pos[2]||.06,d:dd}}
+      if(d2<zn.r*zn.r*.64&&(t2>60||dd>150))best={x:pos[0],z:pos[1],y:pos[2]||.06,d:dd}}
+     if(!best)best=bc&&bcd<zn.r*zn.r?bc:{x:zn.x,z:zn.z,y:.06,d:Math.hypot(zn.x-pl.x,zn.z-pl.z)}}
+    if(!best){for(let t2=0;t2<60;t2++){const e3=this.pways[Math.floor(Math.random()*this.pways.length)],s3=this.trnd(8,e3.L-8),pos=this.posAt(e3,s3);
      const dd=Math.hypot(pos[0]-pl.x,pos[1]-pl.z);if(dd>400&&dd<1600){best={x:pos[0],z:pos[1],y:pos[2]||.06,d:dd};break}}
-    if(!best)best={x:pl.x+600,z:pl.z+400,y:.06,d:721};
+     if(!best)best={x:pl.x+600,z:pl.z+400,y:.06,d:721}}
     fx.dst=best;fx.fare=10+Math.round(best.d*.045);
     if(fx.rush){fx.t=best.d/11+20;fx.fare=Math.round(fx.fare*1.5)}
     this.paxG.visible=false;this.bcnP.visible=false;this.bcnD.visible=true;
@@ -1084,6 +1096,59 @@ class RealMap{
     g.popup(this.pDn[Math.floor(Math.random()*this.pDn.length)]+' +'+fx.fare+' جنيه');g.audio.coin();
     this.bcnD.visible=false;this.paxPlace()}}
   const em=$('erMoney');if(em&&em.textContent!==String(g.coins))em.textContent=g.coins}
+ // ---------- v55: area depth - zones, landmarks, feluccas ----------
+ snapP(x,z){let bx=x,bz=z,bd=1e18;for(const e of this.pways){const p=e.w.p;for(let i=0;i<p.length;i++){const dx=p[i][0]-x,dz=p[i][1]-z,d2=dx*dx+dz*dz;if(d2<bd){bd=d2;bx=p[i][0];bz=p[i][1]}}}return{x:bx,z:bz,d:Math.sqrt(bd)}}
+ nearNile(x,z,r2){if(!this.nileS)return false;for(const s2 of this.nileS){const dx=x-s2[0],dz=z-s2[1];if(dx*dx+dz*dz<r2*r2)return true}return false}
+ areaBuild(){const pw=this.pways;if(!pw||!pw.length)return;
+  this.nileS=[];let lx=1e9,lz=1e9;for(const pl2 of this.data.n)for(let i=0;i<pl2.length/2;i++){const x=pl2[2*i]/10,z=pl2[2*i+1]/10,dx=x-lx,dz=z-lz;if(dx*dx+dz*dz>14400){this.nileS.push([x,z]);lx=x;lz=z}}
+  const Z=[['الزمالك',-800,600,1100],['المهندسين',-2700,1000,850],['الدقي',-1730,2430,700],['وسط البلد',554,1722,850],['الجيزة',-2080,5200,900],['الهرم',-7708,8069,1200],['إمبابة',-2213,-1662,800],['المعادي',2897,10500,900],['مدينة نصر',11260,980,1300],['مصر الجديدة',9640,-2990,1100],['عين شمس',6750,-6270,1000]];
+  this.zones=[{n:'كورنيش النيل',nile:true,r:0,x:0,z:0}];
+  for(const z2 of Z){const s2=this.snapP(z2[1],z2[2]);if(s2.d<900)this.zones.push({n:z2[0],x:s2.x,z:s2.z,r:z2[3]})}
+  this.arCur='';this.arPop=-99}
+ areaUpd(dt){this.arT=(this.arT||0)-dt;if(this.arT>0)return;this.arT=.5;
+  const pl=this.pl;let cur='';
+  for(const z2 of this.zones){if(z2.nile)continue;const dx=pl.x-z2.x,dz=pl.z-z2.z;if(dx*dx+dz*dz<z2.r*z2.r){cur=z2.n;break}}
+  if(!cur&&this.nearNile(pl.x,pl.z,240))cur='كورنيش النيل';
+  if(cur!==this.arCur){const was=this.arCur;this.arCur=cur;const e=$('erArea');
+   if(e){e.textContent=cur?'📍 '+cur:'';e.parentElement.style.display=cur?'':'none'}
+   const t=this.g.t;if(cur&&cur!==was&&t-this.arPop>8){this.arPop=t;this.g.popup('أنت في '+cur)}}}
+ feluBuild(){const lines=[];
+  for(const pl2 of this.data.n){const pts=[];let L=0;for(let i=0;i<pl2.length/2;i++){const x=pl2[2*i]/10,z=pl2[2*i+1]/10;if(i)L+=Math.hypot(x-pts[i-1][0],z-pts[i-1][1]);pts.push([x,z,L])}if(L>400)lines.push({p:pts,L})}
+  if(!lines.length)return;
+  const N2=this.low?4:7;
+  const hg=new T.BoxGeometry(1.3,.55,5.2);hg.translate(0,.3,0);
+  const hm2=this.flH=new T.InstancedMesh(hg,new T.MeshStandardMaterial({color:col(0x54402a),roughness:.9}),N2),
+   sm2=this.flS=new T.InstancedMesh(new T.CircleGeometry(3.1,3),new T.MeshStandardMaterial({color:col(0xf0ead8),roughness:.8,emissive:col(0x9a9484),emissiveIntensity:.4,side:T.DoubleSide}),N2);
+  hm2.frustumCulled=false;sm2.frustumCulled=false;
+  this.fl=[];for(let k=0;k<N2;k++){const e=lines[k%lines.length];this.fl.push({e,s:20+Math.random()*(e.L-40),dir:k%2?1:-1,v:1.1+Math.random()*.9})}
+  this.flO=new T.Object3D();this.scene.add(hm2,sm2)}
+ feluUpd(dt){const o=this.flO,t=this.g.t;
+  for(let k=0;k<this.fl.length;k++){const a=this.fl[k],e=a.e,p=e.p;a.s+=a.dir*a.v*dt;
+   if(a.s>e.L-15||a.s<15){a.s=cl(a.s,15,e.L-15);a.dir=-a.dir}
+   let lo=0,hi=p.length-1;while(lo<hi-1){const m2=(lo+hi)>>1;if(p[m2][2]<=a.s)lo=m2;else hi=m2}
+   const A=p[lo],B=p[lo+1],tt=cl((a.s-A[2])/((B[2]-A[2])||1e-6),0,1),x=A[0]+(B[0]-A[0])*tt,z=A[1]+(B[1]-A[1])*tt,h2=Math.atan2(B[0]-A[0],B[1]-A[1]);
+   const bob=Math.sin(t*.9+k*2.1)*.1,roll=Math.sin(t*.7+k*1.3)*.06;
+   o.rotation.set(0,h2,roll);o.scale.set(1,1,1);o.position.set(x,.28+bob,z);o.updateMatrix();this.flH.setMatrixAt(k,o.matrix);
+   o.rotation.set(0,h2+Math.PI/2,.42+roll);o.position.set(x,3+bob,z);o.updateMatrix();this.flS.setMatrixAt(k,o.matrix)}
+  this.flH.instanceMatrix.needsUpdate=true;this.flS.instanceMatrix.needsUpdate=true}
+ mosqueBuild(){const s2=this.snapP(-2704,1600);if(s2.d>900)return;
+  let mx=s2.x+30,mz=s2.z;
+  for(const c2 of[[30,0],[-30,0],[0,30],[0,-30],[26,26],[-26,-26],[26,-26],[-26,26]]){const u=this.query(s2.x+c2[0],s2.z+c2[1]);if(u&&u.d>u.hw+9){mx=s2.x+c2[0];mz=s2.z+c2[1];break}}
+  const g2=new T.Group(),stone=new T.MeshStandardMaterial({color:col(0xcfc3a8),roughness:.85,emissive:col(0x35301f),emissiveIntensity:.5});
+  const base=new T.Mesh(new T.BoxGeometry(26,10,20),stone);base.position.y=5;
+  const dome=new T.Mesh(new T.SphereGeometry(7,14,10,0,Math.PI*2,0,Math.PI/2),new T.MeshStandardMaterial({color:col(0x3f8a5a),roughness:.6,emissive:col(0x1f5a3a),emissiveIntensity:.8}));dome.position.y=10;
+  const m1=new T.Mesh(new T.CylinderGeometry(1.1,1.5,24,8),stone);m1.position.set(12,12,8);
+  const m3=new T.Mesh(new T.CylinderGeometry(1.1,1.5,24,8),stone);m3.position.set(-12,12,-8);
+  const tip=new T.MeshBasicMaterial({color:0x54ff9a,fog:false});
+  const t1=new T.Mesh(new T.SphereGeometry(.7,6,5),tip);t1.position.set(12,24.6,8);
+  const t2=new T.Mesh(new T.SphereGeometry(.7,6,5),tip);t2.position.set(-12,24.6,-8);
+  g2.add(base,dome,m1,m3,t1,t2);g2.position.set(mx,.06,mz);this.scene.add(g2);this.mosque=g2}
+ sphinxBuild(){const PX=-9230,PZ=8932;let px=PX+620,pz=PZ+40;
+  for(const c2 of[[620,40],[560,150],[500,-120],[680,220],[420,260]]){const u=this.query(PX+c2[0],PZ+c2[1]);if(!u||u.d>u.hw+8){px=PX+c2[0];pz=PZ+c2[1];break}}
+  const m2=new T.MeshStandardMaterial({color:col(0xcaa877),roughness:.9,emissive:col(0x3a2e18),emissiveIntensity:.9});
+  const body=new T.Mesh(new T.BoxGeometry(10,6,22),m2);body.position.y=3;
+  const head=new T.Mesh(new T.BoxGeometry(5.5,5.5,6),m2);head.position.set(0,7.5,9);
+  const g3=new T.Group();g3.add(body,head);g3.position.set(px,.06,pz);g3.rotation.y=Math.PI/2;this.scene.add(g3);this.sphinx=g3}
  // ---------- v53: the car dealership ----------
  dealerBuild(){const pw=this.pways;if(!pw||!pw.length)return;
   const sp2=this.spawn;let best=null,bd=1e9;
@@ -1131,7 +1196,7 @@ class RealMap{
   if(this.towerBc)this.towerBc.visible=Math.sin(this.g.t*2.4)>0;
   if(this.tlL){this.tlT=(this.tlT||0)+dt;if(this.tlT>5){this.tlT=0;this.tlP=!this.tlP;const cc=new T.Color();for(let k=0;k<this.tlN;k++)this.tlL.setColorAt(k,cc.set((k%2===0)===this.tlP?0xff3226:0x2fe06a));this.tlL.instanceColor.needsUpdate=true}}
   const p=this.pl,q=this.query(p.x,p.z);let ty=0;if(q){if(q.b&&q.d<q.hw+1.5)ty=q.y;else if(q.y>1&&q.d<q.hw+6)ty=q.y}
-  this.cy+=(ty-this.cy)*Math.min(1,5*dt);if(this.agM)this.trafficUpd(dt);if(this.pdM)this.pedUpd(dt);if(this.fx)this.fareUpd(dt);if(this.dlr)this.dealerUpd(dt)}
+  this.cy+=(ty-this.cy)*Math.min(1,5*dt);if(this.agM)this.trafficUpd(dt);if(this.pdM)this.pedUpd(dt);if(this.fx)this.fareUpd(dt);if(this.dlr)this.dealerUpd(dt);if(this.fl)this.feluUpd(dt);if(this.zones)this.areaUpd(dt)}
  sim(h){const g=this.g,p=this.pl,k=g.keys;let s=(k.right?1:0)-(k.left?1:0);if(g.opt.tilt&&matchMedia('(pointer:coarse)').matches)s=cl(s+(g.opt.inv?-1:1)*g.tilt/20,-1,1);s=cl(s+(g.wv||0),-1,1);
   const I={steer:s,thr:k.up?1:0,brk:k.down?1:0,hb:k.hb?1:0};p.grip=this.onRoad(p.x,p.z)?1:.85;if(p.dmg>=100)I.thr=0;
   p.step(h,I);const B=this.bounds;if(p.x<B.x0)p.x=B.x0;if(p.x>B.x1)p.x=B.x1;if(p.z<B.z0)p.z=B.z0;if(p.z>B.z1)p.z=B.z1}
