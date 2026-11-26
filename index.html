@@ -826,7 +826,7 @@ const col=h=>new T.Color(h).convertSRGBToLinear();
 const W2=[8,7,6,4.5,3.5],TINT=[[.06,.06,.075],[.065,.065,.08],[.07,.07,.085],[.075,.075,.09],[.08,.08,.095]],LH=8;
 class RealMap{
  constructor(g){this.g=g;this.on=false;this.built=false;this.cy=0;this.initMenu();
-  addEventListener('keydown',e=>{if(!this.on)return;if(e.code==='KeyC')this.g.view=this.g.view?0:1;if(e.code==='KeyM'&&this.mapZs)this.mapR=this.mapZs[this.mapZi=(this.mapZi+1)%this.mapZs.length];if(e.code==='KeyR'&&this.wx)this.wx.forced=this.wx.forced===null?!this.wx.on:!this.wx.forced})}
+  addEventListener('keydown',e=>{if(!this.on)return;if(e.code==='KeyC')this.g.view=this.g.view?0:1;if(e.code==='KeyM'&&this.mapZs)this.mapR=this.mapZs[this.mapZi=(this.mapZi+1)%this.mapZs.length];if(e.code==='KeyR'&&this.wx)this.wx.forced=this.wx.forced===null?!this.wx.on:!this.wx.forced;if(e.code==='KeyV')this.photoTg();if(this.photo&&this.photo.on){if(e.code==='KeyQ')this.photo.dist=Math.min(30,this.photo.dist*1.18);if(e.code==='KeyE')this.photo.dist=Math.max(3.5,this.photo.dist/1.18)}})}
  initMenu(){const m=document.querySelector('.modes-card');if(!m||$('realCard'))return;const c=document.createElement('div');c.className='card';c.id='realCard';
   c.innerHTML='<h2>طرق مصر</h2><p class="foot">قُد على طرقات القاهرة الحقيقية: من الزمالك على كوبري 6 أكتوبر لوسط البلد، وطريق الهرم لحد الأهرامات. بيانات الخريطة © OpenStreetMap contributors (ODbL)</p><button class="btn primary" id="realGo">قُد على كوبري أكتوبر</button>';m.parentNode.insertBefore(c,m);
   $('realGo').onclick=()=>{this.g.audio.init();this.start()}}
@@ -967,6 +967,17 @@ class RealMap{
    +'<div class="glass" style="position:absolute;bottom:calc(var(--sab) + 64px);left:50%;transform:translateX(-50%);padding:3px 14px;border-radius:12px"><small id="erFuel">⛽ 100%</small></div>';
    document.body.appendChild(h)}
   this.mapBuild();this.built=true}
+ // ---------- v62: photo mode (hide HUD, free orbit camera) ----------
+ photoTg(){if(!this.on)return;const g=this.g,ph=this.photo||(this.photo={on:false,yaw:0,pitch:.38,dist:9});
+  ph.on=!ph.on;
+  if(ph.on){ph.yaw=this.ch+Math.PI;ph.pitch=.38;ph.dist=9;
+   if(!$('erPhotoCss')){const st=document.createElement('style');st.id='erPhotoCss';st.textContent='#realHud,#svcP,#dealerP,#touch{display:none!important}';document.head.appendChild(st)}
+   g.keys={};g.popup('وضع التصوير 📸 الأسهم تلف بالكاميرا، Q/E زوم، V ترجع')}
+  else{const st=$('erPhotoCss');if(st)st.remove();g.popup('رجعنا للقيادة')}}
+ photoUpd(dt){const ph=this.photo,k=this.g.keys;
+  ph.yaw+=((k.right?1:0)-(k.left?1:0))*dt*1.9;
+  ph.pitch=cl(ph.pitch+((k.up?1:0)-(k.down?1:0))*dt*1.1,.06,1.35);
+  this.g.keys={}}
  // ---------- v61: service stops (fuel / wash / repair) ----------
  svcBuild(){const pw=this.pways;if(!pw||!pw.length)return;
   this.fuel=parseFloat(localStorage.getItem('er_fuel')||'100');if(isNaN(this.fuel))this.fuel=100;this.fuelWarn=false;this.svcOpen=false;this.svT=0;
@@ -1382,7 +1393,7 @@ class RealMap{
   if(!this.dlOpen&&dist<10&&pl.speed*3.6<8){this.dlOpen=true;this.g.keys={};this.dlI=this.g.sel;this.dlShow();$('dealerP').hidden=false;this.g.popup('أهلاً بيك في المعرض')}
   else if(this.dlOpen&&dist>16)this.dlClosePanel()}
  onRoad(x,z){const q=this.query(x,z);return q&&q.d<q.hw+2.5}
- update(dt){const n=Math.max(1,Math.min(8,Math.ceil(dt*120))),h=dt/n;for(let i=0;i<n;i++)this.sim(h);
+ update(dt){if(this.photo&&this.photo.on)this.photoUpd(dt);const n=Math.max(1,Math.min(8,Math.ceil(dt*120))),h=dt/n;for(let i=0;i<n;i++)this.sim(h);
   if(this.towerBc)this.towerBc.visible=Math.sin(this.g.t*2.4)>0;
   if(this.tlL){this.tlT=(this.tlT||0)+dt;if(this.tlT>5){this.tlT=0;this.tlP=!this.tlP;const cc=new T.Color();for(let k=0;k<this.tlN;k++)this.tlL.setColorAt(k,cc.set((k%2===0)===this.tlP?0xff3226:0x2fe06a));this.tlL.instanceColor.needsUpdate=true}}
   const p=this.pl,q=this.query(p.x,p.z);let ty=0;if(q){if(q.b&&q.d<q.hw+1.5)ty=q.y;else if(q.y>1&&q.d<q.hw+6)ty=q.y}
@@ -1393,7 +1404,8 @@ class RealMap{
  draw(dt){const g=this.g,w=g.world,p=this.pl,c=w.cam,sp=p.speed,wv=p.wv();g.wheelStep(dt);S.updCar(this.pcar,p,dt,1);this.pcar.g.position.y=this.cy;
   const lit=!!g.hl,ps=this.pcar;if(ps.spot)ps.spot.intensity=lit?3.5:0;ps.hl.emissiveIntensity=lit?4:.6;
   let ah=p.h;if(sp>5)ah=p.h+cl(wrap(Math.atan2(wv[0],wv[1])-p.h),-.6,.6)*.4;this.ch+=wrap(ah-this.ch)*(1-Math.exp(-7*dt));const sn=Math.sin(this.ch),cs=Math.cos(this.ch);let px,py,pz,lx,ly,lz,fov;
-  if(g.view===0){const dist=5.7+sp*.011;px=p.x-sn*dist;pz=p.z-cs*dist;py=this.cy+2+sp*.003;lx=p.x+sn*8;lz=p.z+cs*8;ly=this.cy+1.1;fov=58+Math.min(34,sp*.62)}
+  if(this.photo&&this.photo.on){const ph=this.photo,cp2=Math.cos(ph.pitch);px=p.x+Math.sin(ph.yaw)*cp2*ph.dist;pz=p.z+Math.cos(ph.yaw)*cp2*ph.dist;py=this.cy+.6+Math.sin(ph.pitch)*ph.dist;lx=p.x;lz=p.z;ly=this.cy+1;fov=55}
+  else if(g.view===0){const dist=5.7+sp*.011;px=p.x-sn*dist;pz=p.z-cs*dist;py=this.cy+2+sp*.003;lx=p.x+sn*8;lz=p.z+cs*8;ly=this.cy+1.1;fov=58+Math.min(34,sp*.62)}
   else{px=p.x+Math.sin(p.h)*.3;pz=p.z+Math.cos(p.h)*.3;py=this.cy+1.2;lx=p.x+Math.sin(p.h)*30;lz=p.z+Math.cos(p.h)*30;ly=this.cy+1.05;fov=68+Math.min(18,sp*.3)}
   this.bump*=Math.exp(-5*dt);const shk=(this.bump*.24+sp*.0009)*Math.sin(g.t*53);c.position.set(px,py+shk,pz);c.lookAt(lx,ly,lz);if(Math.abs(c.fov-fov)>.05){c.fov=fov;c.updateProjectionMatrix()}
   this.moon.position.set(p.x+40,120,p.z+30);this.moon.target.position.set(p.x,0,p.z);this.moon.target.updateMatrixWorld();
