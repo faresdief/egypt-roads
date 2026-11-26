@@ -12,7 +12,7 @@ class RealMap{
   c.innerHTML='<h2>طرق مصر</h2><p class="foot">قُد على طرقات القاهرة الحقيقية: من الزمالك على كوبري 6 أكتوبر لوسط البلد، وطريق الهرم لحد الأهرامات. بيانات الخريطة © OpenStreetMap contributors (ODbL)</p><button class="btn primary" id="realGo">قُد على كوبري أكتوبر</button>';m.parentNode.insertBefore(c,m);
   $('realGo').onclick=()=>{this.g.audio.init();this.g.radioRestore();this.start()}}
  async start(){const g=this.g;if(!g.world)return;
-  if(!this.data){try{const r=await fetch('realmap-data.json');this.data=await r.json()}catch(e){console.error(e);g.popup('بيانات الخريطة مش موجودة');return}}
+  if(!this.data){try{const r=await fetch('realmap/core.json');this.data=await r.json()}catch(e){console.error(e);g.popup('بيانات الخريطة مش موجودة');return}}
   if(!g.own[CARS[g.sel].id]){g.popup('العربية مقفولة');return}
   try{if(!this.built)this.build()}catch(e){console.error(e);g.popup('الخريطة مش متاحة على الجهاز ده');return}
   {const w=g.world;this.pm0=w.prMax;w.prMax=Math.min(w.prMax,matchMedia('(pointer:coarse)').matches?1.25:1.6);if(w.pr>w.prMax)w.setPR(w.prMax)}
@@ -35,15 +35,16 @@ class RealMap{
   const gnd=new T.Mesh(new T.PlaneGeometry(30000,24000),new T.MeshStandardMaterial({color:col(0x24231f),roughness:1}));gnd.rotation.x=-Math.PI/2;gnd.position.set(100,-.03,2600);gnd.receiveShadow=true;sc3.add(gnd);
   // decode ways to meter polylines with deck heights
   const ways=[];let bx0=1e9,bx1=-1e9,bz0=1e9,bz1=-1e9;
-  for(const w2 of this.data.w){const f=w2[4],n=f.length/2,pts=[];const H=w2[1]?Math.max(1,w2[2])*LH:0;
+  const decodeWay=w2=>{const f=w2[4],n=f.length/2,pts=[];const H=w2[1]?Math.max(1,w2[2])*LH:0;
    let L=0;const seg=[];for(let i=0;i<n;i++){const x=f[2*i]/10,z=f[2*i+1]/10;pts.push([x,z]);if(i)L+=Math.hypot(x-pts[i-1][0],z-pts[i-1][1]);seg.push(L)}
    for(let i=0;i<n;i++){const t=L?seg[i]/L:0,r=t<.5?Math.min(1,t/.12):Math.min(1,(1-t)/.12),s=r*r*(3-2*r);pts[i][2]=w2[1]?Math.max(.06,H*s):.06}
-   ways.push({c:w2[0],b:w2[1],p:pts});for(const q of pts){if(q[0]<bx0)bx0=q[0];if(q[0]>bx1)bx1=q[0];if(q[1]<bz0)bz0=q[1];if(q[1]>bz1)bz1=q[1]}}
-  this.ways=ways;this.bounds={x0:bx0-40,x1:bx1+40,z0:bz0-40,z1:bz1+40};
+   const o={c:w2[0],b:w2[1],p:pts};for(const q of pts){if(q[0]<bx0)bx0=q[0];if(q[0]>bx1)bx1=q[0];if(q[1]<bz0)bz0=q[1];if(q[1]>bz1)bz1=q[1]}return o};
+  for(const w2 of this.data.w)ways.push(decodeWay(w2));
+  this.ways=ways;this.decodeWay=decodeWay;{const DB=this.data.bounds;this.bounds=DB?{x0:Math.min(DB[0],bx0-40),x1:Math.max(DB[1],bx1+40),z0:Math.min(DB[2],bz0-40),z1:Math.max(DB[3],bz1+40)}:{x0:bx0-40,x1:bx1+40,z0:bz0-40,z1:bz1+40}}
   // v75: merged road ribbons per 6km chunk + dashes + piers per chunk; visibility ring around player
   const CH=6000;
   const cways=new Map();
-  for(const w2 of ways){const p=w2.p;
+  const cut=(wl,cways)=>{for(const w2 of wl){const p=w2.p;
    for(let i=0;i<p.length-1;i++){const a=p[i],b=p[i+1];
     if(Math.hypot(b[0]-a[0],b[1]-a[1])<.01)continue;
     const ts=[0,1];const x0=Math.min(a[0],b[0]),x1=Math.max(a[0],b[0]),z0=Math.min(a[1],b[1]),z1=Math.max(a[1],b[1]);
@@ -57,14 +58,14 @@ class RealMap{
      if(!cways.has(k))cways.set(k,[]);
      const L2=cways.get(k),last=L2.length?L2[L2.length-1]:null;
      if(last&&last.c===w2.c&&last.b===w2.b&&Math.hypot(last.p[last.p.length-1][0]-q0[0],last.p[last.p.length-1][1]-q0[1])<.01)last.p.push(q1);
-     else L2.push({c:w2.c,b:w2.b,p:[q0,q1]})}}}
+     else L2.push({c:w2.c,b:w2.b,p:[q0,q1]})}}}};cut(ways,cways);this.cut=cut;
   this.chunks=new Map();this.CH=CH;
   const quad=(P,N,C,I2,a,b,c2,d2,n2,t2)=>{const k=P.length/3;P.push(a[0],a[1],a[2],b[0],b[1],b[2],c2[0],c2[1],c2[2],d2[0],d2[1],d2[2]);for(let q2=0;q2<4;q2++){N.push(n2[0],n2[1],n2[2]);C.push(t2[0],t2[1],t2[2])}I2.push(k,k+2,k+1,k,k+3,k+2)};
   const mk=(P,N,C,I2,uv,U2,mat)=>{const gg=new T.BufferGeometry();gg.setAttribute('position',new T.Float32BufferAttribute(P,3));gg.setAttribute('normal',new T.Float32BufferAttribute(N,3));gg.setAttribute('color',new T.Float32BufferAttribute(C,3));if(uv)gg.setAttribute('uv',new T.Float32BufferAttribute(uv,2));gg.setIndex(I2);return new T.Mesh(gg,mat)};
   const roadMat=new T.MeshStandardMaterial({vertexColors:true,roughness:.85,metalness:.05,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1});this.roadM=roadMat;
   const dashMat=new T.MeshBasicMaterial({vertexColors:true,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
   const pierMat=new T.MeshStandardMaterial({color:col(0x55534e),roughness:.95});
-  for(const [ck,cwl] of cways){const rp=[],rn=[],rc=[],ri=[],dp=[],dn=[],du=[],dc=[],di=[];
+  const buildCh=(ck,cwl,store)=>{const rp=[],rn=[],rc=[],ri=[],dp=[],dn=[],du=[],dc=[],di=[];
    for(const w2 of cwl){const p=w2.p,hw=W2[w2.c],t2=TINT[w2.c];
     for(let i=0;i<p.length-1;i++){const a=p[i],b=p[i+1],dx=b[0]-a[0],dz=b[1]-a[1],L=Math.hypot(dx,dz);if(L<.01)continue;const nx=-dz/L,nz=dx/L,y0=a[2]||.06,y1=b[2]||.06;
      quad(rp,rn,rc,ri,[a[0]+nx*hw,y0,a[1]+nz*hw],[a[0]-nx*hw,y0,a[1]-nz*hw],[b[0]-nx*hw,y1,b[1]-nz*hw],[b[0]+nx*hw,y1,b[1]+nz*hw],[0,1,0],t2);
@@ -79,12 +80,14 @@ class RealMap{
      while(d2<L){const t=d2/L,y=a[2]+(b[2]-a[2])*t;if(y>3)prs.push([a[0]+(b[0]-a[0])*t,y,a[1]+(b[1]-a[1])*t]);d2+=35}acc=(acc+L)%35}}
    if(prs.length){const pi=new T.InstancedMesh(new T.BoxGeometry(3,1,3),pierMat,prs.length),o=new T.Object3D();
     prs.forEach((q2,i)=>{o.position.set(q2[0],q2[1]/2,q2[2]);o.scale.set(1,q2[1],1);o.updateMatrix();pi.setMatrixAt(i,o.matrix)});grp.add(pi)}
-   sc3.add(grp);this.chunks.set(ck,grp)}
+   sc3.add(grp);store.set(ck,grp);return grp};
+  for(const [ck,cwl] of cways)buildCh(ck,cwl,this.chunks);this.buildCh=buildCh;
   const cGrp=k=>{let g2=this.chunks.get(k);if(!g2){g2=new T.Group();this.chunks.set(k,g2);sc3.add(g2)}return g2};
   // spatial hash for onRoad + deck height
   const CS=25,hash=new Map(),key=(x,z)=>Math.floor(x/CS)+','+Math.floor(z/CS);
-  ways.forEach((w2,wi2)=>{const p=w2.p;for(let i=0;i<p.length-1;i++){const a=p[i],b=p[i+1];
-   for(let cx=Math.floor(Math.min(a[0],b[0])/CS);cx<=Math.floor(Math.max(a[0],b[0])/CS);cx++)for(let cz=Math.floor(Math.min(a[1],b[1])/CS);cz<=Math.floor(Math.max(a[1],b[1])/CS);cz++){const k=cx+','+cz;if(!hash.has(k))hash.set(k,[]);hash.get(k).push([wi2,i])}}});
+  const hashAdd=(w2,wi2)=>{const p=w2.p;for(let i=0;i<p.length-1;i++){const a=p[i],b=p[i+1];
+   for(let cx=Math.floor(Math.min(a[0],b[0])/CS);cx<=Math.floor(Math.max(a[0],b[0])/CS);cx++)for(let cz=Math.floor(Math.min(a[1],b[1])/CS);cz<=Math.floor(Math.max(a[1],b[1])/CS);cz++){const k=cx+','+cz;if(!hash.has(k))hash.set(k,[]);hash.get(k).push([wi2,i])}}};
+  ways.forEach(hashAdd);this.hashAdd=hashAdd;
   this.hash=hash;
   this.query=(x,z)=>{let best=null;for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++){const L2=this.hash.get(Math.floor(x/CS+dx)+','+Math.floor(z/CS+dz));if(!L2)continue;
    for(const q2 of L2){const w2=ways[q2[0]],p=w2.p,a=p[q2[1]],b=p[q2[1]+1],abx=b[0]-a[0],abz=b[1]-a[1],ll=abx*abx+abz*abz;if(ll<.001)continue;let t=((x-a[0])*abx+(z-a[1])*abz)/ll;t=cl(t,0,1);
@@ -109,8 +112,8 @@ class RealMap{
     const bs=new T.InstancedMesh(new T.BoxGeometry(1,1,1),bm,bpos.length),o2=new T.Object3D(),cc=new T.Color();
     bpos.forEach((b2,k)=>{o2.position.set(b2[0],b2[1]/2,b2[2]);o2.rotation.set(0,b2[5],0);o2.scale.set(b2[3],b2[1],b2[4]);o2.updateMatrix();bs.setMatrixAt(k,o2.matrix);cc.setRGB(b2[6],b2[6]*.97,b2[6]*.9);bs.setColorAt(k,cc)});
     o2.rotation.set(0,0,0);o2.scale.set(1,1,1);bs.receiveShadow=true;sc3.add(bs);this.nBld=bpos.length}}
-  {const lp=[];
-   for(const w2 of ways){if(w2.c>2)continue;const p=w2.p,hw=W2[w2.c];let side=1;
+  const mkLamps=(wl,grpOf)=>{const lp=[];
+   for(const w2 of wl){if(w2.c>2)continue;const p=w2.p,hw=W2[w2.c];let side=1;
     for(let i=0;i<p.length-1;i++){const a=p[i],b=p[i+1],L=Math.hypot(b[0]-a[0],b[1]-a[1]);if(L<20)continue;const dx=(b[0]-a[0])/L,dz=(b[1]-a[1])/L,nx=-dz,nz=dx;
      for(let d=27;d<L;d+=340){side=-side;if(rnd()<.75)continue;const t=d/L,y=(a[2]||.06)+((b[2]||.06)-(a[2]||.06))*t;
       lp.push([a[0]+(b[0]-a[0])*t+nx*(hw+1.2)*side,y,a[1]+(b[1]-a[1])*t+nz*(hw+1.2)*side,side,nx,nz])}}}
@@ -122,8 +125,9 @@ class RealMap{
      ll.forEach((q2,k2)=>{o2.rotation.set(0,0,0);o2.scale.set(1,1,1);o2.position.set(q2[0],q2[1]+3.75,q2[2]);o2.updateMatrix();pm2.setMatrixAt(k2,o2.matrix);
       o2.position.set(q2[0]-q2[4]*1.2*q2[3],q2[1]+7.4,q2[2]-q2[5]*1.2*q2[3]);o2.updateMatrix();hm2.setMatrixAt(k2,o2.matrix);
       o2.position.set(q2[0]-q2[4]*1.8*q2[3],q2[1]+.12,q2[2]-q2[5]*1.8*q2[3]);o2.rotation.set(-Math.PI/2,0,0);o2.scale.set(15,15,1);o2.updateMatrix();gm2.setMatrixAt(k2,o2.matrix)});
-     cGrp(k).add(pm2,hm2,gm2)}
-    o2.rotation.set(0,0,0);o2.scale.set(1,1,1)}}
+     grpOf(k).add(pm2,hm2,gm2)}
+    o2.rotation.set(0,0,0);o2.scale.set(1,1,1)}};
+  mkLamps(ways,cGrp);this.mkLamps=mkLamps;
   {const N2=750,pa=new Float32Array(N2*3);for(let q=0;q<N2;q++){const th=rnd()*6.283,ph=rnd()*.45+.05,r=8000;pa[q*3]=-2800+r*Math.cos(th)*Math.cos(ph);pa[q*3+1]=r*Math.sin(ph);pa[q*3+2]=2600+r*Math.sin(th)*Math.cos(ph)}
    const gg2=new T.BufferGeometry();gg2.setAttribute('position',new T.BufferAttribute(pa,3));
    const st=new T.Points(gg2,new T.PointsMaterial({color:0xafc4ee,size:2.4,sizeAttenuation:false,transparent:true,opacity:.8,fog:false,depthWrite:false}));st.frustumCulled=false;sc3.add(st);
@@ -772,7 +776,22 @@ class RealMap{
   if(!this.dlOpen&&dist<10&&pl.speed*3.6<8){this.dlOpen=true;this.g.keys={};this.dlI=this.g.sel;this.dlShow();$('dealerP').hidden=false;this.g.popup('أهلاً بيك في المعرض')}
   else if(this.dlOpen&&dist>16){this.dlClosePanel();const tp=$('tuneP');if(tp)tp.hidden=true}}
  onRoad(x,z){const q=this.query(x,z);return q&&q.d<q.hw+2.5}
- update(dt){if(this.chunks){this._rgT=(this._rgT||0)+dt;if(this._rgT>.4){this._rgT=0;const pcx=Math.floor(this.pl.x/this.CH),pcz=Math.floor(this.pl.z/this.CH);for(const [ck3,g2] of this.chunks){const cp=ck3.split(',');g2.visible=Math.abs(cp[0]-pcx)<=1&&Math.abs(cp[1]-pcz)<=1}}}if(this.photo&&this.photo.on)this.photoUpd(dt);const n=Math.max(1,Math.min(8,Math.ceil(dt*120))),h=dt/n;for(let i=0;i<n;i++)this.sim(h);
+ // v77: on-demand far regions (realmap/c_<kx>_<kz>.json, listed in core.json 'far'); built per 6km chunk when inside the ring, meshes freed beyond ring+1
+ farRing(pcx,pcz){const fk=this.data.far;if(!fk||!fk.length)return;if(!this.fch){this.fch=new Map();this.fdata=new Map();this.fbusy=new Set()}
+  for(const k of fk){const cp=k.split(','),dx=Math.abs(cp[0]-pcx),dz=Math.abs(cp[1]-pcz),g2=this.fch.get(k);
+   if(dx<=1&&dz<=1){if(g2)g2.visible=true;else if(!this.fbusy.has(k))this.farLoad(k)}
+   else if(g2&&(dx>2||dz>2))this.farFree(k)}}
+ async farLoad(k){this.fbusy.add(k);let wl=this.fdata.get(k);
+  try{if(!wl){const cp=k.split(',');const r=await fetch('realmap/c_'+cp[0]+'_'+cp[1]+'.json');if(!r.ok)throw new Error(r.status);const j=await r.json();wl=j.w.map(this.decodeWay);
+    const base=this.ways.length;wl.forEach((w2,i)=>{this.ways.push(w2);this.hashAdd(w2,base+i)});this.fdata.set(k,wl)}
+   if(!this.on||!this.scene){this.fbusy.delete(k);return}
+   const cw=new Map();this.cut(wl,cw);const grp=new T.Group();this.scene.add(grp);this.fch.set(k,grp);
+   for(const [ck,l2] of cw){const g2=this.buildCh(ck,l2,new Map());this.scene.remove(g2);grp.add(g2)}
+   const lg=new T.Group();grp.add(lg);{const nl=this.nLamp;this.mkLamps(wl,()=>lg);this.nLamp=nl}}
+  catch(e){console.error('far chunk',k,e)}
+  this.fbusy.delete(k)}
+ farFree(k){const g2=this.fch.get(k);if(!g2)return;this.scene.remove(g2);g2.traverse(o=>{if(o.geometry)o.geometry.dispose()});this.fch.delete(k)}
+ update(dt){if(this.chunks){this._rgT=(this._rgT||0)+dt;if(this._rgT>.4){this._rgT=0;const pcx=Math.floor(this.pl.x/this.CH),pcz=Math.floor(this.pl.z/this.CH);for(const [ck3,g2] of this.chunks){const cp=ck3.split(',');g2.visible=Math.abs(cp[0]-pcx)<=1&&Math.abs(cp[1]-pcz)<=1}this.farRing(pcx,pcz)}}if(this.photo&&this.photo.on)this.photoUpd(dt);const n=Math.max(1,Math.min(8,Math.ceil(dt*120))),h=dt/n;for(let i=0;i<n;i++)this.sim(h);
   if(this.towerBc)this.towerBc.visible=Math.sin(this.g.t*2.4)>0;
   if(this.tlL){this.tlT=(this.tlT||0)+dt;if(this.tlT>5){this.tlT=0;this.tlP=!this.tlP;const cc=new T.Color();for(let k=0;k<this.tlN;k++)this.tlL.setColorAt(k,cc.set((k%2===0)===this.tlP?0xff3226:0x2fe06a));this.tlL.instanceColor.needsUpdate=true}}
   const p=this.pl,q=this.query(p.x,p.z);let ty=0;if(q){if(q.b&&q.d<q.hw+1.5)ty=q.y;else if(q.y>1&&q.d<q.hw+6)ty=q.y}
