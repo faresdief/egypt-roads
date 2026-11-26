@@ -32,7 +32,7 @@ class RealMap{
   sc3.background=new T.Color(0x070b16);sc3.fog=new T.FogExp2(col(0x070b16),.0006);
   this.hemi=new T.HemisphereLight(col(0x7f94c8),col(0x1e2028),.7);sc3.add(this.hemi);
   this.moon=new T.DirectionalLight(col(0xa8bce8),.75);this.moon.castShadow=true;{const s=this.moon.shadow;s.mapSize.set(1024,1024);Object.assign(s.camera,{left:-55,right:55,top:55,bottom:-55,near:1,far:400});s.camera.updateProjectionMatrix();s.bias=-.0005;s.normalBias=.05}sc3.add(this.moon,this.moon.target);
-  const gnd=new T.Mesh(new T.PlaneGeometry(24000,24000),new T.MeshStandardMaterial({color:col(0x24231f),roughness:1}));gnd.rotation.x=-Math.PI/2;gnd.position.set(-2800,-.03,2600);gnd.receiveShadow=true;sc3.add(gnd);
+  const gnd=new T.Mesh(new T.PlaneGeometry(30000,24000),new T.MeshStandardMaterial({color:col(0x24231f),roughness:1}));gnd.rotation.x=-Math.PI/2;gnd.position.set(100,-.03,2600);gnd.receiveShadow=true;sc3.add(gnd);
   // decode ways to meter polylines with deck heights
   const ways=[];let bx0=1e9,bx1=-1e9,bz0=1e9,bz1=-1e9;
   for(const w2 of this.data.w){const f=w2[4],n=f.length/2,pts=[];const H=w2[1]?Math.max(1,w2[2])*LH:0;
