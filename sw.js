@@ -1,12 +1,12 @@
 // Service worker: cache-first for the game shell so it loads offline and fast.
-const CACHE = 'er-v28';
+const CACHE = 'er-v29';
 const ASSETS = [
  './',
  'index.html',
  'manifest.webmanifest',
  'icon.svg',
  'og-image.jpg',
- 'realmap-data.json',
+ 'realmap/core.json',
  'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'
 ];
 self.addEventListener('install', e => {
