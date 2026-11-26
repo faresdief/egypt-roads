@@ -846,7 +846,7 @@ const col=h=>new T.Color(h).convertSRGBToLinear();
 const W2=[8,7,6,4.5,3.5],TINT=[[.06,.06,.075],[.065,.065,.08],[.07,.07,.085],[.075,.075,.09],[.08,.08,.095]],LH=8;
 class RealMap{
  constructor(g){this.g=g;this.on=false;this.built=false;this.cy=0;this.initMenu();
-  addEventListener('keydown',e=>{if(!this.on)return;if(e.code==='KeyC')this.g.view=this.g.view?0:1;if(e.code==='KeyM'&&this.mapZs)this.mapR=this.mapZs[this.mapZi=(this.mapZi+1)%this.mapZs.length];if(e.code==='KeyR'&&this.wx)this.wx.forced=this.wx.forced===null?!this.wx.on:!this.wx.forced;if(e.code==='KeyX'&&this.chain&&this.chain.on){this.chain.on=false;this.chain.cd=40;this.g.popup('لغيت السلسلة.. الشغل العادي رجع')}if(e.code==='KeyV')this.photoTg();if(this.photo&&this.photo.on){if(e.code==='KeyQ')this.photo.dist=Math.min(30,this.photo.dist*1.18);if(e.code==='KeyE')this.photo.dist=Math.max(3.5,this.photo.dist/1.18)}})}
+  addEventListener('keydown',e=>{if(!this.on)return;if(e.code==='KeyC'){if(this.photo&&this.photo.on)this.photoCap();else this.g.view=this.g.view?0:1}if(e.code==='KeyM'&&this.mapZs)this.mapR=this.mapZs[this.mapZi=(this.mapZi+1)%this.mapZs.length];if(e.code==='KeyR'&&this.wx)this.wx.forced=this.wx.forced===null?!this.wx.on:!this.wx.forced;if(e.code==='KeyX'&&this.chain&&this.chain.on){this.chain.on=false;this.chain.cd=40;this.g.popup('لغيت السلسلة.. الشغل العادي رجع')}if(e.code==='KeyV')this.photoTg();if(this.photo&&this.photo.on){if(e.code==='KeyQ')this.photo.dist=Math.min(30,this.photo.dist*1.18);if(e.code==='KeyE')this.photo.dist=Math.max(3.5,this.photo.dist/1.18)}})}
  initMenu(){const m=document.querySelector('.modes-card');if(!m||$('realCard'))return;const c=document.createElement('div');c.className='card';c.id='realCard';
   c.innerHTML='<h2>طرق مصر</h2><p class="foot">قُد على طرقات القاهرة الحقيقية: من الزمالك على كوبري 6 أكتوبر لوسط البلد، وطريق الهرم لحد الأهرامات. بيانات الخريطة © OpenStreetMap contributors (ODbL)</p><button class="btn primary" id="realGo">قُد على كوبري أكتوبر</button>';m.parentNode.insertBefore(c,m);
   $('realGo').onclick=()=>{this.g.audio.init();this.g.radioRestore();this.start()}}
@@ -1040,8 +1040,19 @@ class RealMap{
   ph.on=!ph.on;
   if(ph.on){ph.yaw=this.ch+Math.PI;ph.pitch=.38;ph.dist=9;
    if(!$('erPhotoCss')){const st=document.createElement('style');st.id='erPhotoCss';st.textContent='#realHud,#svcP,#dealerP,#tuneP,#touch{display:none!important}';document.head.appendChild(st)}
-   g.keys={};g.popup('وضع التصوير 📸 الأسهم تلف بالكاميرا، Q/E زوم، V ترجع')}
-  else{const st=$('erPhotoCss');if(st)st.remove();g.popup('رجعنا للقيادة')}}
+   if(!$('photoUI')){const d=document.createElement('div');d.id='photoUI';d.style.cssText='position:fixed;bottom:18px;left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:60';
+    const mk=(t,fn)=>{const b=document.createElement('button');b.textContent=t;b.style.cssText='background:#1c2340e0;color:#fff;border:1px solid #4a5588;border-radius:12px;padding:10px 18px;font-size:16px;font-family:inherit;cursor:pointer';b.onclick=fn;return b};
+    d.appendChild(mk('التقط 📸',()=>this.photoCap()));d.appendChild(mk('خروج',()=>this.photoTg()));document.body.appendChild(d)}
+   $('photoUI').hidden=false;
+   g.keys={};g.popup('وضع التصوير 📸 الأسهم تلف، Q/E زوم، C للقطة، V ترجع')}
+  else{const st=$('erPhotoCss');if(st)st.remove();const u=$('photoUI');if(u)u.hidden=true;g.popup('رجعنا للقيادة')}}
+ photoCap(){const g=this.g,w=g.world,ph=this.photo;if(!ph||!ph.on)return;
+  w.r.render(this.scene,w.cam);let url;try{url=w.r.domElement.toDataURL('image/png')}catch(e){g.popup('اللقطة معندتش');return}
+  const a=document.createElement('a');a.download='طرق-مصر-'+Date.now()+'.png';a.href=url;document.body.appendChild(a);a.click();a.remove();
+  g.audio.flash();g.audio.nz(.12,.2,4000,.6);
+  if(!$('photoFlash')){const f=document.createElement('div');f.id='photoFlash';f.style.cssText='position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .45s;z-index:70';document.body.appendChild(f)}
+  const f=$('photoFlash');f.style.transition='none';f.style.opacity=.85;requestAnimationFrame(()=>{f.style.transition='opacity .45s';f.style.opacity=0});
+  g.popup('اتخزنت اللقطة 📸')}
  photoUpd(dt){const ph=this.photo,k=this.g.keys;
   ph.yaw+=((k.right?1:0)-(k.left?1:0))*dt*1.9;
   ph.pitch=cl(ph.pitch+((k.up?1:0)-(k.down?1:0))*dt*1.1,.06,1.35);
@@ -1603,8 +1614,8 @@ class Game{
   this.initChase();this.bind();this.applyLow();this.initUp();try{if(S.Roam)this.roam=new S.Roam(this)}catch(e){console.error(e)}try{if(S.RealMap)this.real=new S.RealMap(this)}catch(e){console.error(e)}try{restyleMenu(this)}catch(e){console.error(e)}this.pick(0);this.setAtm(0);this.chalFromUrl();$('modeNote').textContent=NOTE.race;this.last=performance.now();requestAnimationFrame(t=>this.loop(t))}
  bind(){const A=(s,f)=>document.querySelectorAll(s).forEach(f);
   addEventListener('keydown',e=>{if(e.target&&e.target.tagName==='INPUT')return;this.audio.init();const k=KM[e.code];if(k){this.keys[k]=true;e.preventDefault();return}
-   switch(e.code){case'KeyH':this.audio.horn();break;case'KeyL':this.hl=!this.hl;$('bLight').classList.toggle('on',this.hl);break;case'KeyM':this.toggleM();break;case'KeyR':this.radioNext();break;case'KeyN':this.setAtm(1);break;case'KeyC':this.view^=1;break;case'KeyT':this.recover();break;
-    case'KeyE':if(this.pl)this.pl.shift(1);break;case'KeyQ':if(this.pl)this.pl.shift(-1);break;case'KeyP':case'Escape':if(this.paused)this.resume();else this.pause();break;case'KeyR':if(this.state==='REAL')this.real.restart();else if(this.state!=='MENU'){this.real?this.real.restart():this.start()}break;case'Enter':if(this.state==='MENU'&&document.activeElement.tagName!=='BUTTON'){if(this.real)this.real.start();else this.start()}}});
+   switch(e.code){case'KeyH':this.audio.horn();break;case'KeyL':this.hl=!this.hl;$('bLight').classList.toggle('on',this.hl);break;case'KeyM':this.toggleM();break;case'KeyR':this.radioNext();break;case'KeyN':this.setAtm(1);break;case'KeyC':if(this.state!=='REAL')this.view^=1;break;case'KeyT':this.recover();break;
+    case'KeyE':if(this.pl&&!(this.state==='REAL'&&this.real&&this.real.photo&&this.real.photo.on))this.pl.shift(1);break;case'KeyQ':if(this.pl&&!(this.state==='REAL'&&this.real&&this.real.photo&&this.real.photo.on))this.pl.shift(-1);break;case'KeyP':case'Escape':if(this.paused)this.resume();else this.pause();break;case'KeyR':if(this.state==='REAL')this.real.restart();else if(this.state!=='MENU'){this.real?this.real.restart():this.start()}break;case'Enter':if(this.state==='MENU'&&document.activeElement.tagName!=='BUTTON'){if(this.real)this.real.start();else this.start()}}});
   addEventListener('keyup',e=>{const k=KM[e.code];if(k)this.keys[k]=false});addEventListener('pointerdown',()=>this.audio.init());
   document.addEventListener('visibilitychange',()=>{if(document.hidden)this.pause()});
   A('#touch [data-k]',b=>{const k=b.dataset.k,up=()=>{b.classList.remove('dn');this.keys[k]=false};
