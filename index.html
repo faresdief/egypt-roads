@@ -826,7 +826,7 @@ const col=h=>new T.Color(h).convertSRGBToLinear();
 const W2=[8,7,6,4.5,3.5],TINT=[[.06,.06,.075],[.065,.065,.08],[.07,.07,.085],[.075,.075,.09],[.08,.08,.095]],LH=8;
 class RealMap{
  constructor(g){this.g=g;this.on=false;this.built=false;this.cy=0;this.initMenu();
-  addEventListener('keydown',e=>{if(!this.on)return;if(e.code==='KeyC')this.g.view=this.g.view?0:1})}
+  addEventListener('keydown',e=>{if(!this.on)return;if(e.code==='KeyC')this.g.view=this.g.view?0:1;if(e.code==='KeyM'&&this.mapZs)this.mapR=this.mapZs[this.mapZi=(this.mapZi+1)%this.mapZs.length]})}
  initMenu(){const m=document.querySelector('.modes-card');if(!m||$('realCard'))return;const c=document.createElement('div');c.className='card';c.id='realCard';
   c.innerHTML='<h2>طرق مصر</h2><p class="foot">قُد على طرقات القاهرة الحقيقية: من الزمالك على كوبري 6 أكتوبر لوسط البلد، وطريق الهرم لحد الأهرامات. بيانات الخريطة © OpenStreetMap contributors (ODbL)</p><button class="btn primary" id="realGo">قُد على كوبري أكتوبر</button>';m.parentNode.insertBefore(c,m);
   $('realGo').onclick=()=>{this.g.audio.init();this.start()}}
@@ -960,9 +960,35 @@ class RealMap{
    +'<div class="glass" id="erFare" style="position:absolute;top:calc(var(--sat) + 10px);inset-inline-end:10px;padding:6px 14px;border-radius:14px"><small>دور على راكب يا كابتن</small></div>'
    +'<div class="glass" style="position:absolute;top:calc(var(--sat) + 48px);left:50%;transform:translateX(-50%);padding:3px 14px;border-radius:12px;display:none"><small id="erArea"></small></div>'
    +'<div class="glass" id="erMsnW" style="position:absolute;top:calc(var(--sat) + 48px);inset-inline-end:10px;padding:3px 14px;border-radius:12px;display:none"><small id="erMsn"></small></div>'
-   +'<div class="glass" style="position:absolute;top:calc(var(--sat) + 86px);inset-inline-end:10px;padding:3px 14px;border-radius:12px;display:none"><small id="erRad"></small></div>';
+   +'<div class="glass" style="position:absolute;top:calc(var(--sat) + 86px);inset-inline-end:10px;padding:3px 14px;border-radius:12px;display:none"><small id="erRad"></small></div>'
+   +'<canvas id="erMap" width="176" height="176" style="position:absolute;bottom:calc(var(--sab) + 12px);inset-inline-end:10px;border-radius:50%;opacity:.94"></canvas>';
    document.body.appendChild(h)}
-  this.built=true}
+  this.mapBuild();this.built=true}
+ // ---------- v58: minimap / GPS ----------
+ mapBuild(){this.mapZs=[250,450,900];this.mapZi=1;this.mapR=450;this.mapAcc=1;
+  const cv=$('erMap');if(!cv)return;this.map={cv,ctx:cv.getContext('2d')}}
+ mapUpd(dt){this.mapAcc+=dt;if(this.mapAcc<(this.low?.2:.11))return;this.mapAcc=0;this.mapDraw()}
+ mapDraw(){const ctx=this.map.ctx,C=88,R=this.mapR,k=C/R,pl=this.pl,h=pl.h,ch=Math.cos(h),sh=Math.sin(h);
+  ctx.clearRect(0,0,176,176);ctx.save();ctx.beginPath();ctx.arc(C,C,C-1,0,6.2832);ctx.clip();
+  ctx.fillStyle='rgba(8,12,26,.84)';ctx.fillRect(0,0,176,176);
+  const RR=(R+90)*(R+90),X=(x,z)=>C+((x-pl.x)*ch-(z-pl.z)*sh)*k,Y=(x,z)=>C-((x-pl.x)*sh+(z-pl.z)*ch)*k;
+  ctx.lineCap='round';const maj=new Path2D(),min=new Path2D();
+  for(const w2 of this.ways){const p=w2.p,pa=W2[w2.c]>=6?maj:min;let pen=false;
+   for(let i=0;i<p.length;i++){const dx=p[i][0]-pl.x,dz=p[i][1]-pl.z;if(dx*dx+dz*dz<RR){const X2=X(p[i][0],p[i][1]),Y2=Y(p[i][0],p[i][1]);if(pen)pa.lineTo(X2,Y2);else pa.moveTo(X2,Y2);pen=true}else pen=false}}
+  ctx.strokeStyle='rgba(92,102,138,.55)';ctx.lineWidth=1.2;ctx.stroke(min);
+  ctx.strokeStyle='rgba(158,178,220,.8)';ctx.lineWidth=2.3;ctx.stroke(maj);
+  const np=new Path2D();for(const pl2 of this.data.n){let pen=false;for(let i=0;i<pl2.length/2;i++){const x=pl2[2*i]/10,z=pl2[2*i+1]/10,dx=x-pl.x,dz=z-pl.z;if(dx*dx+dz*dz<RR){const X2=X(x,z),Y2=Y(x,z);if(pen)np.lineTo(X2,Y2);else np.moveTo(X2,Y2);pen=true}else pen=false}}
+  ctx.strokeStyle='rgba(44,116,196,.9)';ctx.lineWidth=4.5;ctx.stroke(np);
+  const pin=(x,z,c2,r2)=>{let X2=X(x,z),Y2=Y(x,z);const ox=X2-C,oy=Y2-C,od=Math.hypot(ox,oy),mx=C-9;if(od>mx){X2=C+ox/od*mx;Y2=C+oy/od*mx}ctx.fillStyle=c2;ctx.beginPath();ctx.arc(X2,Y2,r2,0,6.2832);ctx.fill()};
+  for(const r2 of this.rd){const dx=r2.x-pl.x,dz=r2.z-pl.z;if(dx*dx+dz*dz<RR)pin(r2.x,r2.z,'#ff5a4e',2.6)}
+  const fx=this.fx;if(fx){if(fx.st===0)pin(fx.pax.x,fx.pax.z,'#35e08a',4);else if(fx.dst)pin(fx.dst.x,fx.dst.z,'#ffb02e',4.5)}
+  if(this.ms&&this.ms.st===1)pin(this.ms.x,this.ms.z,'#c77dff',4);
+  if(this.dlr)pin(this.dlr.x,this.dlr.z,'#7ec8ff',3.5);
+  ctx.fillStyle='#ffd75e';ctx.strokeStyle='rgba(0,0,0,.5)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(C,C-7);ctx.lineTo(C-4.6,C+5.4);ctx.lineTo(C+4.6,C+5.4);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.fillStyle='rgba(255,255,255,.85)';ctx.font='bold 10px sans-serif';ctx.textAlign='center';ctx.fillText('\u0634',C+sh*(C-13),C+ch*(C-13)+3.5);
+  ctx.fillStyle='rgba(255,255,255,.5)';ctx.font='9px sans-serif';ctx.fillText(R+' \u0645',C,169);
+  ctx.restore();
+  ctx.strokeStyle='rgba(255,255,255,.22)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(C,C,C-1,0,6.2832);ctx.stroke()}
  // ---------- v46: ambient traffic on the real roads ----------
  posAt(e,s){const c=e.cum,p=e.w.p;let lo=0,hi=c.length-1;while(lo<hi-1){const m=(lo+hi)>>1;if(c[m]<=s)lo=m;else hi=m}const t=cl((s-c[lo])/((c[lo+1]-c[lo])||1e-6),0,1),a=p[lo],b=p[lo+1];return[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,((a[2]||.06)+((b[2]||.06)-(a[2]||.06))*t)]}
  trafficBuild(){const tw=[];for(const w2 of this.ways){if(w2.c>4)continue;let L=0;const cum=[0];for(let k=1;k<w2.p.length;k++){L+=Math.hypot(w2.p[k][0]-w2.p[k-1][0],w2.p[k][1]-w2.p[k-1][1]);cum.push(L)}if(L>150)tw.push({w:w2,L,cum})}
@@ -1276,7 +1302,7 @@ class RealMap{
   if(this.towerBc)this.towerBc.visible=Math.sin(this.g.t*2.4)>0;
   if(this.tlL){this.tlT=(this.tlT||0)+dt;if(this.tlT>5){this.tlT=0;this.tlP=!this.tlP;const cc=new T.Color();for(let k=0;k<this.tlN;k++)this.tlL.setColorAt(k,cc.set((k%2===0)===this.tlP?0xff3226:0x2fe06a));this.tlL.instanceColor.needsUpdate=true}}
   const p=this.pl,q=this.query(p.x,p.z);let ty=0;if(q){if(q.b&&q.d<q.hw+1.5)ty=q.y;else if(q.y>1&&q.d<q.hw+6)ty=q.y}
-  this.cy+=(ty-this.cy)*Math.min(1,5*dt);if(this.agM)this.trafficUpd(dt);if(this.pdM)this.pedUpd(dt);if(this.fx)this.fareUpd(dt);if(this.dlr)this.dealerUpd(dt);if(this.fl)this.feluUpd(dt);if(this.zones)this.areaUpd(dt);if(this.ms)this.msUpd(dt);if(this.rd)this.rdrUpd(dt)}
+  this.cy+=(ty-this.cy)*Math.min(1,5*dt);if(this.agM)this.trafficUpd(dt);if(this.pdM)this.pedUpd(dt);if(this.fx)this.fareUpd(dt);if(this.dlr)this.dealerUpd(dt);if(this.fl)this.feluUpd(dt);if(this.zones)this.areaUpd(dt);if(this.ms)this.msUpd(dt);if(this.rd)this.rdrUpd(dt);if(this.map)this.mapUpd(dt)}
  sim(h){const g=this.g,p=this.pl,k=g.keys;let s=(k.right?1:0)-(k.left?1:0);if(g.opt.tilt&&matchMedia('(pointer:coarse)').matches)s=cl(s+(g.opt.inv?-1:1)*g.tilt/20,-1,1);s=cl(s+(g.wv||0),-1,1);
   const I={steer:s,thr:k.up?1:0,brk:k.down?1:0,hb:k.hb?1:0};p.grip=this.onRoad(p.x,p.z)?1:.85;if(p.dmg>=100)I.thr=0;
   p.step(h,I);const B=this.bounds;if(p.x<B.x0)p.x=B.x0;if(p.x>B.x1)p.x=B.x1;if(p.z<B.z0)p.z=B.z0;if(p.z>B.z1)p.z=B.z1}
