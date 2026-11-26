@@ -793,7 +793,7 @@ function mul32(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a)
 function winTex(){const rn=mul32(11);const e=document.createElement('canvas');e.width=e.height=256;const y=e.getContext('2d');y.fillStyle='#000';y.fillRect(0,0,256,256);
   const t=ctex(256,256,(x,w,h)=>{x.fillStyle='#8f8a82';x.fillRect(0,0,w,h);for(let i=0;i<1800;i++){x.fillStyle='rgba('+(rn()<.5?'0,0,0':'255,255,255')+',.05)';x.fillRect(rn()*w,rn()*h,2,2)}
     const lit=['#ffd98a','#ffe9b8','#ffc46b','#bfe0ff','#ffd98a'];for(let r=0;r<4;r++)for(let q=0;q<4;q++){const px=22+q*58,py=22+r*58;x.fillStyle='#1b222c';x.fillRect(px,py,34,36);x.fillStyle='#46525f';x.fillRect(px,py,34,4);x.fillRect(px+16,py,2,36);
-      if(rn()<.45){y.fillStyle=lit[Math.floor(rn()*lit.length)];y.fillRect(px+1,py+4,32,32)}}});
+      if(rn()<.62){y.fillStyle=lit[Math.floor(rn()*lit.length)];y.fillRect(px+1,py+4,32,32)}}});
   const em=new T.CanvasTexture(e);em.encoding=T.sRGBEncoding;em.wrapS=em.wrapT=T.RepeatWrapping;em.anisotropy=4;return{map:t,em}}
 function glowTex(){const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d'),g=x.createRadialGradient(32,32,1,32,32,31);g.addColorStop(0,'rgba(255,190,110,.9)');g.addColorStop(.4,'rgba(255,160,70,.3)');g.addColorStop(1,'rgba(255,140,60,0)');x.fillStyle=g;x.fillRect(0,0,64,64);const t=new T.CanvasTexture(c);t.encoding=T.sRGBEncoding;return t}
 S.winTex=winTex;S.glowTex=glowTex;})(window.SS=window.SS||{});
@@ -847,18 +847,33 @@ const W2=[8,7,6,4.5,3.5],TINT=[[.06,.06,.075],[.065,.065,.08],[.07,.07,.085],[.0
 class RealMap{
  constructor(g){this.g=g;this.on=false;this.built=false;this.cy=0;this.initMenu();
   addEventListener('keydown',e=>{if(!this.on)return;if(e.code==='KeyC'){if(this.photo&&this.photo.on)this.photoCap();else this.g.view=this.g.view?0:1}if(e.code==='KeyM'&&this.mapZs)this.mapR=this.mapZs[this.mapZi=(this.mapZi+1)%this.mapZs.length];if(e.code==='KeyR'&&this.wx)this.wx.forced=this.wx.forced===null?!this.wx.on:!this.wx.forced;if(e.code==='KeyX'&&this.chain&&this.chain.on){this.chain.on=false;this.chain.cd=40;this.g.popup('لغيت السلسلة.. الشغل العادي رجع')}if(e.code==='KeyV')this.photoTg();if(this.photo&&this.photo.on){if(e.code==='KeyQ')this.photo.dist=Math.min(30,this.photo.dist*1.18);if(e.code==='KeyE')this.photo.dist=Math.max(3.5,this.photo.dist/1.18)}})}
- // v78: Egyptian street look - building palettes (beige/ochre/pink/blue/green/white, unfinished concrete + red brick), balconies, rooftop water tanks, rebar, Arabic shop signs. Separate hash PRNG so building layout (rnd stream) is unchanged.
+ // v78: Egyptian street look - per-district building sets (3 types each, repeated), palettes, balconies, rooftop tanks, rebar, cornices, Arabic shop signs. Separate hash PRNG so the building layout (rnd stream) is unchanged.
  bldR(i,k){const v=Math.sin(i*12.9898+k*78.233)*43758.5453;return v-Math.floor(v)}
- bldPal(i){const r=this.bldR(i,1),P=[[1,.95,.82],[1,.85,.62],[1,.8,.8],[.82,.9,1],[.84,.96,.84],[1,1,1],[.72,.74,.76],[.95,.58,.46]],W=[.26,.14,.08,.08,.07,.1,.14,.13];let a=0;for(let j=0;j<8;j++){a+=W[j];if(r<a)return P[j]}return P[0]}
+ bldPal(i){return this.bi?this.bi[i].c:[1,1,1]}
+ bldTypes(bp){
+  // palettes: 0 beige 1 ochre 2 pink 3 sky 4 green 5 white 6 grey concrete 7 red brick 8 terracotta 9 cream-yellow 10 teal
+  const P=[[1,.95,.82],[1,.85,.62],[1,.8,.8],[.82,.9,1],[.84,.96,.84],[1,1,1],[.72,.74,.76],[.95,.58,.46],[1,.7,.5],[1,.96,.7],[.7,.95,.92]];
+  const D=[ // [x,z,r, types:[{p,hs,bal,tk,sg,cor,unf}]]
+   [-800,600,1100,[{p:[9],hs:.55,bal:1,tk:0,sg:.04,cor:1},{p:[1],hs:.7,bal:1,tk:0,sg:.06,cor:1},{p:[5],hs:.95,bal:.9,tk:.2,sg:.08,cor:1}]],
+   [2897,10500,900,[{p:[5],hs:.45,bal:.5,tk:.1,sg:.04,cor:2},{p:[4],hs:.5,bal:.6,tk:.1,sg:.04,cor:2},{p:[8],hs:.6,bal:.6,tk:.15,sg:.05,cor:2}]],
+   [11260,980,1300,[{p:[6],hs:1.25,bal:.9,tk:.4,sg:.3,cor:0},{p:[0],hs:1.1,bal:1,tk:.6,sg:.5,cor:0},{p:[3],hs:1.2,bal:.8,tk:.5,sg:.35,cor:0}]],
+   [9640,-2990,1100,[{p:[2],hs:.9,bal:.9,tk:.2,sg:.6,cor:1},{p:[1],hs:.85,bal:.9,tk:.2,sg:.6,cor:1},{p:[9],hs:.95,bal:.8,tk:.3,sg:.5,cor:1}]],
+   [6750,-6270,1000,[{p:[7],hs:.8,bal:.1,tk:.7,sg:.5,cor:0,unf:1},{p:[6],hs:.9,bal:.1,tk:.7,sg:.45,cor:0,unf:1},{p:[9],hs:.7,bal:.5,tk:.7,sg:.5,cor:0}]]];
+  const DEF=[{p:[0,5,1],hs:1,bal:.6,tk:.55,sg:.38,cor:0},{p:[2,3,4],hs:1,bal:.6,tk:.55,sg:.38,cor:0},{p:[6,7,0],hs:1,bal:.2,tk:.6,sg:.35,cor:0,unf:1}];
+  this.bi=bp.map((b,i)=>{let T3=DEF,best=1e18;for(const d of D){const dd=Math.hypot(b[0]-d[0],b[2]-d[1]);if(dd<d[2]&&dd<best){best=dd;T3=d[3]}}
+   const ty=T3[Math.floor(this.bldR(i,40)*3)%3],pi=ty.p[Math.floor(this.bldR(i,41)*ty.p.length)%ty.p.length],jit=.94+this.bldR(i,42)*.12;
+   const c=P[pi].map(v=>Math.min(1,v*jit));b[1]=Math.max(8,Math.min(72,b[1]*ty.hs));return{c,ty,unf:!!ty.unf||pi===7||pi===6&&this.bldR(i,43)<.5}})}
  bldDeco(bp,cGrp,CH){const R=(i,k)=>this.bldR(i,k),bx=new Map(),sg=new Map();
   const add=(m,k,v)=>{if(!m.has(k))m.set(k,[]);m.get(k).push(v)};
-  bp.forEach((b,i)=>{const[x,h,z,w3,dep,ang,br,sd,nx,nz]=b;if(sd===undefined)return;const key=Math.floor(x/CH)+','+Math.floor(z/CH),dx=Math.sin(ang),dz=Math.cos(ang),fx=-sd*nx,fz=-sd*nz,pi=this.bldPal(i),unf=pi[0]<.75||pi[2]<.5;
+  bp.forEach((b,i)=>{const[x,h,z,w3,dep,ang,br,sd,nx,nz]=b;if(sd===undefined)return;const key=Math.floor(x/CH)+','+Math.floor(z/CH),dx=Math.sin(ang),dz=Math.cos(ang),fx=-sd*nx,fz=-sd*nz,I=this.bi[i],ty=I.ty,unf=I.unf,ca=Math.cos(ang),sa=Math.sin(ang);
    const fl=Math.floor(h/3.2);
-   if(!unf&&h>11&&R(i,2)<.6){const nb=1+Math.floor(R(i,3)*3);for(let q=0;q<nb;q++){const f=1+Math.floor(R(i,4+q)*Math.max(1,fl-1)),off=(R(i,9+q)-.5)*Math.max(0,dep-3),c=.18+R(i,13+q)*.14;
+   if(!unf&&h>10&&R(i,2)<ty.bal){const nb=1+Math.floor(R(i,3)*3)+(ty.hs>1.1?1:0);for(let q=0;q<nb;q++){const f=1+Math.floor(R(i,4+q)*Math.max(1,fl-1)),off=(R(i,9+q)-.5)*Math.max(0,dep-3),c=.28+R(i,13+q)*.16;
      add(bx,key,[x+fx*(w3/2+.55)+dx*off,f*3.2+1.1,z+fz*(w3/2+.55)+dz*off,1.1,.26,2.4+R(i,17+q)*1.4,ang,c,c*.97,c*.9])}}
-   if(h>9&&R(i,21)<.55){const ox=(R(i,22)-.5)*w3*.5,oz=(R(i,23)-.5)*dep*.5,ca=Math.cos(ang),sa=Math.sin(ang);add(bx,key,[x+ox*ca+oz*sa,h+.7,z-ox*sa+oz*ca,1.5,1.4,1.5,ang,.06,.07,.09])}
-   if(unf&&R(i,24)<.85){const n2=3+Math.floor(R(i,25)*3);for(let q=0;q<n2;q++){const ox=((q&1)-.5)*w3*.8,oz=(((q>>1)&1)-.5)*dep*.8,ca=Math.cos(ang),sa=Math.sin(ang);add(bx,key,[x+ox*ca+oz*sa,h+1.1,z-ox*sa+oz*ca,.12,2.2,.12,ang,.3,.2,.14])}}
-   if(R(i,30)<.38){add(sg,key,[x+fx*(w3/2+.3),2.7+R(i,31)*.7,z+fz*(w3/2+.3),Math.atan2(fx,fz),Math.floor(R(i,32)*8),.85+R(i,33)*.15])}});
+   if(h>9&&R(i,21)<ty.tk){const ox=(R(i,22)-.5)*w3*.5,oz=(R(i,23)-.5)*dep*.5;add(bx,key,[x+ox*ca+oz*sa,h+.7,z-ox*sa+oz*ca,1.5,1.4,1.5,ang,.1,.11,.14])}
+   if(unf&&R(i,24)<.85){const n2=3+Math.floor(R(i,25)*3);for(let q=0;q<n2;q++){const ox=((q&1)-.5)*w3*.8,oz=(((q>>1)&1)-.5)*dep*.8;add(bx,key,[x+ox*ca+oz*sa,h+1.1,z-ox*sa+oz*ca,.12,2.2,.12,ang,.4,.28,.2])}}
+   if(ty.cor===1)add(bx,key,[x,h+.17,z,w3+.9,.4,dep+.9,ang,.62,.58,.5]);
+   else if(ty.cor===2)add(bx,key,[x,h+.6,z,w3*.92,1.2,dep*.92,ang,.55,.24,.14]);
+   if(R(i,30)<ty.sg){add(sg,key,[x+fx*(w3/2+.3),2.7+R(i,31)*.7,z+fz*(w3/2+.3),Math.atan2(fx,fz),Math.floor(R(i,32)*8),.9+R(i,33)*.1])}});
   const o=new T.Object3D(),cc=new T.Color();
   const bm=new T.MeshStandardMaterial({vertexColors:false,roughness:.9,color:0xffffff});
   for(const[k,L]of bx){const m=new T.InstancedMesh(new T.BoxGeometry(1,1,1),bm,L.length);
@@ -958,6 +973,11 @@ class RealMap{
    for(const q2 of L2){const w2=ways[q2[0]],p=w2.p,a=p[q2[1]],b=p[q2[1]+1],abx=b[0]-a[0],abz=b[1]-a[1],ll=abx*abx+abz*abz;if(ll<.001)continue;let t=((x-a[0])*abx+(z-a[1])*abz)/ll;t=cl(t,0,1);
     const px=a[0]+abx*t,pz=a[1]+abz*t,d=Math.hypot(x-px,z-pz),hw=W2[w2.c],y=(a[2]||.06)+((b[2]||.06)-(a[2]||.06))*t;
     if(!best||d<best.d)best={d,y,hw,b:w2.b}}}return best};
+  // v78: ground-height query that only considers segments within 3m of the car's current height (no snapping onto overhead flyovers)
+  this.queryH=(x,z,cy)=>{let best=null;for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++){const L2=this.hash.get(Math.floor(x/CS+dx)+','+Math.floor(z/CS+dz));if(!L2)continue;
+   for(const q2 of L2){const w2=ways[q2[0]],p=w2.p,a=p[q2[1]],b=p[q2[1]+1],abx=b[0]-a[0],abz=b[1]-a[1],ll=abx*abx+abz*abz;if(ll<.001)continue;let t=((x-a[0])*abx+(z-a[1])*abz)/ll;t=cl(t,0,1);
+    const px=a[0]+abx*t,pz=a[1]+abz*t,d=Math.hypot(x-px,z-pz),hw=W2[w2.c],y=(a[2]||.06)+((b[2]||.06)-(a[2]||.06))*t;
+    if(Math.abs(y-cy)>3)continue;if(!best||d<best.d)best={d,y,hw,b:w2.b}}}return best};
   // v45: night-city look - buildings with lit windows, street lamps, sky, skyline, signals, pyramids
   const rnd=(s2=>()=>{s2|=0;s2=s2+0x6D2B79F5|0;let t=Math.imul(s2^s2>>>15,1|s2);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296})(77);
   const PYX=-9230,PYZ=8932;
@@ -973,10 +993,29 @@ class RealMap{
        const u=this.query(bx,bz);if(u&&u.d<8)continue;
        occ.add(key);const h=pyr?6+rnd()*10:10+rnd()*(rnd()<.12?55:26);
        bpos.push([bx,h,bz,w3,dep,Math.atan2(dx,dz),.42+rnd()*.32,sd,nx,nz])}}}}
-   if(bpos.length){const wtx=S.winTex(),bm=new T.MeshStandardMaterial({map:wtx.map,emissiveMap:wtx.em,emissive:0xffffff,emissiveIntensity:1.1,vertexColors:true,roughness:.85});
-    const bs=new T.InstancedMesh(new T.BoxGeometry(1,1,1),bm,bpos.length),o2=new T.Object3D(),cc=new T.Color();
-    bpos.forEach((b2,k)=>{o2.position.set(b2[0],b2[1]/2,b2[2]);o2.rotation.set(0,b2[5],0);o2.scale.set(b2[3],b2[1],b2[4]);o2.updateMatrix();bs.setMatrixAt(k,o2.matrix);const pc=this.bldPal(k);cc.setRGB(b2[6]*pc[0],b2[6]*.97*pc[1],b2[6]*.9*pc[2]);bs.setColorAt(k,cc)});
-    o2.rotation.set(0,0,0);o2.scale.set(1,1,1);bs.receiveShadow=true;sc3.add(bs);this.nBld=bpos.length;this.bldDeco(bpos,cGrp,CH)}}
+   // v78: district buildings outside the original core/pyramids zone (own PRNG so the central layout is unchanged)
+   {const r2=(s3=>()=>{s3|=0;s3=s3+0x6D2B79F5|0;let t=Math.imul(s3^s3>>>15,1|s3);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296})(4242);
+    const DZ=[[2897,10500,900],[11260,980,1300],[9640,-2990,1100],[6750,-6270,1000],[-2700,1000,850],[-2080,5200,900],[-2213,-1662,800]];
+    for(const w2 of ways){const p=w2.p,hw=W2[w2.c];
+     for(let i=0;i<p.length-1;i++){const a=p[i],b=p[i+1],L=Math.hypot(b[0]-a[0],b[1]-a[1]);if(L<14)continue;const dx=(b[0]-a[0])/L,dz=(b[1]-a[1])/L,nx=-dz,nz=dx;
+      for(let d=10;d<L;d+=42){const t=d/L,x=a[0]+(b[0]-a[0])*t,z=a[1]+(b[1]-a[1])*t;
+       for(const sd of[-1,1]){if(r2()<.62)continue;
+        const dep=10+r2()*13,w3=10+r2()*15,off=hw+6+dep/2+r2()*5,bx=x+nx*off*sd,bz=z+nz*off*sd;
+        if(w2.c>3||w2.b)continue;
+        let inD=false;for(const q of DZ)if(Math.hypot(bx-q[0],bz-q[1])<q[2]){inD=true;break}
+        if(!inD||Math.hypot(bx+300,bz-1600)<2300||Math.hypot(bx-PYX,bz-PYZ)<1300)continue;
+        const key=Math.floor(bx/26)+','+Math.floor(bz/26);if(occ.has(key))continue;
+        const u=this.query(bx,bz);if(u&&u.d<8)continue;
+        occ.add(key);const h=10+r2()*(r2()<.12?55:26);
+        bpos.push([bx,h,bz,w3,dep,Math.atan2(dx,dz),.42+r2()*.32,sd,nx,nz])}}}}}
+   if(bpos.length){this.bldTypes(bpos);const wtx=S.winTex(),bm=new T.MeshStandardMaterial({map:wtx.map,emissiveMap:wtx.em,emissive:0xffffff,emissiveIntensity:1.1,vertexColors:true,roughness:.85});
+    bm.onBeforeCompile=sh=>{sh.fragmentShader=sh.fragmentShader.replace('gl_FragColor = vec4( outgoingLight, diffuseColor.a );','gl_FragColor = vec4( outgoingLight + vColor.rgb*vec3(.15,.17,.24)+vec3(.02,.025,.04), diffuseColor.a );')};
+    const o2=new T.Object3D(),cc=new T.Color(),byC=new Map(),bg=new T.BoxGeometry(1,1,1);
+    bpos.forEach((b2,k)=>{const ck=Math.floor(b2[0]/CH)+','+Math.floor(b2[2]/CH);if(!byC.has(ck))byC.set(ck,[]);byC.get(ck).push(k)});
+    for(const[ck,ids]of byC){const bs=new T.InstancedMesh(bg,bm,ids.length);
+     ids.forEach((k,j)=>{const b2=bpos[k];o2.position.set(b2[0],b2[1]/2,b2[2]);o2.rotation.set(0,b2[5],0);o2.scale.set(b2[3],b2[1],b2[4]);o2.updateMatrix();bs.setMatrixAt(j,o2.matrix);const pc=this.bldPal(k),bb=Math.min(1,b2[6]*1.3+.12);cc.setRGB(bb*pc[0],bb*.97*pc[1],bb*.9*pc[2]);bs.setColorAt(j,cc)});
+     bs.receiveShadow=true;cGrp(ck).add(bs)}
+    this.nBld=bpos.length;this.bldDeco(bpos,cGrp,CH)}}
   const mkLamps=(wl,grpOf)=>{const lp=[];
    for(const w2 of wl){if(w2.c>2)continue;const p=w2.p,hw=W2[w2.c];let side=1;
     for(let i=0;i<p.length-1;i++){const a=p[i],b=p[i+1],L=Math.hypot(b[0]-a[0],b[1]-a[1]);if(L<20)continue;const dx=(b[0]-a[0])/L,dz=(b[1]-a[1])/L,nx=-dz,nz=dx;
@@ -1659,8 +1698,8 @@ class RealMap{
  update(dt){if(this.chunks){this._rgT=(this._rgT||0)+dt;if(this._rgT>.4){this._rgT=0;const pcx=Math.floor(this.pl.x/this.CH),pcz=Math.floor(this.pl.z/this.CH);for(const [ck3,g2] of this.chunks){const cp=ck3.split(',');g2.visible=Math.abs(cp[0]-pcx)<=1&&Math.abs(cp[1]-pcz)<=1}this.farRing(pcx,pcz)}}if(this.photo&&this.photo.on)this.photoUpd(dt);const n=Math.max(1,Math.min(8,Math.ceil(dt*120))),h=dt/n;for(let i=0;i<n;i++)this.sim(h);
   if(this.towerBc)this.towerBc.visible=Math.sin(this.g.t*2.4)>0;
   if(this.tlL){this.tlT=(this.tlT||0)+dt;if(this.tlT>5){this.tlT=0;this.tlP=!this.tlP;const cc=new T.Color();for(let k=0;k<this.tlN;k++)this.tlL.setColorAt(k,cc.set((k%2===0)===this.tlP?0xff3226:0x2fe06a));this.tlL.instanceColor.needsUpdate=true}}
-  const p=this.pl,q=this.query(p.x,p.z);let ty=0;if(q){if(q.b&&q.d<q.hw+1.5)ty=q.y;else if(q.y>1&&q.d<q.hw+6)ty=q.y}
-  this.cy+=(ty-this.cy)*Math.min(1,5*dt);if(this.ag&&this.rushOn!==undefined)this.rushUpd(dt);if(this.agM)this.trafficUpd(dt);if(this.pdM)this.pedUpd(dt);if(this.fx)this.fareUpd(dt);if(this.chain)this.chainUpd(dt);if(this.dlr)this.dealerUpd(dt);if(this.fl)this.feluUpd(dt);if(this.zones)this.areaUpd(dt);if(this.ms)this.msUpd(dt);if(this.rd)this.rdrUpd(dt);if(this.deco)this.decoUpd(dt);if(this.map)this.mapUpd(dt);if(this.wx)this.wxUpd(dt);if(this.svc)this.svcUpd(dt);if(this.shop)this.shopUpd(dt)}
+  const p=this.pl,q=this.queryH(p.x,p.z,this.cy);let ty=0;if(q){if(q.b&&q.d<q.hw+1.5)ty=q.y;else if(q.y>1&&q.d<q.hw+6)ty=q.y}
+  this.cy+=(ty-this.cy)*Math.min(1,(ty>this.cy?14:5)*dt);if(ty>.5&&this.cy<ty-.03)this.cy=ty-.03;if(this.ag&&this.rushOn!==undefined)this.rushUpd(dt);if(this.agM)this.trafficUpd(dt);if(this.pdM)this.pedUpd(dt);if(this.fx)this.fareUpd(dt);if(this.chain)this.chainUpd(dt);if(this.dlr)this.dealerUpd(dt);if(this.fl)this.feluUpd(dt);if(this.zones)this.areaUpd(dt);if(this.ms)this.msUpd(dt);if(this.rd)this.rdrUpd(dt);if(this.deco)this.decoUpd(dt);if(this.map)this.mapUpd(dt);if(this.wx)this.wxUpd(dt);if(this.svc)this.svcUpd(dt);if(this.shop)this.shopUpd(dt)}
  sim(h){const g=this.g,p=this.pl,k=g.keys;let s=(k.right?1:0)-(k.left?1:0);if(g.opt.tilt&&matchMedia('(pointer:coarse)').matches)s=cl(s+(g.opt.inv?-1:1)*g.tilt/20,-1,1);s=cl(s+(g.wv||0),-1,1);
   const I={steer:s,thr:k.up?1:0,brk:k.down?1:0,hb:k.hb?1:0};p.grip=(this.onRoad(p.x,p.z)?1:.85)*(this.wx&&this.wx.on?.9:1);if(p.dmg>=100)I.thr=0;if(this.fuel!==undefined&&this.fuel<=0)I.thr*=.12;
   p.step(h,I);const B=this.bounds;if(p.x<B.x0)p.x=B.x0;if(p.x>B.x1)p.x=B.x1;if(p.z<B.z0)p.z=B.z0;if(p.z>B.z1)p.z=B.z1}
