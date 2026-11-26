@@ -108,6 +108,26 @@ class RealMap{
   const roadMat=new T.MeshStandardMaterial({vertexColors:true,roughness:.85,metalness:.05,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1});this.roadM=roadMat;
   const dashMat=new T.MeshBasicMaterial({vertexColors:true,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
   const pierMat=new T.MeshStandardMaterial({color:col(0x55534e),roughness:.95});
+  // v82: static obstacle hash (buildings, poles, kiosks, bridge parapets) + car collision
+  {const OC=16;this.obs=new Map();this.obsSeen=new Set();const OK=(x,z)=>Math.floor(x/OC)+','+Math.floor(z/OC);this.obsKey=OK;
+   const oadd=(o,x0,z0,x1,z1)=>{for(let cx=Math.floor((x0-1.2)/OC);cx<=Math.floor((x1+1.2)/OC);cx++)for(let cz=Math.floor((z0-1.2)/OC);cz<=Math.floor((z1+1.2)/OC);cz++){const k=cx+','+cz;let l=this.obs.get(k);if(!l){l=[];this.obs.set(k,l)}l.push(o)}};
+   const once=(t,a,b,c)=>{const k=t+Math.round(a*2)+','+Math.round(b*2)+','+Math.round((c||0)*2);if(this.obsSeen.has(k))return false;this.obsSeen.add(k);return true};
+   this.obsC=(x,z,r,y)=>{if(once('c',x,z,y))oadd({t:0,x,z,r,y},x-r,z-r,x+r,z+r)};
+   this.obsS=(x1,z1,x2,z2,r,y)=>{if(once('s',(x1+x2)/2,(z1+z2)/2,y))oadd({t:1,x1,z1,x2,z2,r,y},Math.min(x1,x2)-r,Math.min(z1,z2)-r,Math.max(x1,x2)+r,Math.max(z1,z2)+r)};
+   this.obsB=(x,z,hw,hd,th)=>{if(!once('b',x,z,th))return;const R=Math.hypot(hw,hd);oadd({t:2,x,z,hw,hd,c:Math.cos(th),s:Math.sin(th),y:0},x-R,z-R,x+R,z+R)};
+   this.collideCar=()=>{const p=this.pl,cy=this.cy,s=Math.sin(p.h),c=Math.cos(p.h);let hit=0;
+    for(const off of[-1.5,0,1.5]){const cx=p.x+s*off,cz=p.z+c*off,l=this.obs.get(OK(cx,cz));if(!l)continue;
+     for(const o of l){if(Math.abs(cy-o.y)>2.6)continue;let nx,nz,pen;
+      if(o.t<2){let qx,qz;if(o.t===0){qx=o.x;qz=o.z}else{const ax=o.x2-o.x1,az=o.z2-o.z1,ll=ax*ax+az*az;let t=ll>1e-6?((cx-o.x1)*ax+(cz-o.z1)*az)/ll:0;t=t<0?0:t>1?1:t;qx=o.x1+ax*t;qz=o.z1+az*t}
+       const dx=cx-qx,dz=cz-qz,d=Math.hypot(dx,dz),R=o.r+.95;if(d>=R)continue;pen=R-d;if(d<1e-4){nx=-s;nz=-c}else{nx=dx/d;nz=dz/d}}
+      else{const dx=cx-o.x,dz=cz-o.z,lx=dx*o.c-dz*o.s,lz=dx*o.s+dz*o.c,ex=Math.abs(lx)-o.hw,ez=Math.abs(lz)-o.hd;let n0,n1;
+       if(ex>0||ez>0){const ox=Math.max(ex,0),oz=Math.max(ez,0),d=Math.hypot(ox,oz);if(d>=.95)continue;pen=.95-d;n0=ox/d*(lx<0?-1:1);n1=oz/d*(lz<0?-1:1)}
+       else if(ex>ez){n0=lx<0?-1:1;n1=0;pen=.95-ex}else{n0=0;n1=lz<0?-1:1;pen=.95-ez}
+       nx=n0*o.c+n1*o.s;nz=-n0*o.s+n1*o.c}
+      this.dbgO=o;p.x+=nx*pen;p.z+=nz*pen;const w=p.wv(),vn=w[0]*nx+w[1]*nz;
+      if(vn<0){const e=.22;p.setWv(w[0]-(1+e)*vn*nx,w[1]-(1+e)*vn*nz);if(-vn>hit)hit=-vn}}}
+    if(hit>0){p.vx*=.985;p.vy*=.985;this.lastHit=hit;this.hitT=this.g.t}return hit};
+  }
   const buildCh=(ck,cwl,store)=>{const rp=[],rn=[],rc=[],ri=[],dp=[],dn=[],du=[],dc=[],di=[],bmp=[],ksk=[];
    for(const w2 of cwl){const p=w2.p,hw=W2[w2.c],t2=TINT[w2.c];
     for(let i=0;i<p.length-1;i++){const a=p[i],b=p[i+1],dx=b[0]-a[0],dz=b[1]-a[1],L=Math.hypot(dx,dz);if(L<.01)continue;const nx=-dz/L,nz=dx/L,y0=a[2]||.06,y1=b[2]||.06;
@@ -119,8 +139,12 @@ class RealMap{
       for(const s of[-1,1]){quad(rp,rn,rc,ri,[a[0]+nx*sw0*s,y0+sh,a[1]+nz*sw0*s],[a[0]+nx*sw1*s,y0+sh,a[1]+nz*sw1*s],[b[0]+nx*sw1*s,y1+sh,b[1]+nz*sw1*s],[b[0]+nx*sw0*s,y1+sh,b[1]+nz*sw0*s],[0,1,0],sc2);
        quad(rp,rn,rc,ri,[a[0]+nx*hw*s,y0+sh,a[1]+nz*hw*s],[b[0]+nx*hw*s,y1+sh,b[1]+nz*hw*s],[b[0]+nx*hw*s,y1,b[1]+nz*hw*s],[a[0]+nx*hw*s,y0,a[1]+nz*hw*s],[-nx*s,0,-nz*s],kc)}}
      if(w2.c<=1){const ew=.09,eo=hw-.55;for(const s of[-1,1]){dp.push(a[0]+nx*(eo+ew)*s,y0+.02,a[1]+nz*(eo+ew)*s,a[0]+nx*(eo-ew)*s,y0+.02,a[1]+nz*(eo-ew)*s,b[0]+nx*(eo-ew)*s,y1+.02,b[1]+nz*(eo-ew)*s,b[0]+nx*(eo+ew)*s,y1+.02,b[1]+nz*(eo+ew)*s);for(let q2=0;q2<4;q2++){dn.push(0,1,0);dc.push(.62,.6,.52)}const k3=dp.length/3-4;du.push(0,0,1,0,1,1,0,1);di.push(k3,k3+2,k3+1,k3,k3+3,k3+2)}}
+     if(w2.b&&L>.5){const np=Math.max(1,Math.ceil(L/5));for(const s of[-1,1])for(let k=0;k<np;k++){const t0=k/np,t1=(k+1)/np,px=a[0]+(b[0]-a[0])*t0+nx*(hw+.3)*s,pz=a[1]+(b[1]-a[1])*t0+nz*(hw+.3)*s,qx=a[0]+(b[0]-a[0])*t1+nx*(hw+.3)*s,qz=a[1]+(b[1]-a[1])*t1+nz*(hw+.3)*s,ya=y0+(y1-y0)*t0,yb=y0+(y1-y0)*t1;
+      if(this.insideRoad(px,pz,ya,.05)||this.insideRoad(qx,qz,yb,.05)||this.insideRoad((px+qx)/2,(pz+qz)/2,(ya+yb)/2,.05))continue;this.obsS(px,pz,qx,qz,.3,(ya+yb)/2)}}
      if(w2.b){const ph=1.1;for(const s of[-1,1])quad(rp,rn,rc,ri,[a[0]+nx*hw*s,y0,a[1]+nz*hw*s],[a[0]+nx*(hw+.5)*s,y0,a[1]+nz*(hw+.5)*s],[b[0]+nx*(hw+.5)*s,y1,b[1]+nz*(hw+.5)*s],[b[0]+nx*hw*s,y1,b[1]+nz*hw*s],[0,1,0],[.16,.15,.14]),
       quad(rp,rn,rc,ri,[a[0]+nx*hw*s,y0+ph,a[1]+nz*hw*s],[b[0]+nx*hw*s,y1+ph,b[1]+nz*hw*s],[b[0]+nx*hw*s,y1,b[1]+nz*hw*s],[a[0]+nx*hw*s,y0,a[1]+nz*hw*s],[-nx*s,0,-nz*s],[.18,.17,.16])}}}
+   for(let i=ksk.length-1;i>=0;i--)if(this.insideRoad(ksk[i][0],ksk[i][2],ksk[i][1]-.1,1.4))ksk.splice(i,1);
+   ksk.forEach(q2=>this.obsC(q2[0],q2[2],.85,q2[1]-.1));
    const grp=new T.Group();
    if(ksk.length){const kb=new T.InstancedMesh(new T.BoxGeometry(1.7,2.2,1.3),new T.MeshStandardMaterial({roughness:.8,emissive:0x303030,emissiveIntensity:1}),ksk.length),ks=new T.InstancedMesh(new T.BoxGeometry(1.5,.45,.1),new T.MeshStandardMaterial({color:0x111111,emissive:0xffffff,emissiveIntensity:1.3}),ksk.length),o6=new T.Object3D(),c6=new T.Color(),PK=[0x2f5d62,0x7a3b2e,0x3b4a7a,0x5c6b2f,0x6b5a2e],SG=[0xff8a3d,0x55ff9a,0xff5577,0x66ccff,0xffe066];
     ksk.forEach((q2,i)=>{const kk=Math.floor(q2[4]*1000)%5;o6.position.set(q2[0],q2[1]+1.1,q2[2]);o6.rotation.set(0,q2[3],0);o6.scale.set(1,1,1);o6.updateMatrix();kb.setMatrixAt(i,o6.matrix);kb.setColorAt(i,c6.setHex(PK[kk]));
@@ -135,7 +159,7 @@ class RealMap{
    if(prs.length){const pi=new T.InstancedMesh(new T.BoxGeometry(3,1,3),pierMat,prs.length),o=new T.Object3D();
     prs.forEach((q2,i)=>{o.position.set(q2[0],q2[1]/2,q2[2]);o.scale.set(1,q2[1],1);o.updateMatrix();pi.setMatrixAt(i,o.matrix)});grp.add(pi)}
    sc3.add(grp);store.set(ck,grp);return grp};
-  for(const [ck,cwl] of cways)buildCh(ck,cwl,this.chunks);this.buildCh=buildCh;
+  this.buildCh=buildCh;
   const cGrp=k=>{let g2=this.chunks.get(k);if(!g2){g2=new T.Group();this.chunks.set(k,g2);sc3.add(g2)}return g2};
   // spatial hash for onRoad + deck height
   const CS=25,hash=new Map(),key=(x,z)=>Math.floor(x/CS)+','+Math.floor(z/CS);
@@ -152,6 +176,11 @@ class RealMap{
    for(const q2 of L2){const w2=ways[q2[0]],p=w2.p,a=p[q2[1]],b=p[q2[1]+1],abx=b[0]-a[0],abz=b[1]-a[1],ll=abx*abx+abz*abz;if(ll<.001)continue;let t=((x-a[0])*abx+(z-a[1])*abz)/ll;t=cl(t,0,1);
     const px=a[0]+abx*t,pz=a[1]+abz*t,d=Math.hypot(x-px,z-pz),hw=W2[w2.c],y=(a[2]||.06)+((b[2]||.06)-(a[2]||.06))*t;
     if(Math.abs(y-cy)>3)continue;if(!best||d<best.d)best={d,y,hw,b:w2.b}}}return best};
+  this.insideRoad=(x,z,cy,m)=>{for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++){const L2=this.hash.get(Math.floor(x/CS+dx)+','+Math.floor(z/CS+dz));if(!L2)continue;
+   for(const q2 of L2){const w2=ways[q2[0]],p=w2.p,a=p[q2[1]],b=p[q2[1]+1],abx=b[0]-a[0],abz=b[1]-a[1],ll=abx*abx+abz*abz;if(ll<.001)continue;let t=((x-a[0])*abx+(z-a[1])*abz)/ll;t=cl(t,0,1);
+    const d=Math.hypot(x-(a[0]+abx*t),z-(a[1]+abz*t)),y=(a[2]||.06)+((b[2]||.06)-(a[2]||.06))*t;if(d<W2[w2.c]+m&&Math.abs(y-cy)<2.5)return true}}return false};
+  for(const [ck,cwl] of cways)buildCh(ck,cwl,this.chunks);
+  const fpOK=(bx,bz,w3,dep,ang)=>{const c=Math.cos(ang),s2=Math.sin(ang),hx=w3/2+.8,hz=dep/2+.8;for(const[ux,uz]of[[0,0],[1,1],[1,-1],[-1,1],[-1,-1],[1,0],[-1,0],[0,1],[0,-1]]){const lx=ux*hx,lz=uz*hz;if(this.insideRoad(bx+lx*c+lz*s2,bz-lx*s2+lz*c,0,.6))return false}return true};
   // v45: night-city look - buildings with lit windows, street lamps, sky, skyline, signals, pyramids
   const rnd=(s2=>()=>{s2|=0;s2=s2+0x6D2B79F5|0;let t=Math.imul(s2^s2>>>15,1|s2);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296})(77);
   const PYX=-9230,PYZ=8932;
@@ -165,6 +194,7 @@ class RealMap{
        if(!core&&!pyr)continue;if(pyr&&rnd()<.55)continue;
        const key=Math.floor(bx/26)+','+Math.floor(bz/26);if(occ.has(key))continue;
        const u=this.query(bx,bz);if(u&&u.d<8)continue;
+       if(!fpOK(bx,bz,w3,dep,Math.atan2(dx,dz)))continue;
        occ.add(key);const h=pyr?6+rnd()*10:10+rnd()*(rnd()<.12?55:26);
        bpos.push([bx,h,bz,w3,dep,Math.atan2(dx,dz),.42+rnd()*.32,sd,nx,nz])}}}}
    // v78: district buildings outside the original core/pyramids zone (own PRNG so the central layout is unchanged)
@@ -180,9 +210,10 @@ class RealMap{
         if(!inD||Math.hypot(bx+300,bz-1600)<2300||Math.hypot(bx-PYX,bz-PYZ)<1300)continue;
         const key=Math.floor(bx/26)+','+Math.floor(bz/26);if(occ.has(key))continue;
         const u=this.query(bx,bz);if(u&&u.d<8)continue;
+        if(!fpOK(bx,bz,w3,dep,Math.atan2(dx,dz)))continue;
         occ.add(key);const h=10+r2()*(r2()<.12?55:26);
         bpos.push([bx,h,bz,w3,dep,Math.atan2(dx,dz),.42+r2()*.32,sd,nx,nz])}}}}}
-   if(bpos.length){this.bldTypes(bpos);const wtx=S.winTex(),bm=new T.MeshStandardMaterial({map:wtx.map,emissiveMap:wtx.em,emissive:0xffffff,emissiveIntensity:1.1,vertexColors:true,roughness:.85});
+   if(bpos.length){bpos.forEach(b2=>this.obsB(b2[0],b2[2],b2[3]/2,b2[4]/2,b2[5]));this.bldTypes(bpos);const wtx=S.winTex(),bm=new T.MeshStandardMaterial({map:wtx.map,emissiveMap:wtx.em,emissive:0xffffff,emissiveIntensity:1.1,vertexColors:true,roughness:.85});
     bm.onBeforeCompile=sh=>{sh.fragmentShader=sh.fragmentShader.replace('gl_FragColor = vec4( outgoingLight, diffuseColor.a );','gl_FragColor = vec4( outgoingLight + vColor.rgb*vec3(.15,.17,.24)+vec3(.02,.025,.04), diffuseColor.a );')};
     const o2=new T.Object3D(),cc=new T.Color(),byC=new Map(),bg=new T.BoxGeometry(1,1,1);
     bpos.forEach((b2,k)=>{const ck=Math.floor(b2[0]/CH)+','+Math.floor(b2[2]/CH);if(!byC.has(ck))byC.set(ck,[]);byC.get(ck).push(k)});
@@ -190,12 +221,12 @@ class RealMap{
      ids.forEach((k,j)=>{const b2=bpos[k];o2.position.set(b2[0],b2[1]/2,b2[2]);o2.rotation.set(0,b2[5],0);o2.scale.set(b2[3],b2[1],b2[4]);o2.updateMatrix();bs.setMatrixAt(j,o2.matrix);const pc=this.bldPal(k),bb=Math.min(1,b2[6]*1.3+.12);cc.setRGB(bb*pc[0],bb*.97*pc[1],bb*.9*pc[2]);bs.setColorAt(j,cc)});
      bs.receiveShadow=true;cGrp(ck).add(bs)}
     this.nBld=bpos.length;this.bldDeco(bpos,cGrp,CH)}}
-  const mkLamps=(wl,grpOf)=>{const lp=[];
+  const mkLamps=(wl,grpOf)=>{let lp=[];
    for(const w2 of wl){if(w2.c>2)continue;const p=w2.p,hw=W2[w2.c];let side=1;
     for(let i=0;i<p.length-1;i++){const a=p[i],b=p[i+1],L=Math.hypot(b[0]-a[0],b[1]-a[1]);if(L<20)continue;const dx=(b[0]-a[0])/L,dz=(b[1]-a[1])/L,nx=-dz,nz=dx;
      for(let d=27;d<L;d+=340){side=-side;if(rnd()<.75)continue;const t=d/L,y=(a[2]||.06)+((b[2]||.06)-(a[2]||.06))*t;
       lp.push([a[0]+(b[0]-a[0])*t+nx*(hw+1.2)*side,y,a[1]+(b[1]-a[1])*t+nz*(hw+1.2)*side,side,nx,nz])}}}
-   if(lp.length){const o2=new T.Object3D();this.nLamp=lp.length;
+   lp=lp.filter(q2=>!this.insideRoad(q2[0],q2[2],q2[1],.9));if(lp.length){lp.forEach(q2=>this.obsC(q2[0],q2[2],.28,q2[1]));const o2=new T.Object3D();this.nLamp=lp.length;
     const lbc=new Map();lp.forEach(q2=>{const k=Math.floor(q2[0]/CH)+','+Math.floor(q2[2]/CH);if(!lbc.has(k))lbc.set(k,[]);lbc.get(k).push(q2)});
     for(const [k,ll] of lbc){const pm2=new T.InstancedMesh(new T.CylinderGeometry(.09,.13,7.5,4),new T.MeshStandardMaterial({color:col(0x4a4e55),metalness:.5,roughness:.6}),ll.length);
      const hm2=new T.InstancedMesh(new T.BoxGeometry(.5,.12,1.3),new T.MeshBasicMaterial({color:0xffd6a0}),ll.length);
@@ -876,7 +907,7 @@ class RealMap{
   this.cy+=(ty-this.cy)*Math.min(1,(ty>this.cy?14:5)*dt);if(ty>.5&&this.cy<ty-.03)this.cy=ty-.03;if(this.ag&&this.rushOn!==undefined)this.rushUpd(dt);if(this.agM)this.trafficUpd(dt);if(this.pdM)this.pedUpd(dt);if(this.fx)this.fareUpd(dt);if(this.chain)this.chainUpd(dt);if(this.dlr)this.dealerUpd(dt);if(this.fl)this.feluUpd(dt);if(this.zones)this.areaUpd(dt);if(this.ms)this.msUpd(dt);if(this.rd)this.rdrUpd(dt);if(this.deco)this.decoUpd(dt);if(this.map)this.mapUpd(dt);if(this.wx)this.wxUpd(dt);if(this.svc)this.svcUpd(dt);if(this.shop)this.shopUpd(dt)}
  sim(h){const g=this.g,p=this.pl,k=g.keys;let s=(k.right?1:0)-(k.left?1:0);if(g.opt.tilt&&matchMedia('(pointer:coarse)').matches)s=cl(s+(g.opt.inv?-1:1)*g.tilt/20,-1,1);s=cl(s+(g.wv||0),-1,1);
   const I={steer:s,thr:k.up?1:0,brk:k.down?1:0,hb:k.hb?1:0};p.grip=(this.onRoad(p.x,p.z)?1:.85)*(this.wx&&this.wx.on?.9:1);if(p.dmg>=100)I.thr=0;if(this.fuel!==undefined&&this.fuel<=0)I.thr*=.12;
-  p.step(h,I);const B=this.bounds;if(p.x<B.x0)p.x=B.x0;if(p.x>B.x1)p.x=B.x1;if(p.z<B.z0)p.z=B.z0;if(p.z>B.z1)p.z=B.z1}
+  p.step(h,I);if(this.collideCar)this.collideCar();const B=this.bounds;if(p.x<B.x0)p.x=B.x0;if(p.x>B.x1)p.x=B.x1;if(p.z<B.z0)p.z=B.z0;if(p.z>B.z1)p.z=B.z1}
  draw(dt){const g=this.g,w=g.world,p=this.pl,c=w.cam,sp=p.speed,wv=p.wv();g.wheelStep(dt);S.updCar(this.pcar,p,dt,1);this.pcar.g.position.y=this.cy;
   const lit=!!g.hl,ps=this.pcar;if(ps.spot)ps.spot.intensity=lit?3.5:0;ps.hl.emissiveIntensity=lit?4:.6;
   let ah=p.h;if(sp>5)ah=p.h+cl(wrap(Math.atan2(wv[0],wv[1])-p.h),-.6,.6)*.4;this.ch+=wrap(ah-this.ch)*(1-Math.exp(-7*dt));const sn=Math.sin(this.ch),cs=Math.cos(this.ch);let px,py,pz,lx,ly,lz,fov;
