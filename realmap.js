@@ -128,6 +128,35 @@ class RealMap{
       if(vn<0){const e=.22;p.setWv(w[0]-(1+e)*vn*nx,w[1]-(1+e)*vn*nz);if(-vn>hit)hit=-vn}}}
     if(hit>0){p.vx*=.985;p.vy*=.985;this.lastHit=hit;this.hitT=this.g.t}return hit};
   }
+  // v83: corniche guardrails + inferred median dividers (solid, collide)
+  const WG=200,wg=new Map(),wsegs=[];
+  for(const pl of this.data.n)for(let i=0;i<pl.length/2-1;i++){const a=[pl[2*i]/10,pl[2*i+1]/10],b=[pl[2*i+2]/10,pl[2*i+3]/10];if(Math.hypot(b[0]-a[0],b[1]-a[1])<.01)continue;const si=wsegs.length;wsegs.push([a[0],a[1],b[0],b[1]]);
+   for(let cx=Math.floor((Math.min(a[0],b[0])-260)/WG);cx<=Math.floor((Math.max(a[0],b[0])+260)/WG);cx++)for(let cz=Math.floor((Math.min(a[1],b[1])-260)/WG);cz<=Math.floor((Math.max(a[1],b[1])+260)/WG);cz++){const k=cx+','+cz;let l=wg.get(k);if(!l){l=[];wg.set(k,l)}l.push(si)}}
+  const waterNear=(x,z)=>{const l=wg.get(Math.floor(x/WG)+','+Math.floor(z/WG));if(!l)return null;let best=null;for(const si of l){const q=wsegs[si],ax=q[2]-q[0],az=q[3]-q[1],ll=ax*ax+az*az;let t=((x-q[0])*ax+(z-q[1])*az)/ll;t=t<0?0:t>1?1:t;const px=q[0]+ax*t,pz=q[1]+az*t,d=Math.hypot(x-px,z-pz);if(!best||d<best.d){const L2=Math.sqrt(ll);best={d,px,pz,ux:ax/L2,uz:az/L2}}}return best};
+  const wIdx=new Map();
+  const barBox=(rp,rn,rc,ri,px,pz,qx,qz,y0,y1,hh,hf,col2)=>{const dx=qx-px,dz=qz-pz,L=Math.hypot(dx,dz);if(L<.1)return;const nx=-dz/L,nz=dx/L;
+   const fc=(a,b,c,d,o)=>{const e1=[c[0]-a[0],c[1]-a[1],c[2]-a[2]],e2=[b[0]-a[0],b[1]-a[1],b[2]-a[2]],n=[e1[1]*e2[2]-e1[2]*e2[1],e1[2]*e2[0]-e1[0]*e2[2],e1[0]*e2[1]-e1[1]*e2[0]];
+    if(n[0]*o[0]+n[1]*o[1]+n[2]*o[2]<0)quad(rp,rn,rc,ri,d,c,b,a,o,col2);else quad(rp,rn,rc,ri,a,b,c,d,o,col2)};
+   for(const s of[-1,1]){const A=[px+nx*hf*s,y0,pz+nz*hf*s],B=[qx+nx*hf*s,y1,qz+nz*hf*s];fc([A[0],A[1]+hh,A[2]],[B[0],B[1]+hh,B[2]],B,A,[nx*s,0,nz*s])}
+   fc([px+nx*hf,y0+hh,pz+nz*hf],[qx+nx*hf,y1+hh,qz+nz*hf],[qx-nx*hf,y1+hh,qz-nz*hf],[px-nx*hf,y0+hh,pz-nz*hf],[0,1,0])};
+  const barsFor=(w2,a,b,rp,rn,rc,ri)=>{const dx=b[0]-a[0],dz=b[1]-a[1],L=Math.hypot(dx,dz);if(L<24||w2.b||w2.c>2)return;const ux=dx/L,uz=dz/L,nx=-uz,nz=ux,hw=W2[w2.c],y0=a[2]||.06,y1=b[2]||.06,ym=(y0+y1)/2;
+   const mx=(a[0]+b[0])/2,mz=(a[1]+b[1])/2;
+   // corniche: segment runs roughly parallel to the water edge ~100-260m from the Nile centreline
+   const wn=w2.c<=1?waterNear(mx,mz):null;let rs=0;
+   if(wn&&wn.d>100&&wn.d<260&&Math.abs(wn.ux*ux+wn.uz*uz)>.85){const sd=((wn.px-mx)*nx+(wn.pz-mz)*nz)>0?1:-1;rs=sd}
+   const np=Math.floor((L-16)/6);
+   for(let k=0;k<np;k++){const t0=(8+k*(L-16)/np)/L,t1=(8+(k+1)*(L-16)/np)/L,ax=a[0]+dx*t0,az=a[1]+dz*t0,bx=a[0]+dx*t1,bz=a[1]+dz*t1,ya=y0+(y1-y0)*t0,yb=y0+(y1-y0)*t1;
+    if(rs){const o=hw+3.1,px=ax+nx*o*rs,pz=az+nz*o*rs,qx=bx+nx*o*rs,qz=bz+nz*o*rs;
+     if(!(this.insideRoad(px,pz,ya,.8)||this.insideRoad(qx,qz,yb,.8)||this.insideRoad((px+qx)/2,(pz+qz)/2,ym,.8))){barBox(rp,rn,rc,ri,px,pz,qx,qz,ya,yb,.9,.22,[.42,.41,.39]);this.obsS(px,pz,qx,qz,.25,ym)}}
+    if(w2.c<=1){const cx=(ax+bx)/2,cz=(az+bz)/2;let bd=null;
+     for(let ddx=-1;ddx<=1;ddx++)for(let ddz=-1;ddz<=1;ddz++){const L2=this.hash.get(Math.floor(cx/CS+ddx)+','+Math.floor(cz/CS+ddz));if(!L2)continue;
+      for(const q2 of L2){const o2=ways[q2[0]];if(o2===w2||o2.b||o2.c>1)continue;const p2=o2.p,c0=p2[q2[1]],c1=p2[q2[1]+1],ex=c1[0]-c0[0],ez=c1[1]-c0[1],el=Math.hypot(ex,ez);if(el<8)continue;
+       if(Math.abs((ex*ux+ez*uz)/el)<.97)continue;const lat=(c0[0]-cx)*nx+(c0[1]-cz)*nz,lat2=(c1[0]-cx)*nx+(c1[1]-cz)*nz;if(Math.abs(lat-lat2)>2)continue;
+       const al=((cx-c0[0])*ex+(cz-c0[1])*ez)/(el*el);if(al<.05||al>.95)continue;const gap=Math.abs((lat+lat2)/2)-hw-W2[o2.c];if(gap<1.2||gap>10)continue;if(Math.abs(((c0[2]||.06)+(c1[2]||.06))/2-ym)>1.5)continue;
+       if(!bd||gap<bd.gap){let oi=wIdx.get(o2);if(oi===undefined){oi=ways.indexOf(o2);wIdx.set(o2,oi)}bd={gap,lat:(lat+lat2)/2,oi}}}}
+     if(bd){let mi=wIdx.get(w2);if(mi===undefined){mi=ways.indexOf(w2);wIdx.set(w2,mi)}
+      if(mi<bd.oi){const h=bd.lat/2,px=ax+nx*h,pz=az+nz*h,qx=bx+nx*h,qz=bz+nz*h;
+       if(!(this.insideRoad(px,pz,ya,.3)||this.insideRoad(qx,qz,yb,.3)||this.insideRoad((px+qx)/2,(pz+qz)/2,ym,.3))){barBox(rp,rn,rc,ri,px,pz,qx,qz,ya,yb,.8,.25,[.4,.39,.37]);this.obsS(px,pz,qx,qz,.28,ym)}}}}}};
   const buildCh=(ck,cwl,store)=>{const rp=[],rn=[],rc=[],ri=[],dp=[],dn=[],du=[],dc=[],di=[],bmp=[],ksk=[];
    for(const w2 of cwl){const p=w2.p,hw=W2[w2.c],t2=TINT[w2.c];
     for(let i=0;i<p.length-1;i++){const a=p[i],b=p[i+1],dx=b[0]-a[0],dz=b[1]-a[1],L=Math.hypot(dx,dz);if(L<.01)continue;const nx=-dz/L,nz=dx/L,y0=a[2]||.06,y1=b[2]||.06;
@@ -139,6 +168,7 @@ class RealMap{
       for(const s of[-1,1]){quad(rp,rn,rc,ri,[a[0]+nx*sw0*s,y0+sh,a[1]+nz*sw0*s],[a[0]+nx*sw1*s,y0+sh,a[1]+nz*sw1*s],[b[0]+nx*sw1*s,y1+sh,b[1]+nz*sw1*s],[b[0]+nx*sw0*s,y1+sh,b[1]+nz*sw0*s],[0,1,0],sc2);
        quad(rp,rn,rc,ri,[a[0]+nx*hw*s,y0+sh,a[1]+nz*hw*s],[b[0]+nx*hw*s,y1+sh,b[1]+nz*hw*s],[b[0]+nx*hw*s,y1,b[1]+nz*hw*s],[a[0]+nx*hw*s,y0,a[1]+nz*hw*s],[-nx*s,0,-nz*s],kc)}}
      if(w2.c<=1){const ew=.09,eo=hw-.55;for(const s of[-1,1]){dp.push(a[0]+nx*(eo+ew)*s,y0+.02,a[1]+nz*(eo+ew)*s,a[0]+nx*(eo-ew)*s,y0+.02,a[1]+nz*(eo-ew)*s,b[0]+nx*(eo-ew)*s,y1+.02,b[1]+nz*(eo-ew)*s,b[0]+nx*(eo+ew)*s,y1+.02,b[1]+nz*(eo+ew)*s);for(let q2=0;q2<4;q2++){dn.push(0,1,0);dc.push(.62,.6,.52)}const k3=dp.length/3-4;du.push(0,0,1,0,1,1,0,1);di.push(k3,k3+2,k3+1,k3,k3+3,k3+2)}}
+     barsFor(w2,a,b,rp,rn,rc,ri);
      if(w2.b&&L>.5){const np=Math.max(1,Math.ceil(L/5));for(const s of[-1,1])for(let k=0;k<np;k++){const t0=k/np,t1=(k+1)/np,px=a[0]+(b[0]-a[0])*t0+nx*(hw+.3)*s,pz=a[1]+(b[1]-a[1])*t0+nz*(hw+.3)*s,qx=a[0]+(b[0]-a[0])*t1+nx*(hw+.3)*s,qz=a[1]+(b[1]-a[1])*t1+nz*(hw+.3)*s,ya=y0+(y1-y0)*t0,yb=y0+(y1-y0)*t1;
       if(this.insideRoad(px,pz,ya,.05)||this.insideRoad(qx,qz,yb,.05)||this.insideRoad((px+qx)/2,(pz+qz)/2,(ya+yb)/2,.05))continue;this.obsS(px,pz,qx,qz,.3,(ya+yb)/2)}}
      if(w2.b){const ph=1.1;for(const s of[-1,1])quad(rp,rn,rc,ri,[a[0]+nx*hw*s,y0,a[1]+nz*hw*s],[a[0]+nx*(hw+.5)*s,y0,a[1]+nz*(hw+.5)*s],[b[0]+nx*(hw+.5)*s,y1,b[1]+nz*(hw+.5)*s],[b[0]+nx*hw*s,y1,b[1]+nz*hw*s],[0,1,0],[.16,.15,.14]),
