@@ -1,5 +1,5 @@
 // Service worker: cache-first for the game shell so it loads offline and fast.
-const CACHE = 'er-v12';
+const CACHE = 'er-v13';
 const ASSETS = [
  './',
  'index.html',
