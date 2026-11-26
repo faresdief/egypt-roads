@@ -10,7 +10,7 @@ class RealMap{
   addEventListener('keydown',e=>{if(!this.on)return;if(e.code==='KeyC')this.g.view=this.g.view?0:1;if(e.code==='KeyM'&&this.mapZs)this.mapR=this.mapZs[this.mapZi=(this.mapZi+1)%this.mapZs.length];if(e.code==='KeyR'&&this.wx)this.wx.forced=this.wx.forced===null?!this.wx.on:!this.wx.forced;if(e.code==='KeyX'&&this.chain&&this.chain.on){this.chain.on=false;this.chain.cd=40;this.g.popup('لغيت السلسلة.. الشغل العادي رجع')}if(e.code==='KeyV')this.photoTg();if(this.photo&&this.photo.on){if(e.code==='KeyQ')this.photo.dist=Math.min(30,this.photo.dist*1.18);if(e.code==='KeyE')this.photo.dist=Math.max(3.5,this.photo.dist/1.18)}})}
  initMenu(){const m=document.querySelector('.modes-card');if(!m||$('realCard'))return;const c=document.createElement('div');c.className='card';c.id='realCard';
   c.innerHTML='<h2>طرق مصر</h2><p class="foot">قُد على طرقات القاهرة الحقيقية: من الزمالك على كوبري 6 أكتوبر لوسط البلد، وطريق الهرم لحد الأهرامات. بيانات الخريطة © OpenStreetMap contributors (ODbL)</p><button class="btn primary" id="realGo">قُد على كوبري أكتوبر</button>';m.parentNode.insertBefore(c,m);
-  $('realGo').onclick=()=>{this.g.audio.init();this.start()}}
+  $('realGo').onclick=()=>{this.g.audio.init();this.g.radioRestore();this.start()}}
  async start(){const g=this.g;if(!g.world)return;
   if(!this.data){try{const r=await fetch('realmap-data.json');this.data=await r.json()}catch(e){console.error(e);g.popup('بيانات الخريطة مش موجودة');return}}
   if(!g.own[CARS[g.sel].id]){g.popup('العربية مقفولة');return}
@@ -444,7 +444,7 @@ class RealMap{
     if(fx.rush){fx.t=best.d/11+20;fx.fare=Math.round(fx.fare*1.5)}
     this.paxG.visible=false;this.bcnP.visible=false;this.bcnD.visible=true;
     if(fx.rush)g.popup(this.pRu[Math.floor(Math.random()*this.pRu.length)].replace('D',fx.dname));
-    else g.popup(this.pUp[Math.floor(Math.random()*this.pUp.length)].replace('D',fx.dname));g.audio.flash();
+    else g.popup(this.pUp[Math.floor(Math.random()*this.pUp.length)].replace('D',fx.dname));g.audio.chime();
     if(this.chain&&this.chain.offer>0&&!this.chain.on){const ch=this.chain;ch.on=true;ch.offer=0;ch.leg=0;ch.legs=2+ch.lvl;
      setTimeout(()=>g.popup('بدأت السلسلة! مشوار 1 من '+ch.legs+'.. الأجرة بتزيد مع كل مشوار (X للإلغاء)'),1200)}}}
   else{const d=Math.hypot(fx.dst.x-pl.x,fx.dst.z-pl.z);
