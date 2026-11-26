@@ -879,24 +879,47 @@ class RealMap{
    for(let i=0;i<n;i++){const t=L?seg[i]/L:0,r=t<.5?Math.min(1,t/.12):Math.min(1,(1-t)/.12),s=r*r*(3-2*r);pts[i][2]=w2[1]?Math.max(.06,H*s):.06}
    ways.push({c:w2[0],b:w2[1],p:pts});for(const q of pts){if(q[0]<bx0)bx0=q[0];if(q[0]>bx1)bx1=q[0];if(q[1]<bz0)bz0=q[1];if(q[1]>bz1)bz1=q[1]}}
   this.ways=ways;this.bounds={x0:bx0-40,x1:bx1+40,z0:bz0-40,z1:bz1+40};
-  // merged road ribbons (one mesh) + center dashes (one mesh) + parapets/piers (one mesh + instanced)
-  const rp=[],rn=[],rc=[],ri=[],dp=[],dn=[],du=[],dc=[],di=[];
+  // v75: merged road ribbons per 6km chunk + dashes + piers per chunk; visibility ring around player
+  const CH=6000;
+  const cways=new Map();
+  for(const w2 of ways){const p=w2.p;
+   for(let i=0;i<p.length-1;i++){const a=p[i],b=p[i+1];
+    if(Math.hypot(b[0]-a[0],b[1]-a[1])<.01)continue;
+    const ts=[0,1];const x0=Math.min(a[0],b[0]),x1=Math.max(a[0],b[0]),z0=Math.min(a[1],b[1]),z1=Math.max(a[1],b[1]);
+    if(b[0]!==a[0])for(let gx=Math.ceil(x0/CH)*CH;gx<x1;gx+=CH)ts.push((gx-a[0])/(b[0]-a[0]));
+    if(b[1]!==a[1])for(let gz=Math.ceil(z0/CH)*CH;gz<z1;gz+=CH)ts.push((gz-a[1])/(b[1]-a[1]));
+    ts.sort((q,r)=>q-r);
+    for(let s2=0;s2<ts.length-1;s2++){const t0=ts[s2],t1=ts[s2+1];if(t1-t0<1e-9)continue;
+     const q0=[a[0]+(b[0]-a[0])*t0,a[1]+(b[1]-a[1])*t0,(a[2]||.06)+((b[2]||.06)-(a[2]||.06))*t0];
+     const q1=[a[0]+(b[0]-a[0])*t1,a[1]+(b[1]-a[1])*t1,(a[2]||.06)+((b[2]||.06)-(a[2]||.06))*t1];
+     const k=Math.floor((q0[0]+q1[0])/2/CH)+','+Math.floor((q0[1]+q1[1])/2/CH);
+     if(!cways.has(k))cways.set(k,[]);
+     const L2=cways.get(k),last=L2.length?L2[L2.length-1]:null;
+     if(last&&last.c===w2.c&&last.b===w2.b&&Math.hypot(last.p[last.p.length-1][0]-q0[0],last.p[last.p.length-1][1]-q0[1])<.01)last.p.push(q1);
+     else L2.push({c:w2.c,b:w2.b,p:[q0,q1]})}}}
+  this.chunks=new Map();this.CH=CH;
   const quad=(P,N,C,I2,a,b,c2,d2,n2,t2)=>{const k=P.length/3;P.push(a[0],a[1],a[2],b[0],b[1],b[2],c2[0],c2[1],c2[2],d2[0],d2[1],d2[2]);for(let q2=0;q2<4;q2++){N.push(n2[0],n2[1],n2[2]);C.push(t2[0],t2[1],t2[2])}I2.push(k,k+2,k+1,k,k+3,k+2)};
-  for(const w2 of ways){const p=w2.p,hw=W2[w2.c],t2=TINT[w2.c];
-   for(let i=0;i<p.length-1;i++){const a=p[i],b=p[i+1],dx=b[0]-a[0],dz=b[1]-a[1],L=Math.hypot(dx,dz);if(L<.01)continue;const nx=-dz/L,nz=dx/L,y0=a[2]||.06,y1=b[2]||.06;
-    quad(rp,rn,rc,ri,[a[0]+nx*hw,y0,a[1]+nz*hw],[a[0]-nx*hw,y0,a[1]-nz*hw],[b[0]-nx*hw,y1,b[1]-nz*hw],[b[0]+nx*hw,y1,b[1]+nz*hw],[0,1,0],t2);
-    if(w2.c<=2){const lw=.14;dp.push(a[0]+nx*lw,(y0+.02),a[1]+nz*lw,a[0]-nx*lw,(y0+.02),a[1]-nz*lw,b[0]-nx*lw,(y1+.02),b[1]-nz*lw,b[0]+nx*lw,(y1+.02),b[1]+nz*lw);for(let q2=0;q2<4;q2++){dn.push(0,1,0);dc.push(.5,.48,.4)}const k=dp.length/3-4;du.push(0,0,1,0,1,1,0,1);di.push(k,k+2,k+1,k,k+3,k+2)}
-    if(w2.b){const ph=1.1;for(const s of[-1,1])quad(rp,rn,rc,ri,[a[0]+nx*hw*s,y0,a[1]+nz*hw*s],[a[0]+nx*(hw+.5)*s,y0,a[1]+nz*(hw+.5)*s],[b[0]+nx*(hw+.5)*s,y1,b[1]+nz*(hw+.5)*s],[b[0]+nx*hw*s,y1,b[1]+nz*hw*s],[0,1,0],[.16,.15,.14]),
-     quad(rp,rn,rc,ri,[a[0]+nx*hw*s,y0+ph,a[1]+nz*hw*s],[b[0]+nx*hw*s,y1+ph,b[1]+nz*hw*s],[b[0]+nx*hw*s,y1,b[1]+nz*hw*s],[a[0]+nx*hw*s,y0,a[1]+nz*hw*s],[-nx*s,0,-nz*s],[.18,.17,.16])}}}
   const mk=(P,N,C,I2,uv,U2,mat)=>{const gg=new T.BufferGeometry();gg.setAttribute('position',new T.Float32BufferAttribute(P,3));gg.setAttribute('normal',new T.Float32BufferAttribute(N,3));gg.setAttribute('color',new T.Float32BufferAttribute(C,3));if(uv)gg.setAttribute('uv',new T.Float32BufferAttribute(uv,2));gg.setIndex(I2);return new T.Mesh(gg,mat)};
-  const rm=mk(rp,rn,rc,ri,null,null,new T.MeshStandardMaterial({vertexColors:true,roughness:.85,metalness:.05,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}));rm.receiveShadow=true;sc3.add(rm);this.roadM=rm.material;
-  if(dp.length)sc3.add(mk(dp,dn,dc,di,du,null,new T.MeshBasicMaterial({vertexColors:true,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2})));
-  // piers under bridge decks
-  const prs=[];for(const w2 of ways){if(!w2.b)continue;const p=w2.p;let acc=0;
-   for(let i=0;i<p.length-1;i++){const a=p[i],b=p[i+1],L=Math.hypot(b[0]-a[0],b[1]-a[1]);let d2=35-acc;
-    while(d2<L){const t=d2/L,y=a[2]+(b[2]-a[2])*t;if(y>3)prs.push([a[0]+(b[0]-a[0])*t,y,a[1]+(b[1]-a[1])*t]);d2+=35}acc=(acc+L)%35}}
-  const pi=new T.InstancedMesh(new T.BoxGeometry(3,1,3),new T.MeshStandardMaterial({color:col(0x55534e),roughness:.95}),prs.length),o=new T.Object3D();
-  prs.forEach((q2,i)=>{o.position.set(q2[0],q2[1]/2,q2[2]);o.scale.set(1,q2[1],1);o.updateMatrix();pi.setMatrixAt(i,o.matrix)});sc3.add(pi);
+  const roadMat=new T.MeshStandardMaterial({vertexColors:true,roughness:.85,metalness:.05,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1});this.roadM=roadMat;
+  const dashMat=new T.MeshBasicMaterial({vertexColors:true,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
+  const pierMat=new T.MeshStandardMaterial({color:col(0x55534e),roughness:.95});
+  for(const [ck,cwl] of cways){const rp=[],rn=[],rc=[],ri=[],dp=[],dn=[],du=[],dc=[],di=[];
+   for(const w2 of cwl){const p=w2.p,hw=W2[w2.c],t2=TINT[w2.c];
+    for(let i=0;i<p.length-1;i++){const a=p[i],b=p[i+1],dx=b[0]-a[0],dz=b[1]-a[1],L=Math.hypot(dx,dz);if(L<.01)continue;const nx=-dz/L,nz=dx/L,y0=a[2]||.06,y1=b[2]||.06;
+     quad(rp,rn,rc,ri,[a[0]+nx*hw,y0,a[1]+nz*hw],[a[0]-nx*hw,y0,a[1]-nz*hw],[b[0]-nx*hw,y1,b[1]-nz*hw],[b[0]+nx*hw,y1,b[1]+nz*hw],[0,1,0],t2);
+     if(w2.c<=2){const lw=.14;dp.push(a[0]+nx*lw,(y0+.02),a[1]+nz*lw,a[0]-nx*lw,(y0+.02),a[1]-nz*lw,b[0]-nx*lw,(y1+.02),b[1]-nz*lw,b[0]+nx*lw,(y1+.02),b[1]+nz*lw);for(let q2=0;q2<4;q2++){dn.push(0,1,0);dc.push(.5,.48,.4)}const k2=dp.length/3-4;du.push(0,0,1,0,1,1,0,1);di.push(k2,k2+2,k2+1,k2,k2+3,k2+2)}
+     if(w2.b){const ph=1.1;for(const s of[-1,1])quad(rp,rn,rc,ri,[a[0]+nx*hw*s,y0,a[1]+nz*hw*s],[a[0]+nx*(hw+.5)*s,y0,a[1]+nz*(hw+.5)*s],[b[0]+nx*(hw+.5)*s,y1,b[1]+nz*(hw+.5)*s],[b[0]+nx*hw*s,y1,b[1]+nz*hw*s],[0,1,0],[.16,.15,.14]),
+      quad(rp,rn,rc,ri,[a[0]+nx*hw*s,y0+ph,a[1]+nz*hw*s],[b[0]+nx*hw*s,y1+ph,b[1]+nz*hw*s],[b[0]+nx*hw*s,y1,b[1]+nz*hw*s],[a[0]+nx*hw*s,y0,a[1]+nz*hw*s],[-nx*s,0,-nz*s],[.18,.17,.16])}}}
+   const grp=new T.Group();
+   if(rp.length){const rm=mk(rp,rn,rc,ri,null,null,roadMat);rm.receiveShadow=true;grp.add(rm)}
+   if(dp.length)grp.add(mk(dp,dn,dc,di,du,null,dashMat));
+   const prs=[];for(const w2 of cwl){if(!w2.b)continue;const p=w2.p;let acc=0;
+    for(let i=0;i<p.length-1;i++){const a=p[i],b=p[i+1],L=Math.hypot(b[0]-a[0],b[1]-a[1]);let d2=35-acc;
+     while(d2<L){const t=d2/L,y=a[2]+(b[2]-a[2])*t;if(y>3)prs.push([a[0]+(b[0]-a[0])*t,y,a[1]+(b[1]-a[1])*t]);d2+=35}acc=(acc+L)%35}}
+   if(prs.length){const pi=new T.InstancedMesh(new T.BoxGeometry(3,1,3),pierMat,prs.length),o=new T.Object3D();
+    prs.forEach((q2,i)=>{o.position.set(q2[0],q2[1]/2,q2[2]);o.scale.set(1,q2[1],1);o.updateMatrix();pi.setMatrixAt(i,o.matrix)});grp.add(pi)}
+   sc3.add(grp);this.chunks.set(ck,grp)}
+  const cGrp=k=>{let g2=this.chunks.get(k);if(!g2){g2=new T.Group();this.chunks.set(k,g2);sc3.add(g2)}return g2};
   // spatial hash for onRoad + deck height
   const CS=25,hash=new Map(),key=(x,z)=>Math.floor(x/CS)+','+Math.floor(z/CS);
   ways.forEach((w2,wi2)=>{const p=w2.p;for(let i=0;i<p.length-1;i++){const a=p[i],b=p[i+1];
@@ -930,14 +953,16 @@ class RealMap{
     for(let i=0;i<p.length-1;i++){const a=p[i],b=p[i+1],L=Math.hypot(b[0]-a[0],b[1]-a[1]);if(L<20)continue;const dx=(b[0]-a[0])/L,dz=(b[1]-a[1])/L,nx=-dz,nz=dx;
      for(let d=27;d<L;d+=340){side=-side;if(rnd()<.75)continue;const t=d/L,y=(a[2]||.06)+((b[2]||.06)-(a[2]||.06))*t;
       lp.push([a[0]+(b[0]-a[0])*t+nx*(hw+1.2)*side,y,a[1]+(b[1]-a[1])*t+nz*(hw+1.2)*side,side,nx,nz])}}}
-   if(lp.length){const o2=new T.Object3D();
-    const pm2=new T.InstancedMesh(new T.CylinderGeometry(.09,.13,7.5,4),new T.MeshStandardMaterial({color:col(0x4a4e55),metalness:.5,roughness:.6}),lp.length);
-    const hm2=new T.InstancedMesh(new T.BoxGeometry(.5,.12,1.3),new T.MeshBasicMaterial({color:0xffd6a0}),lp.length);
-    const gm2=new T.InstancedMesh(new T.PlaneGeometry(1,1),new T.MeshBasicMaterial({map:S.glowTex(),transparent:true,blending:T.AdditiveBlending,depthWrite:false,opacity:.65,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}),lp.length);
-    lp.forEach((q2,k)=>{o2.rotation.set(0,0,0);o2.scale.set(1,1,1);o2.position.set(q2[0],q2[1]+3.75,q2[2]);o2.updateMatrix();pm2.setMatrixAt(k,o2.matrix);
-     o2.position.set(q2[0]-q2[4]*1.2*q2[3],q2[1]+7.4,q2[2]-q2[5]*1.2*q2[3]);o2.updateMatrix();hm2.setMatrixAt(k,o2.matrix);
-     o2.position.set(q2[0]-q2[4]*1.8*q2[3],q2[1]+.12,q2[2]-q2[5]*1.8*q2[3]);o2.rotation.set(-Math.PI/2,0,0);o2.scale.set(15,15,1);o2.updateMatrix();gm2.setMatrixAt(k,o2.matrix)});
-    o2.rotation.set(0,0,0);o2.scale.set(1,1,1);sc3.add(pm2,hm2,gm2);this.nLamp=lp.length}}
+   if(lp.length){const o2=new T.Object3D();this.nLamp=lp.length;
+    const lbc=new Map();lp.forEach(q2=>{const k=Math.floor(q2[0]/CH)+','+Math.floor(q2[2]/CH);if(!lbc.has(k))lbc.set(k,[]);lbc.get(k).push(q2)});
+    for(const [k,ll] of lbc){const pm2=new T.InstancedMesh(new T.CylinderGeometry(.09,.13,7.5,4),new T.MeshStandardMaterial({color:col(0x4a4e55),metalness:.5,roughness:.6}),ll.length);
+     const hm2=new T.InstancedMesh(new T.BoxGeometry(.5,.12,1.3),new T.MeshBasicMaterial({color:0xffd6a0}),ll.length);
+     const gm2=new T.InstancedMesh(new T.PlaneGeometry(1,1),new T.MeshBasicMaterial({map:S.glowTex(),transparent:true,blending:T.AdditiveBlending,depthWrite:false,opacity:.65,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}),ll.length);
+     ll.forEach((q2,k2)=>{o2.rotation.set(0,0,0);o2.scale.set(1,1,1);o2.position.set(q2[0],q2[1]+3.75,q2[2]);o2.updateMatrix();pm2.setMatrixAt(k2,o2.matrix);
+      o2.position.set(q2[0]-q2[4]*1.2*q2[3],q2[1]+7.4,q2[2]-q2[5]*1.2*q2[3]);o2.updateMatrix();hm2.setMatrixAt(k2,o2.matrix);
+      o2.position.set(q2[0]-q2[4]*1.8*q2[3],q2[1]+.12,q2[2]-q2[5]*1.8*q2[3]);o2.rotation.set(-Math.PI/2,0,0);o2.scale.set(15,15,1);o2.updateMatrix();gm2.setMatrixAt(k2,o2.matrix)});
+     cGrp(k).add(pm2,hm2,gm2)}
+    o2.rotation.set(0,0,0);o2.scale.set(1,1,1)}}
   {const N2=750,pa=new Float32Array(N2*3);for(let q=0;q<N2;q++){const th=rnd()*6.283,ph=rnd()*.45+.05,r=8000;pa[q*3]=-2800+r*Math.cos(th)*Math.cos(ph);pa[q*3+1]=r*Math.sin(ph);pa[q*3+2]=2600+r*Math.sin(th)*Math.cos(ph)}
    const gg2=new T.BufferGeometry();gg2.setAttribute('position',new T.BufferAttribute(pa,3));
    const st=new T.Points(gg2,new T.PointsMaterial({color:0xafc4ee,size:2.4,sizeAttenuation:false,transparent:true,opacity:.8,fog:false,depthWrite:false}));st.frustumCulled=false;sc3.add(st);
@@ -959,10 +984,11 @@ class RealMap{
    for(const q2 of[[0,0,115,139],[215,-60,105,136],[430,90,52,65]]){const py=new T.Mesh(new T.ConeGeometry(q2[2],q2[3],4),m2);py.position.set(PYX+q2[0],q2[3]/2,PYZ+q2[1]);py.rotation.y=Math.PI/4;sc3.add(py)}}
 
   // the Nile: wide dark ribbons along water polylines
-  const wp=[],wn=[],wc=[],wi=[];
+  const wbc=new Map(),wmat=new T.MeshStandardMaterial({vertexColors:true,roughness:.08,metalness:.6,emissive:col(0x12395c),emissiveIntensity:1.35});
   for(const pl of this.data.n){for(let i=0;i<pl.length/2-1;i++){const a=[pl[2*i]/10,pl[2*i+1]/10],b=[pl[2*i+2]/10,pl[2*i+3]/10],dx=b[0]-a[0],dz=b[1]-a[1],L=Math.hypot(dx,dz);if(L<.01)continue;const nx=-dz/L,nz=dx/L,hw=170;
-   quad(wp,wn,wc,wi,[a[0]+nx*hw,.02,a[1]+nz*hw],[a[0]-nx*hw,.02,a[1]-nz*hw],[b[0]-nx*hw,.02,b[1]-nz*hw],[b[0]+nx*hw,.02,b[1]+nz*hw],[0,1,0],[.05,.14,.24])}}
-  if(wp.length){const wm=mk(wp,wn,wc,wi,null,null,new T.MeshStandardMaterial({vertexColors:true,roughness:.08,metalness:.6,emissive:col(0x12395c),emissiveIntensity:1.35}));sc3.add(wm)}
+   const k=Math.floor((a[0]+b[0])/2/CH)+','+Math.floor((a[1]+b[1])/2/CH);if(!wbc.has(k))wbc.set(k,[[],[],[],[]]);const W3=wbc.get(k);
+   quad(W3[0],W3[1],W3[2],W3[3],[a[0]+nx*hw,.02,a[1]+nz*hw],[a[0]-nx*hw,.02,a[1]-nz*hw],[b[0]-nx*hw,.02,b[1]-nz*hw],[b[0]+nx*hw,.02,b[1]+nz*hw],[0,1,0],[.05,.14,.24])}}
+  for(const [k,W3] of wbc){if(W3[0].length)cGrp(k).add(mk(W3[0],W3[1],W3[2],W3[3],null,null,wmat))}
   // Cairo Tower at its real coordinates
   const tw=this.data.lm.find(l=>l[0]==='برج القاهرة');
   if(tw){const tg=new T.Group(),m1=new T.MeshStandardMaterial({color:col(0xb9b4a8),roughness:.7,emissive:col(0x2a2b33),emissiveIntensity:.5});
@@ -1585,7 +1611,7 @@ class RealMap{
   if(!this.dlOpen&&dist<10&&pl.speed*3.6<8){this.dlOpen=true;this.g.keys={};this.dlI=this.g.sel;this.dlShow();$('dealerP').hidden=false;this.g.popup('أهلاً بيك في المعرض')}
   else if(this.dlOpen&&dist>16){this.dlClosePanel();const tp=$('tuneP');if(tp)tp.hidden=true}}
  onRoad(x,z){const q=this.query(x,z);return q&&q.d<q.hw+2.5}
- update(dt){if(this.photo&&this.photo.on)this.photoUpd(dt);const n=Math.max(1,Math.min(8,Math.ceil(dt*120))),h=dt/n;for(let i=0;i<n;i++)this.sim(h);
+ update(dt){if(this.chunks){this._rgT=(this._rgT||0)+dt;if(this._rgT>.4){this._rgT=0;const pcx=Math.floor(this.pl.x/this.CH),pcz=Math.floor(this.pl.z/this.CH);for(const [ck3,g2] of this.chunks){const cp=ck3.split(',');g2.visible=Math.abs(cp[0]-pcx)<=1&&Math.abs(cp[1]-pcz)<=1}}}if(this.photo&&this.photo.on)this.photoUpd(dt);const n=Math.max(1,Math.min(8,Math.ceil(dt*120))),h=dt/n;for(let i=0;i<n;i++)this.sim(h);
   if(this.towerBc)this.towerBc.visible=Math.sin(this.g.t*2.4)>0;
   if(this.tlL){this.tlT=(this.tlT||0)+dt;if(this.tlT>5){this.tlT=0;this.tlP=!this.tlP;const cc=new T.Color();for(let k=0;k<this.tlN;k++)this.tlL.setColorAt(k,cc.set((k%2===0)===this.tlP?0xff3226:0x2fe06a));this.tlL.instanceColor.needsUpdate=true}}
   const p=this.pl,q=this.query(p.x,p.z);let ty=0;if(q){if(q.b&&q.d<q.hw+1.5)ty=q.y;else if(q.y>1&&q.d<q.hw+6)ty=q.y}
