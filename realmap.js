@@ -132,7 +132,7 @@ class RealMap{
   // spawn at the west end of the longest bridge way (6th October Bridge)
   let bw=null;for(const w2 of ways){if(!w2.b)continue;const cx=w2.p.reduce((a2,q2)=>a2+q2[0],0)/w2.p.length,cz=w2.p.reduce((a2,q2)=>a2+q2[1],0)/w2.p.length;if(Math.hypot(cx+300,cz-1600)>3400)continue;if(!bw||w2.p.length>bw.p.length)bw=w2}
   const si=Math.min(6,bw.p.length-2),sp0=bw.p[si],sp1=bw.p[si+1];const sq=this.query(sp0[0],sp0[1]);this.spawn={x:sp0[0],z:sp0[1],y:(sq?sq.y:sp0[2]||.06)+.02,h:Math.atan2(sp1[0]-sp0[0],sp1[1]-sp0[1])};
-  this.trafficBuild();this.rushBuild();this.wxBuild();this.pedBuild();this.fareBuild();this.dealerBuild();this.areaBuild();this.feluBuild();this.mosqueBuild();this.sphinxBuild();this.msBuild();this.rdrBuild();
+  this.trafficBuild();this.rushBuild();this.wxBuild();this.pedBuild();this.fareBuild();this.dealerBuild();this.areaBuild();this.svcBuild();this.feluBuild();this.mosqueBuild();this.sphinxBuild();this.msBuild();this.rdrBuild();
   // minimal HUD
   if(!$('realHud')){const h=document.createElement('div');h.id='realHud';h.hidden=true;h.style.cssText='position:fixed;inset:0;z-index:2;pointer-events:none;direction:rtl';
    h.innerHTML='<div style="position:absolute;top:calc(var(--sat) + 10px);left:50%;transform:translateX(-50%);padding:6px 16px;border-radius:14px" class="glass"><small>طرق مصر - © OpenStreetMap contributors</small></div>'+
@@ -144,9 +144,57 @@ class RealMap{
    +'<div class="glass" style="position:absolute;top:calc(var(--sat) + 86px);inset-inline-end:10px;padding:3px 14px;border-radius:12px;display:none"><small id="erRad"></small></div>'
    +'<canvas id="erMap" width="176" height="176" style="position:absolute;bottom:calc(var(--sab) + 12px);inset-inline-end:10px;border-radius:50%;opacity:.94"></canvas>'
    +'<div class="glass" style="position:absolute;top:calc(var(--sat) + 48px);inset-inline-start:10px;padding:3px 14px;border-radius:12px;display:none"><small id="erRush"></small></div>'
-   +'<div class="glass" style="position:absolute;top:calc(var(--sat) + 86px);inset-inline-start:10px;padding:3px 14px;border-radius:12px;display:none"><small id="erRain">\u{1F327} \u0645\u0637\u0631</small></div>';
+   +'<div class="glass" style="position:absolute;top:calc(var(--sat) + 86px);inset-inline-start:10px;padding:3px 14px;border-radius:12px;display:none"><small id="erRain">\u{1F327} \u0645\u0637\u0631</small></div>'
+   +'<div class="glass" style="position:absolute;bottom:calc(var(--sab) + 64px);left:50%;transform:translateX(-50%);padding:3px 14px;border-radius:12px"><small id="erFuel">⛽ 100%</small></div>';
    document.body.appendChild(h)}
   this.mapBuild();this.built=true}
+ // ---------- v61: service stops (fuel / wash / repair) ----------
+ svcBuild(){const pw=this.pways;if(!pw||!pw.length)return;
+  this.fuel=parseFloat(localStorage.getItem('er_fuel')||'100');if(isNaN(this.fuel))this.fuel=100;this.fuelWarn=false;this.svcOpen=false;this.svT=0;
+  const names=['الزمالك','المهندسين','الجيزة'];this.svc=[];
+  for(const nm of names){const zn=(this.zones||[]).find(z=>z.n===nm);if(!zn||zn.nile)continue;
+   let best=null,bd=1e9;for(const e of pw)for(const f of[.15,.3,.5,.7,.85]){const pos=this.posAt(e,e.L*f),d=Math.hypot(pos[0]-zn.x,pos[1]-zn.z);if(d<bd){bd=d;best={e,pos}}}
+   if(!best||bd>900)continue;const e=best.e,pos=best.pos,nx2=this.posAt(e,Math.min(e.L/2+4,e.L));
+   let dx=nx2[0]-pos[0],dz=nx2[1]-pos[1];const dl=Math.hypot(dx,dz)||1;dx/=dl;dz/=dl;const off=e.hw+3.4;
+   this.svc.push({x:pos[0]-dz*off,z:pos[1]+dx*off,y:pos[2]||.06,h:Math.atan2(dx,dz),n:nm})}
+  if(!this.svc.length){const e=pw[0],pos=this.posAt(e,e.L/2);this.svc.push({x:pos[0],z:pos[1],y:.06,h:0,n:'وسط البلد'})}
+  const o2=new T.Object3D();
+  const roof=new T.InstancedMesh(new T.BoxGeometry(9,.4,6),new T.MeshStandardMaterial({color:col(0x1a1f2c),roughness:.7}),this.svc.length),
+   tot=new T.InstancedMesh(new T.BoxGeometry(1.1,3.4,.3),new T.MeshStandardMaterial({color:col(0x141824),emissive:col(0xff9f43),emissiveIntensity:1.1}),this.svc.length);
+  this.svc.forEach((s3,k)=>{o2.position.set(s3.x,s3.y+3.6,s3.z);o2.rotation.set(0,s3.h,0);o2.scale.set(1,1,1);o2.updateMatrix();roof.setMatrixAt(k,o2.matrix);
+   o2.position.set(s3.x,s3.y+1.7,s3.z);o2.updateMatrix();tot.setMatrixAt(k,o2.matrix);
+   const bcn=new T.Mesh(new T.CylinderGeometry(2,2.4,26,10,1,true),new T.MeshBasicMaterial({color:0xff9f43,transparent:true,opacity:.2,side:T.DoubleSide,depthWrite:false,fog:false}));bcn.position.set(s3.x,s3.y+13,s3.z);s3.bcn=bcn;this.scene.add(bcn)});
+  o2.rotation.set(0,0,0);this.scene.add(roof,tot);
+  if(!$('svcP')){const dv=document.createElement('div');dv.id='svcP';dv.hidden=true;dv.style.cssText='position:fixed;left:50%;bottom:calc(var(--sab) + 76px);transform:translateX(-50%);z-index:3;direction:rtl';
+   dv.innerHTML='<div class="glass" style="padding:10px 16px;border-radius:18px;text-align:center;min-width:250px">'+
+    '<b style="font-size:15px">محطة خدمة ⛽</b><div id="svcInfo" style="margin:6px 0;font-size:13px"></div>'+
+    '<div style="display:flex;gap:8px;justify-content:center;pointer-events:auto">'+
+    '<button class="btn tint" id="svcFuel"></button><button class="btn tint" id="svcWash"></button><button class="btn tint" id="svcFix"></button></div></div>';
+   document.body.appendChild(dv);
+   dv.querySelector('#svcFuel').onclick=()=>this.svcAct('fuel');dv.querySelector('#svcWash').onclick=()=>this.svcAct('wash');dv.querySelector('#svcFix').onclick=()=>this.svcAct('fix')}}
+ svcAct(kind){const g=this.g,p=this.pl,fx=this.fx;
+  if(kind==='fuel'){const need=Math.ceil(100-this.fuel),cost=need*3;if(need<2)return;if(g.coins<cost)return g.popup('فلوسك مش كفاية للتفويلة');
+   g.coins-=cost;this.fuel=100;this.fuelWarn=false;g.saveCoins();g.popup('التنك مليان.. بالهنا ⛽');g.audio.coin()}
+  else if(kind==='wash'){if(g.coins<25)return g.popup('الغسيل بـ 25 جنيه');g.coins-=25;g.saveCoins();if(fx)fx.tip=true;g.popup('العربية بقت تلمع ✨ الراكب الجاي هيبقّش');g.audio.flash()}
+  else{const d=Math.ceil(p.dmg),cost=d*2;if(d<1)return g.popup('العربية سليمة');if(g.coins<cost)return g.popup('فلوسك مش كفاية للتصليح');g.coins-=cost;p.dmg=0;g.saveCoins();g.popup('اتظبطت.. زيرو عطل 🔧');g.audio.unlock()}
+  this.svcShow()}
+ svcShow(){const g=this.g,p=this.pl,need=Math.ceil(100-this.fuel),fc=need*3,dm=Math.ceil(p.dmg);
+  $('svcInfo').textContent='⛽ '+Math.round(this.fuel)+'% · العطل '+dm+'% · فلوسك '+g.coins+' ج';
+  const b1=$('svcFuel'),b2=$('svcWash'),b3=$('svcFix');
+  b1.textContent='املأ التنك '+fc+'ج';b1.disabled=need<2||g.coins<fc;
+  b2.textContent='غسيل 25ج';b2.disabled=g.coins<25;
+  b3.textContent='تصليح '+(dm*2)+'ج';b3.disabled=dm<1||g.coins<dm*2;
+  for(const b of[b1,b2,b3])b.style.opacity=b.disabled?.55:1}
+ svcUpd(dt){const g=this.g,pl=this.pl;
+  this.fuel=Math.max(0,this.fuel-pl.speed*dt*.004);
+  if(this.fuel<15&&!this.fuelWarn){this.fuelWarn=true;g.popup('البنزين قرب يخلص.. روح أقرب محطة ⛽')}
+  if(this.fuel>=30)this.fuelWarn=false;
+  this.svT+=dt;if(this.svT>.5){this.svT=0;const e=$('erFuel');if(e){e.textContent='⛽ '+Math.round(this.fuel)+'%';e.parentElement.style.borderColor=this.fuel<15?'#ff5a4e':''}
+   try{localStorage.setItem('er_fuel',String(Math.round(this.fuel)))}catch(e2){}}
+  let best=null,bd=1e9;for(const s3 of this.svc){const d=Math.hypot(s3.x-pl.x,s3.z-pl.z);if(d<bd){bd=d;best=s3}}
+  if(best&&best.bcn)best.bcn.material.opacity=.16+.1*Math.sin(g.t*2.6);
+  if(!this.svcOpen&&bd<9&&pl.speed*3.6<8){this.svcOpen=true;g.keys={};this.svcShow();$('svcP').hidden=false;g.popup('محطة '+best.n+'.. ارتاح ثانية')}
+  else if(this.svcOpen&&bd>18){this.svcOpen=false;$('svcP').hidden=true}}
  // ---------- v60: night rain + wet roads ----------
  wxBuild(){const N=this.low?350:800,pos=new Float32Array(N*6);
   for(let i=0;i<N;i++){const x=(Math.random()-.5)*110,y=Math.random()*28,z=(Math.random()-.5)*110;
@@ -198,6 +246,7 @@ class RealMap{
   const fx=this.fx;if(fx){if(fx.st===0)pin(fx.pax.x,fx.pax.z,'#35e08a',4);else if(fx.dst)pin(fx.dst.x,fx.dst.z,'#ffb02e',4.5)}
   if(this.ms&&this.ms.st===1)pin(this.ms.x,this.ms.z,'#c77dff',4);
   if(this.dlr)pin(this.dlr.x,this.dlr.z,'#7ec8ff',3.5);
+  if(this.svc)for(const s3 of this.svc)pin(s3.x,s3.z,'#ff9f43',3);
   ctx.fillStyle='#ffd75e';ctx.strokeStyle='rgba(0,0,0,.5)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(C,C-7);ctx.lineTo(C-4.6,C+5.4);ctx.lineTo(C+4.6,C+5.4);ctx.closePath();ctx.fill();ctx.stroke();
   ctx.fillStyle='rgba(255,255,255,.85)';ctx.font='bold 10px sans-serif';ctx.textAlign='center';ctx.fillText('\u0634',C+sh*(C-13),C+ch*(C-13)+3.5);
   ctx.fillStyle='rgba(255,255,255,.5)';ctx.font='9px sans-serif';ctx.fillText(R+' \u0645',C,169);
@@ -333,6 +382,7 @@ class RealMap{
    if(fx.rush){fx.t-=dt;if(fx.t<=0){fx.rush=false;fx.fare=Math.round(fx.fare/1.5);g.popup('اتأخرنا شوية، بس يلا بينا')}}
    const e2=$('erFare');if(e2)e2.innerHTML='<small>الوجهة: '+fx.dname+' - '+m$(d)+' ('+fx.fare+' ج)'+(fx.rush?' ⏱ '+Math.ceil(fx.t)+' ث':'')+'</small>';
    if(d<6&&sp<8){fx.st=0;g.coins+=fx.fare;
+    if(fx.tip){fx.tip=false;g.coins+=15;setTimeout(()=>g.popup('الراكب عجبته العربية النضيفة.. بقشيش +15'),900)}
     if(fx.hits===0){fx.streak++;if(fx.streak%3===0){g.coins+=60;setTimeout(()=>g.popup('سلسلة نضيفة! '+fx.streak+' مشاوير من غير خبطة +60 جنيه'),900)}}
     else fx.streak=0;
     g.saveCoins();
@@ -517,9 +567,9 @@ class RealMap{
   if(this.towerBc)this.towerBc.visible=Math.sin(this.g.t*2.4)>0;
   if(this.tlL){this.tlT=(this.tlT||0)+dt;if(this.tlT>5){this.tlT=0;this.tlP=!this.tlP;const cc=new T.Color();for(let k=0;k<this.tlN;k++)this.tlL.setColorAt(k,cc.set((k%2===0)===this.tlP?0xff3226:0x2fe06a));this.tlL.instanceColor.needsUpdate=true}}
   const p=this.pl,q=this.query(p.x,p.z);let ty=0;if(q){if(q.b&&q.d<q.hw+1.5)ty=q.y;else if(q.y>1&&q.d<q.hw+6)ty=q.y}
-  this.cy+=(ty-this.cy)*Math.min(1,5*dt);if(this.ag&&this.rushOn!==undefined)this.rushUpd(dt);if(this.agM)this.trafficUpd(dt);if(this.pdM)this.pedUpd(dt);if(this.fx)this.fareUpd(dt);if(this.dlr)this.dealerUpd(dt);if(this.fl)this.feluUpd(dt);if(this.zones)this.areaUpd(dt);if(this.ms)this.msUpd(dt);if(this.rd)this.rdrUpd(dt);if(this.map)this.mapUpd(dt);if(this.wx)this.wxUpd(dt)}
+  this.cy+=(ty-this.cy)*Math.min(1,5*dt);if(this.ag&&this.rushOn!==undefined)this.rushUpd(dt);if(this.agM)this.trafficUpd(dt);if(this.pdM)this.pedUpd(dt);if(this.fx)this.fareUpd(dt);if(this.dlr)this.dealerUpd(dt);if(this.fl)this.feluUpd(dt);if(this.zones)this.areaUpd(dt);if(this.ms)this.msUpd(dt);if(this.rd)this.rdrUpd(dt);if(this.map)this.mapUpd(dt);if(this.wx)this.wxUpd(dt);if(this.svc)this.svcUpd(dt)}
  sim(h){const g=this.g,p=this.pl,k=g.keys;let s=(k.right?1:0)-(k.left?1:0);if(g.opt.tilt&&matchMedia('(pointer:coarse)').matches)s=cl(s+(g.opt.inv?-1:1)*g.tilt/20,-1,1);s=cl(s+(g.wv||0),-1,1);
-  const I={steer:s,thr:k.up?1:0,brk:k.down?1:0,hb:k.hb?1:0};p.grip=(this.onRoad(p.x,p.z)?1:.85)*(this.wx&&this.wx.on?.9:1);if(p.dmg>=100)I.thr=0;
+  const I={steer:s,thr:k.up?1:0,brk:k.down?1:0,hb:k.hb?1:0};p.grip=(this.onRoad(p.x,p.z)?1:.85)*(this.wx&&this.wx.on?.9:1);if(p.dmg>=100)I.thr=0;if(this.fuel!==undefined&&this.fuel<=0)I.thr*=.12;
   p.step(h,I);const B=this.bounds;if(p.x<B.x0)p.x=B.x0;if(p.x>B.x1)p.x=B.x1;if(p.z<B.z0)p.z=B.z0;if(p.z>B.z1)p.z=B.z1}
  draw(dt){const g=this.g,w=g.world,p=this.pl,c=w.cam,sp=p.speed,wv=p.wv();g.wheelStep(dt);S.updCar(this.pcar,p,dt,1);this.pcar.g.position.y=this.cy;
   const lit=!!g.hl,ps=this.pcar;if(ps.spot)ps.spot.intensity=lit?3.5:0;ps.hl.emissiveIntensity=lit?4:.6;
