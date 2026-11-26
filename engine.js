@@ -45,7 +45,7 @@ class Game{
   this.initChase();this.bind();this.applyLow();this.initUp();try{if(S.Roam)this.roam=new S.Roam(this)}catch(e){console.error(e)}try{if(S.RealMap)this.real=new S.RealMap(this)}catch(e){console.error(e)}try{restyleMenu(this)}catch(e){console.error(e)}this.pick(0);this.setAtm(0);this.chalFromUrl();$('modeNote').textContent=NOTE.race;this.last=performance.now();requestAnimationFrame(t=>this.loop(t))}
  bind(){const A=(s,f)=>document.querySelectorAll(s).forEach(f);
   addEventListener('keydown',e=>{if(e.target&&e.target.tagName==='INPUT')return;this.audio.init();const k=KM[e.code];if(k){this.keys[k]=true;e.preventDefault();return}
-   switch(e.code){case'KeyH':this.audio.horn();break;case'KeyL':this.hl=!this.hl;$('bLight').classList.toggle('on',this.hl);break;case'KeyM':this.toggleM();break;case'KeyN':this.setAtm(1);break;case'KeyC':this.view^=1;break;case'KeyT':this.recover();break;
+   switch(e.code){case'KeyH':this.audio.horn();break;case'KeyL':this.hl=!this.hl;$('bLight').classList.toggle('on',this.hl);break;case'KeyM':this.toggleM();break;case'KeyR':this.radioNext();break;case'KeyN':this.setAtm(1);break;case'KeyC':this.view^=1;break;case'KeyT':this.recover();break;
     case'KeyE':if(this.pl)this.pl.shift(1);break;case'KeyQ':if(this.pl)this.pl.shift(-1);break;case'KeyP':case'Escape':if(this.paused)this.resume();else this.pause();break;case'KeyR':if(this.state==='REAL')this.real.restart();else if(this.state!=='MENU'){this.real?this.real.restart():this.start()}break;case'Enter':if(this.state==='MENU'&&document.activeElement.tagName!=='BUTTON'){if(this.real)this.real.start();else this.start()}}});
   addEventListener('keyup',e=>{const k=KM[e.code];if(k)this.keys[k]=false});addEventListener('pointerdown',()=>this.audio.init());
   document.addEventListener('visibilitychange',()=>{if(document.hidden)this.pause()});
@@ -74,6 +74,9 @@ class Game{
   try{if(window.DeviceOrientationEvent&&typeof DeviceOrientationEvent.requestPermission==='function')DeviceOrientationEvent.requestPermission().then(r=>{if(r==='granted')go()}).catch(()=>{});else go()}catch(e){}}
  shiftUi(){document.querySelectorAll('#touch .sh').forEach(b=>b.hidden=!this.opt.man)}
  toggleM(){this.audio.init();$('bMute').classList.toggle('off',this.audio.mute())}
+ radioNext(){this.audio.init();const st=((this.radioSt||0)+1)%4;this.radioSt=st;try{localStorage.setItem('er_radio',st)}catch(e){}
+  this.audio.radio(st);const NM=['الراديو مقفول 📻','الراديو: أغاني هادية 🌙','الراديو: مهرجانات 🔊','الراديو: تخت شرقي 🎶'];this.popup(NM[st])}
+ radioRestore(){let st=0;try{st=parseInt(localStorage.getItem('er_radio'))||0}catch(e){}this.radioSt=st;if(st)this.audio.radio(st)}
  setAtm(d){this.atm=ATM[(ATM.indexOf(this.atm)+d)%ATM.length];document.body.classList.toggle('rain',this.atm==='rain');$('atm').textContent=ATN[this.atm];if(this.world)this.world.atm(this.atm)}
  pick(i){this.sel=(i+CARS.length)%CARS.length;const d=CARS[this.sel];$('cn').textContent=d.name;if($('paint'))$('paint').hidden=d.id!=='verna';
   $('stats').innerHTML=STATS.map(([k,n])=>'<div class="st"><span>'+n+'</span><i><b style="width:'+Math.round(d[k]*100)+'%"></b></i></div>').join('');this.dots.forEach((e,j)=>e.classList.toggle('on',j===this.sel));if(this.prev)this.prev.set(d);this.garage()}
