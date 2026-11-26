@@ -132,7 +132,7 @@ class RealMap{
   // spawn at the west end of the longest bridge way (6th October Bridge)
   let bw=null;for(const w2 of ways){if(!w2.b)continue;const cx=w2.p.reduce((a2,q2)=>a2+q2[0],0)/w2.p.length,cz=w2.p.reduce((a2,q2)=>a2+q2[1],0)/w2.p.length;if(Math.hypot(cx+300,cz-1600)>3400)continue;if(!bw||w2.p.length>bw.p.length)bw=w2}
   const si=Math.min(6,bw.p.length-2),sp0=bw.p[si],sp1=bw.p[si+1];const sq=this.query(sp0[0],sp0[1]);this.spawn={x:sp0[0],z:sp0[1],y:(sq?sq.y:sp0[2]||.06)+.02,h:Math.atan2(sp1[0]-sp0[0],sp1[1]-sp0[1])};
-  this.trafficBuild();this.pedBuild();this.fareBuild();this.dealerBuild();this.areaBuild();this.feluBuild();this.mosqueBuild();this.sphinxBuild();this.msBuild();this.rdrBuild();
+  this.trafficBuild();this.rushBuild();this.pedBuild();this.fareBuild();this.dealerBuild();this.areaBuild();this.feluBuild();this.mosqueBuild();this.sphinxBuild();this.msBuild();this.rdrBuild();
   // minimal HUD
   if(!$('realHud')){const h=document.createElement('div');h.id='realHud';h.hidden=true;h.style.cssText='position:fixed;inset:0;z-index:2;pointer-events:none;direction:rtl';
    h.innerHTML='<div style="position:absolute;top:calc(var(--sat) + 10px);left:50%;transform:translateX(-50%);padding:6px 16px;border-radius:14px" class="glass"><small>طرق مصر - © OpenStreetMap contributors</small></div>'+
@@ -142,9 +142,21 @@ class RealMap{
    +'<div class="glass" style="position:absolute;top:calc(var(--sat) + 48px);left:50%;transform:translateX(-50%);padding:3px 14px;border-radius:12px;display:none"><small id="erArea"></small></div>'
    +'<div class="glass" id="erMsnW" style="position:absolute;top:calc(var(--sat) + 48px);inset-inline-end:10px;padding:3px 14px;border-radius:12px;display:none"><small id="erMsn"></small></div>'
    +'<div class="glass" style="position:absolute;top:calc(var(--sat) + 86px);inset-inline-end:10px;padding:3px 14px;border-radius:12px;display:none"><small id="erRad"></small></div>'
-   +'<canvas id="erMap" width="176" height="176" style="position:absolute;bottom:calc(var(--sab) + 12px);inset-inline-end:10px;border-radius:50%;opacity:.94"></canvas>';
+   +'<canvas id="erMap" width="176" height="176" style="position:absolute;bottom:calc(var(--sab) + 12px);inset-inline-end:10px;border-radius:50%;opacity:.94"></canvas>'
+   +'<div class="glass" style="position:absolute;top:calc(var(--sat) + 48px);inset-inline-start:10px;padding:3px 14px;border-radius:12px;display:none"><small id="erRush"></small></div>';
    document.body.appendChild(h)}
   this.mapBuild();this.built=true}
+ // ---------- v59: rush-hour traffic jams ----------
+ rushBuild(){this.rushOn=false;
+  let cands=this.tways.filter(e2=>e2.L>700&&(W2[e2.w.c]||3)>=7);if(!cands.length)cands=this.tways.filter(e2=>e2.L>500);
+  for(let i=0;i<Math.min(3,cands.length);i++){const e2=cands[Math.floor((i+.5)*cands.length/3)];if(e2&&e2.jam===undefined)e2.jam=e2.L*(.3+Math.random()*.4)}}
+ rushUpd(dt){const g=this.g,rt=(g.t+310)%420,on=rt<110,e0=$('erRush');
+  if(on===this.rushOn){if(e0&&on)e0.textContent='\u{1F6A6} \u0632\u062D\u0645\u0629 \u062F\u0644\u0648\u0642\u062A\u064A.. \u0627\u0644\u0623\u062C\u0631\u0629 ×1.5';return}
+  this.rushOn=on;const N0=this.agBase||14,CAP=this.ag.length;
+  if(on){for(let k=0;k<CAP;k++){const a=this.ag[k];if(!a.on){a.on=true;a.hid=0;a.cruise=this.trnd(7,11);this.agPlace(a,k,120)}}
+   g.popup('\u0633\u0627\u0639\u0629 \u0627\u0644\u0630\u0631\u0648\u0629.. \u0632\u062D\u0645\u0629 \u0641\u064A \u0643\u0644 \u062D\u062A\u0629\u060C \u0628\u0633 \u0627\u0644\u0623\u062C\u0631\u0629 ×1.5 \u{1F6A6}');g.audio.flash()}
+  else{for(let k=N0;k<CAP;k++){const a=this.ag[k];a.on=false;a.hid=0}g.popup('\u0627\u0644\u0632\u062D\u0645\u0629 \u0641\u0643\u062A.. \u0627\u0644\u0633\u0643\u0629 \u0633\u0647\u0644\u0629 \u062A\u0627\u0646\u064A')}
+  if(e0){e0.parentElement.style.display=on?'':'none';if(on)e0.textContent='\u{1F6A6} \u0632\u062D\u0645\u0629 \u062F\u0644\u0648\u0642\u062A\u064A.. \u0627\u0644\u0623\u062C\u0631\u0629 ×1.5'}}
  // ---------- v58: minimap / GPS ----------
  mapBuild(){this.mapZs=[250,450,900];this.mapZi=1;this.mapR=450;this.mapAcc=1;
   const cv=$('erMap');if(!cv)return;this.map={cv,ctx:cv.getContext('2d')}}
@@ -173,18 +185,18 @@ class RealMap{
  // ---------- v46: ambient traffic on the real roads ----------
  posAt(e,s){const c=e.cum,p=e.w.p;let lo=0,hi=c.length-1;while(lo<hi-1){const m=(lo+hi)>>1;if(c[m]<=s)lo=m;else hi=m}const t=cl((s-c[lo])/((c[lo+1]-c[lo])||1e-6),0,1),a=p[lo],b=p[lo+1];return[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,((a[2]||.06)+((b[2]||.06)-(a[2]||.06))*t)]}
  trafficBuild(){const tw=[];for(const w2 of this.ways){if(w2.c>4)continue;let L=0;const cum=[0];for(let k=1;k<w2.p.length;k++){L+=Math.hypot(w2.p[k][0]-w2.p[k-1][0],w2.p[k][1]-w2.p[k-1][1]);cum.push(L)}if(L>150)tw.push({w:w2,L,cum})}
-  this.tways=tw;if(!tw.length)return;const N=this.low?8:14;this.ag=[];const rnd2=(a,b)=>a+Math.random()*(b-a),pk=a2=>a2[Math.floor(Math.random()*a2.length)];this.trnd=rnd2;this.tpk=pk;
+  this.tways=tw;if(!tw.length)return;const N=this.low?8:14,CAP=this.low?14:26;this.ag=[];this.agBase=N;this.agCap=CAP;const rnd2=(a,b)=>a+Math.random()*(b-a),pk=a2=>a2[Math.floor(Math.random()*a2.length)];this.trnd=rnd2;this.tpk=pk;
   const bg=new T.BoxGeometry(1.78,.62,4.15);bg.translate(0,.64,0);
   const cg=new T.BoxGeometry(1.56,.55,2.05);cg.translate(0,1.18,-.2);
   const tg2=new T.BoxGeometry(1.5,.15,.1);tg2.translate(0,.74,-2.06);
   const hg2=new T.BoxGeometry(1.5,.13,.1);hg2.translate(0,.66,2.06);
-  const bm=this.agB=new T.InstancedMesh(bg,new T.MeshStandardMaterial({roughness:.5,metalness:.4}),N),
-   cm=new T.InstancedMesh(cg,new T.MeshStandardMaterial({color:col(0x10131a),roughness:.35,metalness:.2}),N),
-   tm=new T.InstancedMesh(tg2,new T.MeshBasicMaterial({color:0xff2a20,fog:false}),N),
-   hm=new T.InstancedMesh(hg2,new T.MeshBasicMaterial({color:0xfff0c8,fog:false}),N);
+  const bm=this.agB=new T.InstancedMesh(bg,new T.MeshStandardMaterial({roughness:.5,metalness:.4}),CAP),
+   cm=new T.InstancedMesh(cg,new T.MeshStandardMaterial({color:col(0x10131a),roughness:.35,metalness:.2}),CAP),
+   tm=new T.InstancedMesh(tg2,new T.MeshBasicMaterial({color:0xff2a20,fog:false}),CAP),
+   hm=new T.InstancedMesh(hg2,new T.MeshBasicMaterial({color:0xfff0c8,fog:false}),CAP);
   this.agM=[bm,cm,tm,hm];this.agO=new T.Object3D();this.scene.add(bm,cm,tm,hm);
-  const cc=new T.Color();for(let k=0;k<N;k++){const a={v:0,cruise:rnd2(8,13),lane:2.4,x:0,z:0,y:.06,h:0,s:0,dir:1,e:tw[0]};this.ag.push(a);this.agPlace(a,k,60);bm.setColorAt(k,cc.setHex(pk([0x9da1a6,0xeeeeee,0x2a3140,0x7a1f1f,0x244a6a,0x6b6b60,0xb8b2a0,0xd8d8d0,0x1a1a1c])))}
-  const dc=new T.Color(0x8f1a14);for(let k=0;k<N;k++)tm.setColorAt(k,dc);if(tm.instanceColor)tm.instanceColor.needsUpdate=true;if(bm.instanceColor)bm.instanceColor.needsUpdate=true;this.tlC=new T.Color()}
+  const cc=new T.Color();for(let k=0;k<CAP;k++){const a={v:0,cruise:rnd2(8,13),lane:2.4,x:0,z:0,y:.06,h:0,s:0,dir:1,e:tw[0],on:k<N,hid:0};this.ag.push(a);this.agPlace(a,k,60);bm.setColorAt(k,cc.setHex(pk([0x9da1a6,0xeeeeee,0x2a3140,0x7a1f1f,0x244a6a,0x6b6b60,0xb8b2a0,0xd8d8d0,0x1a1a1c])))}
+  const dc=new T.Color(0x8f1a14);for(let k=0;k<CAP;k++)tm.setColorAt(k,dc);if(tm.instanceColor)tm.instanceColor.needsUpdate=true;if(bm.instanceColor)bm.instanceColor.needsUpdate=true;this.tlC=new T.Color()}
  agPlace(a,k,minD){const tw=this.tways,rnd2=this.trnd,pl=this.pl;
   for(let t=0;t<30;t++){const e=tw[Math.floor(Math.random()*tw.length)],s=rnd2(15,e.L-15),pos=this.posAt(e,s);
    if(pl&&Math.hypot(pos[0]-pl.x,pos[1]-pl.z)<minD)continue;let ok=true;for(const o of this.ag)if(o!==a&&o.e===e&&Math.abs(o.s-s)<18){ok=false;break}if(!ok)continue;
@@ -193,14 +205,15 @@ class RealMap{
  agCont(a){const e=a.e,rnd2=this.trnd;let best=null,bd=15;for(const e2 of this.tways){if(e2===e)continue;
    for(const end of[[0,1],[e2.L,-1]]){const p=this.posAt(e2,end[0]==0?0:e2.L),d=Math.hypot(p[0]-a.x,p[1]-a.z);if(d<bd){const hd=Math.atan2(Math.sin(a.h)*end[1],Math.cos(a.h)*end[1]);if(Math.abs(wrap(hd-a.h))<1.4){best=[e2,end[1]];bd=d}}}}
   if(best){a.e=best[0];a.dir=best[1];a.s=best[1]>0?4:best[0].L-4}else a.dir=-a.dir}
- trafficUpd(dt){const pl=this.pl,o=this.agO,sig=this.sig,tp=this.tlP,tm=this.agM[2];
+ trafficUpd(dt){const pl=this.pl,o=this.agO,sig=this.sig,tp=this.tlP,tm=this.agM[2],ru=this.rushOn;
   if(this.fx&&this.fx.hitCd>0)this.fx.hitCd-=dt;
   for(let k=0;k<this.ag.length;k++){const a=this.ag[k],e=a.e;
+   if(!a.on){if(!a.hid){a.hid=1;o.position.set(0,-60,0);o.scale.set(.001,.001,.001);o.updateMatrix();for(const m2 of this.agM)m2.setMatrixAt(k,o.matrix)}continue}
    const pos=this.posAt(e,a.s),nx2=this.posAt(e,cl(a.s+a.dir*4,0,e.L));let dx=nx2[0]-pos[0],dz=nx2[1]-pos[1];const dl=Math.hypot(dx,dz)||1;dx/=dl;dz/=dl;const rx=-dz,rz=dx;
-   let vt=a.cruise;
+   let vt=a.cruise*(ru?.55:1);if(ru&&e.jam!==undefined){const dj=Math.abs(a.s-e.jam);if(dj<200)vt=Math.min(vt,a.cruise*(dj<50?.14:.4))}
    if(sig)for(let j=0;j<sig.length;j++){const q2=sig[j],sx=q2[0]+6-a.x,sz=q2[1]+6-a.z,f=sx*dx+sz*dz;if(f>0&&f<42){const l=sx*rx+sz*rz;if(Math.abs(l)<11&&((j%2===0)===tp))vt=Math.min(vt,Math.max(0,(f-7)*.8))}}
    const chk=(ox,oz)=>{const ddx=ox-a.x,ddz=oz-a.z,f=ddx*dx+ddz*dz,l=ddx*rx+ddz*rz;if(f>0&&f<15+a.v&&Math.abs(l)<2.5)vt=Math.min(vt,Math.max(0,(f-5.2)*.7))};
-   chk(pl.x,pl.z);for(const o2 of this.ag)if(o2!==a)chk(o2.x,o2.z);
+   chk(pl.x,pl.z);for(const o2 of this.ag)if(o2!==a&&o2.on)chk(o2.x,o2.z);
    if(vt<a.cruise*.55&&a.v<2.5){a.hk=(a.hk||0)-dt;if(a.hk<=0){a.hk=2.5+Math.random()*5;const dd=Math.hypot(a.x-pl.x,a.z-pl.z);if(dd<110)this.g.audio.honkAt(.09*(1-dd/110),.85+Math.random()*.4)}}else if(a.hk===undefined||a.hk<.15)a.hk=.15;
    a.v+=cl(vt-a.v,-9*dt,3*dt);a.s+=a.dir*a.v*dt;
    if(a.s>e.L-5||a.s<5){a.s=cl(a.s,4,e.L-4);const p2=this.posAt(e,a.s);a.x=p2[0];a.z=p2[1];a.h=Math.atan2(dx,dz);this.agCont(a)}
@@ -215,7 +228,7 @@ class RealMap{
   for(const m of this.agM)m.instanceMatrix.needsUpdate=true;
   if(tm.instanceColor)tm.instanceColor.needsUpdate=true;
   const p=pl,sn=Math.sin(p.h),cs=Math.cos(p.h);
-  for(const a of this.ag){for(const o1 of[-1.2,1.2]){const px=p.x+sn*o1,pz=p.z+cs*o1,dx2=px-a.x,dz2=pz-a.z,d=Math.hypot(dx2,dz2);if(d<2.6&&d>.01){const nx=dx2/d,nz=dz2/d,ov=2.6-d;p.x+=nx*ov*.65;p.z+=nz*ov*.65;a.v*=.85;
+  for(const a of this.ag){if(!a.on)continue;for(const o1 of[-1.2,1.2]){const px=p.x+sn*o1,pz=p.z+cs*o1,dx2=px-a.x,dz2=pz-a.z,d=Math.hypot(dx2,dz2);if(d<2.6&&d>.01){const nx=dx2/d,nz=dz2/d,ov=2.6-d;p.x+=nx*ov*.65;p.z+=nz*ov*.65;a.v*=.85;
    if(this.fx&&this.fx.hitCd<=0&&p.speed*3.6>15){this.fx.hits++;this.fx.hitCd=2;if(this.fx.streak>0){this.fx.streak=0;this.g.popup('خبطة! السلسلة اتكسرت')}this.g.audio.thud()}const wv=p.wv(),vin=wv[0]*nx+wv[1]*nz;if(vin<0)p.setWv(wv[0]-1.2*vin*nx,wv[1]-1.2*vin*nz)}}}}
  // ---------- v51: pedestrians on the sidewalks ----------
  pedBuild(){const pw=[];for(const w2 of this.ways){if(w2.b||w2.c>4)continue;let L=0;const cum=[0];for(let k=1;k<w2.p.length;k++){L+=Math.hypot(w2.p[k][0]-w2.p[k-1][0],w2.p[k][1]-w2.p[k-1][1]);cum.push(L)}if(L>80)pw.push({w:w2,L,cum,hw:W2[w2.c]})}
@@ -289,7 +302,7 @@ class RealMap{
     if(!best){for(let t2=0;t2<60;t2++){const e3=this.pways[Math.floor(Math.random()*this.pways.length)],s3=this.trnd(8,e3.L-8),pos=this.posAt(e3,s3);
      const dd=Math.hypot(pos[0]-pl.x,pos[1]-pl.z);if(dd>400&&dd<1600){best={x:pos[0],z:pos[1],y:pos[2]||.06,d:dd};break}}
      if(!best)best={x:pl.x+600,z:pl.z+400,y:.06,d:721}}
-    fx.dst=best;fx.fare=10+Math.round(best.d*.045);
+    fx.dst=best;fx.fare=10+Math.round(best.d*.045);if(this.rushOn){fx.fare=Math.round(fx.fare*1.5);fx.zahma=true}else fx.zahma=false;
     if(fx.rush){fx.t=best.d/11+20;fx.fare=Math.round(fx.fare*1.5)}
     this.paxG.visible=false;this.bcnP.visible=false;this.bcnD.visible=true;
     if(fx.rush)g.popup(this.pRu[Math.floor(Math.random()*this.pRu.length)].replace('D',fx.dname));
@@ -483,7 +496,7 @@ class RealMap{
   if(this.towerBc)this.towerBc.visible=Math.sin(this.g.t*2.4)>0;
   if(this.tlL){this.tlT=(this.tlT||0)+dt;if(this.tlT>5){this.tlT=0;this.tlP=!this.tlP;const cc=new T.Color();for(let k=0;k<this.tlN;k++)this.tlL.setColorAt(k,cc.set((k%2===0)===this.tlP?0xff3226:0x2fe06a));this.tlL.instanceColor.needsUpdate=true}}
   const p=this.pl,q=this.query(p.x,p.z);let ty=0;if(q){if(q.b&&q.d<q.hw+1.5)ty=q.y;else if(q.y>1&&q.d<q.hw+6)ty=q.y}
-  this.cy+=(ty-this.cy)*Math.min(1,5*dt);if(this.agM)this.trafficUpd(dt);if(this.pdM)this.pedUpd(dt);if(this.fx)this.fareUpd(dt);if(this.dlr)this.dealerUpd(dt);if(this.fl)this.feluUpd(dt);if(this.zones)this.areaUpd(dt);if(this.ms)this.msUpd(dt);if(this.rd)this.rdrUpd(dt);if(this.map)this.mapUpd(dt)}
+  this.cy+=(ty-this.cy)*Math.min(1,5*dt);if(this.ag&&this.rushOn!==undefined)this.rushUpd(dt);if(this.agM)this.trafficUpd(dt);if(this.pdM)this.pedUpd(dt);if(this.fx)this.fareUpd(dt);if(this.dlr)this.dealerUpd(dt);if(this.fl)this.feluUpd(dt);if(this.zones)this.areaUpd(dt);if(this.ms)this.msUpd(dt);if(this.rd)this.rdrUpd(dt);if(this.map)this.mapUpd(dt)}
  sim(h){const g=this.g,p=this.pl,k=g.keys;let s=(k.right?1:0)-(k.left?1:0);if(g.opt.tilt&&matchMedia('(pointer:coarse)').matches)s=cl(s+(g.opt.inv?-1:1)*g.tilt/20,-1,1);s=cl(s+(g.wv||0),-1,1);
   const I={steer:s,thr:k.up?1:0,brk:k.down?1:0,hb:k.hb?1:0};p.grip=this.onRoad(p.x,p.z)?1:.85;if(p.dmg>=100)I.thr=0;
   p.step(h,I);const B=this.bounds;if(p.x<B.x0)p.x=B.x0;if(p.x>B.x1)p.x=B.x1;if(p.z<B.z0)p.z=B.z0;if(p.z>B.z1)p.z=B.z1}
