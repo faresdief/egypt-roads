@@ -8,6 +8,32 @@ const W2=[8,7,6,4.5,3.5],TINT=[[.06,.06,.075],[.065,.065,.08],[.07,.07,.085],[.0
 class RealMap{
  constructor(g){this.g=g;this.on=false;this.built=false;this.cy=0;this.initMenu();
   addEventListener('keydown',e=>{if(!this.on)return;if(e.code==='KeyC'){if(this.photo&&this.photo.on)this.photoCap();else this.g.view=this.g.view?0:1}if(e.code==='KeyM'&&this.mapZs)this.mapR=this.mapZs[this.mapZi=(this.mapZi+1)%this.mapZs.length];if(e.code==='KeyR'&&this.wx)this.wx.forced=this.wx.forced===null?!this.wx.on:!this.wx.forced;if(e.code==='KeyX'&&this.chain&&this.chain.on){this.chain.on=false;this.chain.cd=40;this.g.popup('لغيت السلسلة.. الشغل العادي رجع')}if(e.code==='KeyV')this.photoTg();if(this.photo&&this.photo.on){if(e.code==='KeyQ')this.photo.dist=Math.min(30,this.photo.dist*1.18);if(e.code==='KeyE')this.photo.dist=Math.max(3.5,this.photo.dist/1.18)}})}
+ // v78: Egyptian street look - building palettes (beige/ochre/pink/blue/green/white, unfinished concrete + red brick), balconies, rooftop water tanks, rebar, Arabic shop signs. Separate hash PRNG so building layout (rnd stream) is unchanged.
+ bldR(i,k){const v=Math.sin(i*12.9898+k*78.233)*43758.5453;return v-Math.floor(v)}
+ bldPal(i){const r=this.bldR(i,1),P=[[1,.95,.82],[1,.85,.62],[1,.8,.8],[.82,.9,1],[.84,.96,.84],[1,1,1],[.72,.74,.76],[.95,.58,.46]],W=[.26,.14,.08,.08,.07,.1,.14,.13];let a=0;for(let j=0;j<8;j++){a+=W[j];if(r<a)return P[j]}return P[0]}
+ bldDeco(bp,cGrp,CH){const R=(i,k)=>this.bldR(i,k),bx=new Map(),sg=new Map();
+  const add=(m,k,v)=>{if(!m.has(k))m.set(k,[]);m.get(k).push(v)};
+  bp.forEach((b,i)=>{const[x,h,z,w3,dep,ang,br,sd,nx,nz]=b;if(sd===undefined)return;const key=Math.floor(x/CH)+','+Math.floor(z/CH),dx=Math.sin(ang),dz=Math.cos(ang),fx=-sd*nx,fz=-sd*nz,pi=this.bldPal(i),unf=pi[0]<.75||pi[2]<.5;
+   const fl=Math.floor(h/3.2);
+   if(!unf&&h>11&&R(i,2)<.6){const nb=1+Math.floor(R(i,3)*3);for(let q=0;q<nb;q++){const f=1+Math.floor(R(i,4+q)*Math.max(1,fl-1)),off=(R(i,9+q)-.5)*Math.max(0,dep-3),c=.18+R(i,13+q)*.14;
+     add(bx,key,[x+fx*(w3/2+.55)+dx*off,f*3.2+1.1,z+fz*(w3/2+.55)+dz*off,1.1,.26,2.4+R(i,17+q)*1.4,ang,c,c*.97,c*.9])}}
+   if(h>9&&R(i,21)<.55){const ox=(R(i,22)-.5)*w3*.5,oz=(R(i,23)-.5)*dep*.5,ca=Math.cos(ang),sa=Math.sin(ang);add(bx,key,[x+ox*ca+oz*sa,h+.7,z-ox*sa+oz*ca,1.5,1.4,1.5,ang,.06,.07,.09])}
+   if(unf&&R(i,24)<.85){const n2=3+Math.floor(R(i,25)*3);for(let q=0;q<n2;q++){const ox=((q&1)-.5)*w3*.8,oz=(((q>>1)&1)-.5)*dep*.8,ca=Math.cos(ang),sa=Math.sin(ang);add(bx,key,[x+ox*ca+oz*sa,h+1.1,z-ox*sa+oz*ca,.12,2.2,.12,ang,.3,.2,.14])}}
+   if(R(i,30)<.38){add(sg,key,[x+fx*(w3/2+.3),2.7+R(i,31)*.7,z+fz*(w3/2+.3),Math.atan2(fx,fz),Math.floor(R(i,32)*8),.85+R(i,33)*.15])}});
+  const o=new T.Object3D(),cc=new T.Color();
+  const bm=new T.MeshStandardMaterial({vertexColors:false,roughness:.9,color:0xffffff});
+  for(const[k,L]of bx){const m=new T.InstancedMesh(new T.BoxGeometry(1,1,1),bm,L.length);
+   L.forEach((q,j)=>{o.position.set(q[0],q[1],q[2]);o.rotation.set(0,q[6],0);o.scale.set(q[3],q[4],q[5]);o.updateMatrix();m.setMatrixAt(j,o.matrix);cc.setRGB(q[7],q[8],q[9]);m.setColorAt(j,cc)});cGrp(k).add(m)}
+  if(!sg.size)return;
+  const cv=document.createElement('canvas');cv.width=2048;cv.height=128;const x=cv.getContext('2d');
+  const W=['صيدلية','سوبر ماركت','كشري','ورشة','مخبز','قهوة','عصير قصب','مكتبة'],BG=['#0d6b3a','#b3261e','#a8641a','#1f4e8c','#7a3b12','#3a2a1a','#2e7d32','#5b2a86'];
+  x.textAlign='center';x.textBaseline='middle';W.forEach((wd,j)=>{x.fillStyle=BG[j];x.fillRect(j*256+3,6,250,116);x.strokeStyle='#ffe7a0';x.lineWidth=3;x.strokeRect(j*256+8,11,240,106);x.fillStyle='#fff3c4';x.font='bold 44px Tahoma,Arial,sans-serif';x.direction='rtl';x.fillText(wd,j*256+128,66,224)});
+  const tex=new T.CanvasTexture(cv);tex.encoding=T.sRGBEncoding;tex.anisotropy=2;
+  const mat=new T.MeshBasicMaterial({map:tex,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
+  mat.onBeforeCompile=sh=>{sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nattribute float uvOff;').replace('#include <uv_vertex>','#include <uv_vertex>\n#ifdef USE_MAP\nvUv=vec2(uv.x*.125+uvOff,uv.y);\n#endif')};
+  for(const[k,L]of sg){const g=new T.PlaneGeometry(1,1);g.setAttribute('uvOff',new T.InstancedBufferAttribute(new Float32Array(L.map(q=>q[4]*.125)),1));
+   const m=new T.InstancedMesh(g,mat,L.length);L.forEach((q,j)=>{o.position.set(q[0],q[1],q[2]);o.rotation.set(0,q[3],0);o.scale.set(3.2,1.5,1);o.updateMatrix();m.setMatrixAt(j,o.matrix);cc.setRGB(q[5],q[5],q[5]);m.setColorAt(j,cc)});cGrp(k).add(m)}
+  this.nDeco=[...bx.values()].reduce((a,l)=>a+l.length,0);this.nSign=[...sg.values()].reduce((a,l)=>a+l.length,0)}
  initMenu(){const m=document.querySelector('.modes-card');if(!m||$('realCard'))return;const c=document.createElement('div');c.className='card';c.id='realCard';
   c.innerHTML='<h2>طرق مصر</h2><p class="foot">قُد على طرقات القاهرة الحقيقية: من الزمالك على كوبري 6 أكتوبر لوسط البلد، وطريق الهرم لحد الأهرامات. بيانات الخريطة © OpenStreetMap contributors (ODbL)</p><button class="btn primary" id="realGo">قُد على كوبري أكتوبر</button>';m.parentNode.insertBefore(c,m);
   $('realGo').onclick=()=>{this.g.audio.init();this.g.radioRestore();this.start()}}
@@ -107,11 +133,11 @@ class RealMap{
        const key=Math.floor(bx/26)+','+Math.floor(bz/26);if(occ.has(key))continue;
        const u=this.query(bx,bz);if(u&&u.d<8)continue;
        occ.add(key);const h=pyr?6+rnd()*10:10+rnd()*(rnd()<.12?55:26);
-       bpos.push([bx,h,bz,w3,dep,Math.atan2(dx,dz),.42+rnd()*.32])}}}}
+       bpos.push([bx,h,bz,w3,dep,Math.atan2(dx,dz),.42+rnd()*.32,sd,nx,nz])}}}}
    if(bpos.length){const wtx=S.winTex(),bm=new T.MeshStandardMaterial({map:wtx.map,emissiveMap:wtx.em,emissive:0xffffff,emissiveIntensity:1.1,vertexColors:true,roughness:.85});
     const bs=new T.InstancedMesh(new T.BoxGeometry(1,1,1),bm,bpos.length),o2=new T.Object3D(),cc=new T.Color();
-    bpos.forEach((b2,k)=>{o2.position.set(b2[0],b2[1]/2,b2[2]);o2.rotation.set(0,b2[5],0);o2.scale.set(b2[3],b2[1],b2[4]);o2.updateMatrix();bs.setMatrixAt(k,o2.matrix);cc.setRGB(b2[6],b2[6]*.97,b2[6]*.9);bs.setColorAt(k,cc)});
-    o2.rotation.set(0,0,0);o2.scale.set(1,1,1);bs.receiveShadow=true;sc3.add(bs);this.nBld=bpos.length}}
+    bpos.forEach((b2,k)=>{o2.position.set(b2[0],b2[1]/2,b2[2]);o2.rotation.set(0,b2[5],0);o2.scale.set(b2[3],b2[1],b2[4]);o2.updateMatrix();bs.setMatrixAt(k,o2.matrix);const pc=this.bldPal(k);cc.setRGB(b2[6]*pc[0],b2[6]*.97*pc[1],b2[6]*.9*pc[2]);bs.setColorAt(k,cc)});
+    o2.rotation.set(0,0,0);o2.scale.set(1,1,1);bs.receiveShadow=true;sc3.add(bs);this.nBld=bpos.length;this.bldDeco(bpos,cGrp,CH)}}
   const mkLamps=(wl,grpOf)=>{const lp=[];
    for(const w2 of wl){if(w2.c>2)continue;const p=w2.p,hw=W2[w2.c];let side=1;
     for(let i=0;i<p.length-1;i++){const a=p[i],b=p[i+1],L=Math.hypot(b[0]-a[0],b[1]-a[1]);if(L<20)continue;const dx=(b[0]-a[0])/L,dz=(b[1]-a[1])/L,nx=-dz,nz=dx;
