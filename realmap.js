@@ -200,7 +200,7 @@ class RealMap{
  photoTg(){if(!this.on)return;const g=this.g,ph=this.photo||(this.photo={on:false,yaw:0,pitch:.38,dist:9});
   ph.on=!ph.on;
   if(ph.on){ph.yaw=this.ch+Math.PI;ph.pitch=.38;ph.dist=9;
-   if(!$('erPhotoCss')){const st=document.createElement('style');st.id='erPhotoCss';st.textContent='#realHud,#svcP,#dealerP,#touch{display:none!important}';document.head.appendChild(st)}
+   if(!$('erPhotoCss')){const st=document.createElement('style');st.id='erPhotoCss';st.textContent='#realHud,#svcP,#dealerP,#tuneP,#touch{display:none!important}';document.head.appendChild(st)}
    g.keys={};g.popup('وضع التصوير 📸 الأسهم تلف بالكاميرا، Q/E زوم، V ترجع')}
   else{const st=$('erPhotoCss');if(st)st.remove();g.popup('رجعنا للقيادة')}}
  photoUpd(dt){const ph=this.photo,k=this.g.keys;
@@ -640,13 +640,15 @@ class RealMap{
     '<b style="font-size:15px">معرض العربيات</b><div style="margin:6px 0"><b id="dlName" style="font-size:19px"></b></div>'+
     '<div id="dlPrice" style="margin:2px 0 8px"></div>'+
     '<div style="display:flex;gap:8px;justify-content:center;pointer-events:auto">'+
-    '<button class="btn tint" id="dlPr">▶</button><button class="btn primary" id="dlAct"></button><button class="btn tint" id="dlNx">◀</button></div></div>';
+    '<button class="btn tint" id="dlPr">▶</button><button class="btn primary" id="dlAct"></button><button class="btn tint" id="dlNx">◀</button></div>'+
+    '<div style="margin-top:8px;pointer-events:auto"><button class="btn tint" id="dlTune">🔧 عدّل عربيتك</button></div></div>';
    document.body.appendChild(dv);
    dv.querySelector('#dlPr').onclick=()=>this.dlMove(-1);dv.querySelector('#dlNx').onclick=()=>this.dlMove(1);
+   dv.querySelector('#dlTune').onclick=()=>this.tuneOpen();
    dv.querySelector('#dlAct').onclick=()=>this.dlAct()}
   this.dlI=0;this.dlOpen=false}
  dlMove(d2){this.dlI=(this.dlI+d2+CARS.length)%CARS.length;this.dlShow();this.g.audio.flash()}
- dlShow(){const d2=CARS[this.dlI],own=!!this.g.own[d2.id],cur=CARS[this.g.sel].id===d2.id;
+ dlShow(){const d2=CARS[this.dlI],own=!!this.g.own[d2.id],cur=CARS[this.g.sel].id===d2.id;{const tb=$('dlTune');if(tb)tb.style.display=cur?'':'none'}
   $('dlName').textContent=d2.name;
   $('dlPrice').innerHTML=own?(cur?'العربية اللي معاك دلوقتي':'عندك العربية دي'):'السعر: <b>'+S.PRICE[d2.id]+'</b> جنيه';
   const b=$('dlAct');
@@ -660,11 +662,35 @@ class RealMap{
   this.pl.x=ox;this.pl.z=oz;this.pl.h=oh;this.pl.setWv(0,0);this.ch=oh;
   this.dlShow();g.popup('ركبت: '+d2.name)}
  dlClosePanel(){const e=$('dealerP');if(e)e.hidden=true;this.dlOpen=false}
+ tuneOpen(){const g=this.g;$('dealerP').hidden=true;
+  if(!$('tuneP')){const dv=document.createElement('div');dv.id='tuneP';dv.hidden=true;dv.style.cssText='position:fixed;left:50%;bottom:calc(var(--sab) + 76px);transform:translateX(-50%);z-index:3;direction:rtl';
+   dv.innerHTML='<div class="glass" style="padding:10px 16px;border-radius:18px;text-align:center;min-width:250px">'+
+    '<b style="font-size:15px">ورشة التعديل 🔧</b><div id="tnInfo" style="margin:6px 0;font-size:13px"></div>'+
+    '<div id="tnRows"></div>'+
+    '<div style="margin-top:8px;pointer-events:auto"><button class="btn tint" id="tnBack">ارجع للمعرض</button></div></div>';
+   document.body.appendChild(dv);
+   dv.querySelector('#tnBack').onclick=()=>{$('tuneP').hidden=true;$('dealerP').hidden=false;this.dlShow()}}
+  $('tuneP').hidden=false;this.tuneShow();g.popup('أهلاً بيك في الورشة.. عدّل عربيتك براحتك')}
+ tuneShow(){const g=this.g,d=CARS[g.sel],l=g.upLv(d.id);
+  $('tnInfo').textContent=d.name+' — فلوسك '+g.coins+' ج';
+  const T2=[['e','الموتور'],['t','الكاوتش'],['b','الفرامل']],rows=$('tnRows');rows.innerHTML='';
+  for(const [k,nm] of T2){const lv=l[k],row=document.createElement('div');row.style.cssText='display:flex;gap:8px;justify-content:space-between;align-items:center;margin:4px 0;pointer-events:auto';
+   const sp2=document.createElement('span');sp2.textContent=nm+' '+'★'.repeat(lv)+'☆'.repeat(3-lv);
+   const b=document.createElement('button');b.className='btn tint';const mx=lv>=3,cost=g.upCost(d,lv);
+   b.textContent=mx?'أقصى مستوى':'ارفع '+cost+' ج';b.disabled=mx||g.coins<cost;b.style.opacity=b.disabled?.55:1;
+   b.onclick=()=>this.tuneBuy(k);row.appendChild(sp2);row.appendChild(b);rows.appendChild(row)}}
+ tuneBuy(k){const g=this.g,d=CARS[g.sel],l=g.upLv(d.id),nm={e:'الموتور',t:'الكاوتش',b:'الفرامل'}[k];
+  if(l[k]>=3){g.popup('ده أقصى مستوى يا كابتن');return}
+  const cost=g.upCost(d,l[k]);if(g.coins<cost){g.popup('فلوسك مش كفاية يا كابتن');return}
+  g.coins-=cost;l[k]++;const u=g.upg();u[d.id]=l;try{localStorage.setItem('er_up',JSON.stringify(u))}catch(e2){}
+  g.saveCoins();g.audio.coin();
+  const ox=this.pl.x,oz=this.pl.z,oh=this.pl.h;this.mkCar();this.pl.x=ox;this.pl.z=oz;this.pl.h=oh;this.pl.setWv(0,0);this.ch=oh;
+  g.popup('تم التعديل: '+nm+' بقى مستوى '+l[k]+' ★');this.tuneShow()}
  dealerUpd(dt){const pl=this.pl,t=this.g.t,d=this.dlr;
   this.dlrBcn.material.opacity=.16+.1*Math.sin(t*2.4);
   const dist=Math.hypot(d.x-pl.x,d.z-pl.z);
   if(!this.dlOpen&&dist<10&&pl.speed*3.6<8){this.dlOpen=true;this.g.keys={};this.dlI=this.g.sel;this.dlShow();$('dealerP').hidden=false;this.g.popup('أهلاً بيك في المعرض')}
-  else if(this.dlOpen&&dist>16)this.dlClosePanel()}
+  else if(this.dlOpen&&dist>16){this.dlClosePanel();const tp=$('tuneP');if(tp)tp.hidden=true}}
  onRoad(x,z){const q=this.query(x,z);return q&&q.d<q.hw+2.5}
  update(dt){if(this.photo&&this.photo.on)this.photoUpd(dt);const n=Math.max(1,Math.min(8,Math.ceil(dt*120))),h=dt/n;for(let i=0;i<n;i++)this.sim(h);
   if(this.towerBc)this.towerBc.visible=Math.sin(this.g.t*2.4)>0;

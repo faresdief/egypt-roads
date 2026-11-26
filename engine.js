@@ -105,11 +105,11 @@ class Game{
  carUi(){const d=this.carD(),e=$('carInfo');if(!e)return;const tot=d.pts.reduce((a,b)=>a+b,0);e.innerHTML='';const h=document.createElement('div');h.className='lbrow';const a=document.createElement('span');a.textContent='الموسم '+d.season+' - الجولة '+(d.round+1)+'/4';const b=document.createElement('b');b.textContent=tot+' نقطة';h.append(a,b);e.appendChild(h);
   const n=document.createElement('p');n.className='foot';n.textContent='الجولة الجاية: '+CPR[d.round]+(d.titles?' | بطولات: '+d.titles:'');e.appendChild(n)}
  upg(){try{return JSON.parse(localStorage.getItem('er_up')||'{}')}catch(e){return{}}}
- upLv(id){const u=this.upg()[id]||{};return{e:u.e|0,t:u.t|0,n:u.n|0}}
- tuned(d){const l=this.upLv(d.id);return Object.assign({},d,{T:d.T*(1+.07*l.e),mu:d.mu*(1+.035*l.t),nl:l.n})}
+ upLv(id){const u=this.upg()[id]||{};return{e:u.e|0,t:u.t|0,n:u.n|0,b:u.b|0}}
+ tuned(d){const l=this.upLv(d.id);return Object.assign({},d,{T:d.T*(1+.07*l.e),mu:d.mu*(1+.035*l.t),bk:d.bk*(1+.08*l.b),nl:l.n})}
  upCost(d,lv){return Math.round((200+(PRICE[d.id]||0)*.12)*(lv+1)/10)*10}
  initUp(){const m=document.querySelector('.modes-card');if(!m||$('upCard'))return;const c=document.createElement('div');c.className='card';c.id='upCard';c.innerHTML='<h2>التعديلات</h2><div id="upRows"></div><p class="foot">المحرك أقوى، الكاوتش أمسك، النيترو أطول وأسرع. لكل عربية مستوياتها.</p>';m.parentNode.insertBefore(c,m);this.upUi()}
- upUi(){const r=$('upRows');if(!r)return;const d=CARS[this.sel],own=!!this.own[d.id],l=this.upLv(d.id),T=[['e','المحرك'],['t','الكاوتش'],['n','النيترو']];r.innerHTML='';
+ upUi(){const r=$('upRows');if(!r)return;const d=CARS[this.sel],own=!!this.own[d.id],l=this.upLv(d.id),T=[['e','المحرك'],['t','الكاوتش'],['b','الفرامل'],['n','النيترو']];r.innerHTML='';
   if(!own){r.innerHTML='<p class="foot">افتح العربية الأول عشان تعدّلها.</p>';return}
   for(const [k,n] of T){const lv=l[k],row=document.createElement('div');row.className='st';const b=document.createElement('button');b.className='btn tint';const mx=lv>=3;b.textContent=mx?'أقصى':'ارفع '+this.upCost(d,lv)+' جنيه';b.disabled=mx||this.coins<this.upCost(d,lv);b.style.opacity=b.disabled?.55:1;b.onclick=()=>this.upBuy(k);
    row.innerHTML='<span>'+n+' '+'★'.repeat(lv)+'☆'.repeat(3-lv)+'</span>';row.appendChild(b);r.appendChild(row)}}
