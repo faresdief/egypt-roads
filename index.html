@@ -279,7 +279,8 @@ const CARS=[
 {id:'empow',murr:1.1,name:'GAC إمباو',col:0x6b7a4a,shape:'fast',len:4.68,wid:1.83,m:1380,L:2.68,wf:.58,h:.54,cda:.66,mu:1.12,T:250,pk:4200,rl:6400,gr:[3.6,2.1,1.45,1.05,.8],fd:4.33,Rw:0.32,rwd:0,bf:12,br:13,bk:10.6,vt:58,aa:3.6,top:.78,acc:.8,hnd:.82,mass:.65,drift:.45},
 {id:'amg',murr:1.15,name:'مرسيدس AMG C63',col:0x20242a,shape:'amg',len:4.78,wid:1.84,m:1700,L:2.84,wf:.54,h:.53,cda:.88,mu:1.2,T:250,pk:4600,rl:7000,gr:[3.6,2.2,1.5,1.1,.85],fd:3.75,Rw:0.325,rwd:1,bf:12,br:13,bk:11,vt:70,aa:4.4,top:.9,acc:.9,hnd:.8,mass:.85,drift:.6},
 {id:'m4',murr:1.15,name:'BMW M4 كوبيه',col:0x2a4a9a,shape:'coupe',len:4.8,wid:1.89,m:1600,L:2.85,wf:.53,h:.5,cda:.88,mu:1.27,T:275,pk:5000,rl:7400,gr:[3.5,2.2,1.55,1.15,.9],fd:3.78,Rw:0.335,rwd:1,bf:13,br:14,bk:11.6,vt:74,aa:4.8,top:.94,acc:.95,hnd:.88,mass:.8,drift:.7},
-{id:'p911',murr:1.2,name:'بورشه 911 كاريرا',col:0xd9b300,shape:'sport',len:4.52,wid:1.9,m:1450,L:2.45,wf:.4,h:.46,cda:.88,mu:1.32,T:280,pk:5200,rl:7500,gr:[3.4,2.1,1.5,1.15,.92],fd:3.7,Rw:0.335,rwd:1,bf:13,br:14,bk:12,vt:74,aa:5.2,top:1,acc:1,hnd:.95,mass:.7,drift:.8}];
+{id:'p911',murr:1.2,name:'بورشه 911 كاريرا',col:0xd9b300,shape:'sport',len:4.52,wid:1.9,m:1450,L:2.45,wf:.4,h:.46,cda:.88,mu:1.32,T:280,pk:5200,rl:7500,gr:[3.4,2.1,1.5,1.15,.92],fd:3.7,Rw:0.335,rwd:1,bf:13,br:14,bk:12,vt:74,aa:5.2,top:1,acc:1,hnd:.95,mass:.7,drift:.8},
+{id:'lada',murr:1.08,name:'لادا 2107',col:0x88a2b8,shape:'boxy',len:4.264,wid:1.65,m:1040,L:2.42,wf:.54,h:.52,cda:.68,mu:1.02,T:76,pk:4800,rl:6800,gr:[3.75,2.06,1.4,1,.83],fd:4.3,Rw:0.29,rwd:1,bf:13,br:11.5,bk:10.2,vt:55,aa:3.4,top:.72,acc:.72,hnd:.7,mass:.4,drift:.9}];
 class Vehicle{
  constructor(d){this.d=d;this.opt={man:false,abs:true,tcs:true,sa:true};this.sreq=0;this.reset(0,0,0)}
  shift(dir){this.sreq=dir}
@@ -603,7 +604,7 @@ function makeCar(d,lit){const pc=S.paints&&S.paints[d.id],painted=pc!=null;if(pa
  if(van){add(Bx(.7,.2,.03),dark,0,.62,zff);add(Bx(.72,.02,.02),chr,0,.68,zff+.012);add(Bx(w*.98,.26,.14),pp,0,.52,zr-.08);add(Bx(w*.98,.26,.14),pp,0,.52,zf+.08);add(Bx(.5,.06,.02),dark,0,.4,zf+.16)}
  else if(fia){add(Bx(.62,.14,.03),dark,0,.55,zff);for(const gy of[.52,.58,.64])add(Bx(.6,.015,.02),chr,0,gy,zff+.008);add(Bx(w*1.0,.11,.12),chr,0,.44,zr-.07);add(Bx(w*1.0,.11,.12),chr,0,.44,zf+.07)}
  else{if(d.id==='verna'||d.id==='taxi'){add(Bx(.6,.17,.04),chr,0,.62,zff-.004);add(Bx(.54,.13,.03),dark,0,.62,zff+.014);const hb=add(new T.CylinderGeometry(.04,.04,.02,16),chr,0,.62,zff+.034);hb.rotation.x=Math.PI/2}else add(Bx(.5,.09,.03),dark,0,.6,zff);for(const gy of[.565,.6,.635])add(Bx(.48,.014,.02),chr,0,gy,zff+.008);add(Bx(.52,.015,.03),chr,0,.71,zff);add(Bx(w*.98,.1,.05),pp,0,.46,zrf-.02);add(Bx(w*.98,.11,.06),pp,0,.45,zff+.02);add(Bx(.3,.05,.02),dark,0,.4,zff+.04);add(Bx(.1,.03,.02),dark,-.5,.4,zff+.045);add(Bx(.1,.03,.02),dark,.5,.4,zff+.045)}
- const band=(taxi||van)?'#f08a24':'#4aa3d6',pn={verna:['٤٦٨','ب ص ع'],taxi:['٧٢٣','ا ج ر'],micro:['٣١٩','ط ل ن'],fiat:['٥٦٢','د ف ق'],empow:['٨٤١','م ب ص'],amg:['٩٩٩','ع م ج'],m4:['٣٣٣','س ب ر'],p911:['٩١١','ر ش ه']}[d.id];
+ const band=(taxi||van)?'#f08a24':'#4aa3d6',pn={verna:['٤٦٨','ب ص ع'],taxi:['٧٢٣','ا ج ر'],micro:['٣١٩','ط ل ن'],fiat:['٥٦٢','د ف ق'],empow:['٨٤١','م ب ص'],amg:['٩٩٩','ع م ج'],m4:['٣٣٣','س ب ر'],p911:['٩١١','ر ش ه'],lada:['٤٢٧','ل د ا']}[d.id];
  if(d.id==='verna'){add(Bx(.66,.05,.03),chr,0,.76,zrf-.012);add(Bx(.5,.04,.03),chr,0,.5,zrf-.012)}
  for(const sd of[-1,1]){const m=new T.Mesh(new T.PlaneGeometry(.38,.19),new T.MeshStandardMaterial({map:plate(band,pn[0],pn[1]),roughness:.4}));m.position.set(0,sd>0?(van?.8:(d.id==='verna'||d.id==='taxi'||d.id==='fiat')?.4:.52):(van?.8:fia?.64:.62),sd>0?zf+.04:zr-.04);if(sd<0)m.rotation.y=Math.PI;bd.add(m)}
 
@@ -1292,6 +1293,7 @@ class RealMap{
     if(this.chain&&this.chain.on){const ch=this.chain;ch.leg++;
      if(ch.leg>=ch.legs){ch.on=false;ch.cd=this.trnd(50,80);const bn=100+50*ch.lvl;g.coins+=bn;
       ch.lvl=Math.min(5,ch.lvl+1);try{localStorage.setItem('er_chain',String(ch.lvl))}catch(e4){}
+      if(ch.lvl===2||ch.lvl===3)setTimeout(()=>g.popup('عربية جديدة اتفتحت في المعرض! 🚗'),6000);
       g.saveCoins();
       setTimeout(()=>{g.popup('السلسلة خلصت! شغل نضيف يا معلم.. بونص +'+bn+' جنيه 🎉');g.audio.coin()},2600);
       setTimeout(()=>g.popup('مستوى السلاسل بقى '+ch.lvl+'.. مشاوير أطول وأجرة أحسن 🔗'),4400)}
@@ -1362,7 +1364,8 @@ class RealMap{
   for(const l of this.data.lm||[]){const s2=this.snapP(l[1],l[2]);if(s2.d<900)this.lms.push({n:l[0],x:s2.x,z:s2.z})}
   if(this.mosque)this.lms.push({n:'مسجد مصطفى محمود',x:this.mosque.position.x,z:this.mosque.position.z});
   if(this.sphinx)this.lms.push({n:'أبو الهول',x:this.sphinx.position.x,z:this.sphinx.position.z});
-  this.ms={st:0,lm:null,x:0,z:0,d:0,trl:false,t:0,pay:0,cd:20,last:-1,done:0}}
+  let msd0=0;try{msd0=+localStorage.getItem('er_msd')||0}catch(e2){}
+  this.ms={st:0,lm:null,x:0,z:0,d:0,trl:false,t:0,pay:0,cd:20,last:-1,done:msd0}}
  msSpawn(){const ms=this.ms,pl=this.pl;ms.lm=null;
   const ord=[];for(let i=0;i<this.lms.length;i++)if(i!==ms.last)ord.push(i);
   for(let t2=0;t2<24;t2++){const i=ord[Math.floor(Math.random()*ord.length)],l=this.lms[i],d=Math.hypot(l.x-pl.x,l.z-pl.z);
@@ -1386,7 +1389,7 @@ class RealMap{
    if(ms.t<=0){ms.st=0;ms.cd=this.trnd(35,60);this.bcnM.visible=false;g.popup('الوقت خلص، المهمة ضاعت.. جرب اللي بعدها');return}}
   if(e)e.innerHTML='<small>🎯 '+ms.lm.n+': '+m$(d)+(ms.trl?' ⏱ '+Math.ceil(ms.t)+' ث':'')+'</small>';
   if(ew)ew.style.display='';
-  if(d<14){ms.st=0;ms.done++;ms.cd=this.trnd(40,75);g.coins+=ms.pay;g.saveCoins();
+  if(d<14){ms.st=0;ms.done++;try{localStorage.setItem('er_msd',String(ms.done))}catch(e3){}if(ms.done===3)setTimeout(()=>g.popup('عربية جديدة اتفتحت في المعرض: لادا 2107 🚗'),1500);ms.cd=this.trnd(40,75);g.coins+=ms.pay;g.saveCoins();
    this.bcnM.visible=false;
    g.popup((ms.trl?'وصلت في الوقت! ':'مهمة تمت! ')+'+'+ms.pay+' جنيه');g.audio.coin()}}
  // ---------- v55: area depth - zones, landmarks, feluccas ----------
@@ -1468,15 +1471,16 @@ class RealMap{
   this.dlI=0;this.dlOpen=false}
  dlMove(d2){this.dlI=(this.dlI+d2+CARS.length)%CARS.length;this.dlShow();this.g.audio.flash()}
  dlShow(){const d2=CARS[this.dlI],own=!!this.g.own[d2.id],cur=CARS[this.g.sel].id===d2.id;{const tb=$('dlTune');if(tb)tb.style.display=cur?'':'none'}
+  const gate=own?null:this.g.carGate(d2.id);
   $('dlName').textContent=d2.name;
-  $('dlPrice').innerHTML=own?(cur?'العربية اللي معاك دلوقتي':'عندك العربية دي'):'السعر: <b>'+S.PRICE[d2.id]+'</b> جنيه';
+  $('dlPrice').innerHTML=own?(cur?'العربية اللي معاك دلوقتي':'عندك العربية دي'):gate?gate+'<br>السعر: <b>'+S.PRICE[d2.id]+'</b> جنيه':'السعر: <b>'+S.PRICE[d2.id]+'</b> جنيه';
   const b=$('dlAct');
   if(cur){b.textContent='تمام';b.disabled=false}
   else if(own){b.textContent='سوقها';b.disabled=false}
-  else{b.textContent='اشتريها';b.disabled=this.g.coins<S.PRICE[d2.id];b.style.opacity=b.disabled?.55:1}}
+  else{b.textContent=gate?'مقفولة 🔒':'اشتريها';b.disabled=!!gate||this.g.coins<S.PRICE[d2.id];b.style.opacity=b.disabled?.55:1}}
  dlAct(){const g=this.g,d2=CARS[this.dlI],cur=CARS[g.sel].id===d2.id;
   if(cur){this.dlClose();return}
-  if(!g.own[d2.id]){const p=S.PRICE[d2.id];if(g.coins<p)return;g.coins-=p;g.own[d2.id]=1;g.saveCoins();g.audio.unlock();g.popup('اتفتحت: '+d2.name)}
+  if(!g.own[d2.id]){const gt=g.carGate(d2.id);if(gt){g.popup(gt);return}const p=S.PRICE[d2.id];if(g.coins<p)return;g.coins-=p;g.own[d2.id]=1;g.saveCoins();g.audio.unlock();g.popup('اتفتحت: '+d2.name)}
   const ox=this.pl.x,oz=this.pl.z,oh=this.pl.h;g.sel=this.dlI;this.mkCar();
   this.pl.x=ox;this.pl.z=oz;this.pl.h=oh;this.pl.setWv(0,0);this.ch=oh;
   this.dlShow();g.popup('ركبت: '+d2.name)}
@@ -1565,7 +1569,7 @@ const ATM=['morning','fog','rain','night'],ATN={morning:'صباح',fog:'ضباب
 const STATS=[['top','السرعة القصوى'],['acc','التسارع'],['hnd','التحكم'],['mass','الثبات'],['drift','الانزلاق']];
 const CAREER=['city','corniche','ring','desert'],CPTS=[10,7,5,3,2,1],CPR=['وسط البلد','الكورنيش','الدائري','طريق الصحراء'];
 const NOTE={night:'سباق 3 لفات بالليل بالنور العالي. المكافأة أكتر 50%.',race:'3 لفات ضد 5 منافسين. اكسب فلوس من مركزك ومن الدرفت والتجاوزات القريبة عشان تفتح عربيات جديدة.',trial:'3 لفات لوحدك على الحلبة والهدف أسرع لفة. بتسابق شبح أسرع لفة مسجلة ليك.'};
-const PRICE={verna:0,taxi:450,fiat:950,micro:1500,empow:2200,amg:4500,m4:7000,p911:10000},REWARD=[120,90,70,50,35,25];
+const PRICE={verna:0,taxi:450,fiat:950,lada:1100,micro:1500,empow:2200,amg:4500,m4:7000,p911:10000},REWARD=[120,90,70,50,35,25];
 const fmt=t=>{if(t==null||!isFinite(t))return '--:--.-';const m=Math.floor(t/60),s=t-m*60;return m+':'+(s<10?'0':'')+s.toFixed(1)};
 class Game{
  constructor(){this.audio=new S.AudioEngine();this.lobby=(S.LobbyManager&&S.NetworkBridge)?new S.LobbyManager(new S.NetworkBridge()):null;this.trk=(()=>{let k='city';try{k=localStorage.getItem('er_track')||'city'}catch(e){}return TRACKS.some(t=>t.id===k)?k:'city'})();this.tk=new Track(TRACKS.find(t=>t.id===this.trk).pts,3.5);
@@ -1612,12 +1616,16 @@ class Game{
  setAtm(d){this.atm=ATM[(ATM.indexOf(this.atm)+d)%ATM.length];document.body.classList.toggle('rain',this.atm==='rain');$('atm').textContent=ATN[this.atm];if(this.world)this.world.atm(this.atm)}
  pick(i){this.sel=(i+CARS.length)%CARS.length;const d=CARS[this.sel];$('cn').textContent=d.name;if($('paint'))$('paint').hidden=d.id!=='verna';
   $('stats').innerHTML=STATS.map(([k,n])=>'<div class="st"><span>'+n+'</span><i><b style="width:'+Math.round(d[k]*100)+'%"></b></i></div>').join('');this.dots.forEach((e,j)=>e.classList.toggle('on',j===this.sel));if(this.prev)this.prev.set(d);this.garage()}
+ chainLvl(){try{return +localStorage.getItem('er_chain')||1}catch(e){return 1}}
+ msd(){try{return +localStorage.getItem('er_msd')||0}catch(e){return 0}}
+ carGate(id){if(id==='lada'&&this.msd()<3)return 'محتاج تخلّص 3 مهمات معالم 🎯';if(id==='amg'&&this.chainLvl()<2)return 'محتاج مستوى سلاسل 2 🔗';if(id==='p911'&&this.chainLvl()<3)return 'محتاج مستوى سلاسل 3 🔗';return null}
  garage(){const d=CARS[this.sel],locked=!this.own[d.id],b=$('buy');b.hidden=!locked;
- if(locked){b.textContent='افتح بـ '+PRICE[d.id]+' جنيه';b.disabled=this.coins<PRICE[d.id];b.style.opacity=b.disabled?.55:1}
+ if(locked){const gt=this.carGate(d.id);b.textContent=gt||'افتح بـ '+PRICE[d.id]+' جنيه';b.disabled=!!gt||this.coins<PRICE[d.id];b.style.opacity=b.disabled?.55:1}
  this.set('coinB',String(this.coins));this.upUi();const h=$('hudCoins');if(h)h.textContent=this.coins}
  saveCoins(){try{localStorage.setItem('er_coins',String(this.coins));localStorage.setItem('er_own',JSON.stringify(this.own))}catch(e){}}
  addCoins(n,msg){this.coins+=n;this.saveCoins();this.garage();if(msg)this.popup(msg);this.audio.coin()}
  buy(){const d=CARS[this.sel],p=PRICE[d.id];if(this.own[d.id]||this.coins<p)return;
+ if(this.carGate(d.id)){this.popup(this.carGate(d.id));return}
  this.coins-=p;this.own[d.id]=1;this.saveCoins();this.audio.init();this.audio.unlock();this.popup('اتفتحت: '+d.name);this.garage()}
  set(id,v){if(this.txt[id]!==v){this.txt[id]=v;$(id).textContent=v}}
  popup(t){const b=$('pops');if(b.children.length>2)b.firstChild.remove();const d=document.createElement('div');d.className='pop';d.textContent=t;b.appendChild(d);setTimeout(()=>d.remove(),1800)}

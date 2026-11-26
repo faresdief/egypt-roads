@@ -30,7 +30,7 @@ const ATM=['morning','fog','rain','night'],ATN={morning:'صباح',fog:'ضباب
 const STATS=[['top','السرعة القصوى'],['acc','التسارع'],['hnd','التحكم'],['mass','الثبات'],['drift','الانزلاق']];
 const CAREER=['city','corniche','ring','desert'],CPTS=[10,7,5,3,2,1],CPR=['وسط البلد','الكورنيش','الدائري','طريق الصحراء'];
 const NOTE={night:'سباق 3 لفات بالليل بالنور العالي. المكافأة أكتر 50%.',race:'3 لفات ضد 5 منافسين. اكسب فلوس من مركزك ومن الدرفت والتجاوزات القريبة عشان تفتح عربيات جديدة.',trial:'3 لفات لوحدك على الحلبة والهدف أسرع لفة. بتسابق شبح أسرع لفة مسجلة ليك.'};
-const PRICE={verna:0,taxi:450,fiat:950,micro:1500,empow:2200,amg:4500,m4:7000,p911:10000},REWARD=[120,90,70,50,35,25];
+const PRICE={verna:0,taxi:450,fiat:950,lada:1100,micro:1500,empow:2200,amg:4500,m4:7000,p911:10000},REWARD=[120,90,70,50,35,25];
 const fmt=t=>{if(t==null||!isFinite(t))return '--:--.-';const m=Math.floor(t/60),s=t-m*60;return m+':'+(s<10?'0':'')+s.toFixed(1)};
 class Game{
  constructor(){this.audio=new S.AudioEngine();this.lobby=(S.LobbyManager&&S.NetworkBridge)?new S.LobbyManager(new S.NetworkBridge()):null;this.trk=(()=>{let k='city';try{k=localStorage.getItem('er_track')||'city'}catch(e){}return TRACKS.some(t=>t.id===k)?k:'city'})();this.tk=new Track(TRACKS.find(t=>t.id===this.trk).pts,3.5);
@@ -77,12 +77,16 @@ class Game{
  setAtm(d){this.atm=ATM[(ATM.indexOf(this.atm)+d)%ATM.length];document.body.classList.toggle('rain',this.atm==='rain');$('atm').textContent=ATN[this.atm];if(this.world)this.world.atm(this.atm)}
  pick(i){this.sel=(i+CARS.length)%CARS.length;const d=CARS[this.sel];$('cn').textContent=d.name;if($('paint'))$('paint').hidden=d.id!=='verna';
   $('stats').innerHTML=STATS.map(([k,n])=>'<div class="st"><span>'+n+'</span><i><b style="width:'+Math.round(d[k]*100)+'%"></b></i></div>').join('');this.dots.forEach((e,j)=>e.classList.toggle('on',j===this.sel));if(this.prev)this.prev.set(d);this.garage()}
+ chainLvl(){try{return +localStorage.getItem('er_chain')||1}catch(e){return 1}}
+ msd(){try{return +localStorage.getItem('er_msd')||0}catch(e){return 0}}
+ carGate(id){if(id==='lada'&&this.msd()<3)return 'محتاج تخلّص 3 مهمات معالم 🎯';if(id==='amg'&&this.chainLvl()<2)return 'محتاج مستوى سلاسل 2 🔗';if(id==='p911'&&this.chainLvl()<3)return 'محتاج مستوى سلاسل 3 🔗';return null}
  garage(){const d=CARS[this.sel],locked=!this.own[d.id],b=$('buy');b.hidden=!locked;
- if(locked){b.textContent='افتح بـ '+PRICE[d.id]+' جنيه';b.disabled=this.coins<PRICE[d.id];b.style.opacity=b.disabled?.55:1}
+ if(locked){const gt=this.carGate(d.id);b.textContent=gt||'افتح بـ '+PRICE[d.id]+' جنيه';b.disabled=!!gt||this.coins<PRICE[d.id];b.style.opacity=b.disabled?.55:1}
  this.set('coinB',String(this.coins));this.upUi();const h=$('hudCoins');if(h)h.textContent=this.coins}
  saveCoins(){try{localStorage.setItem('er_coins',String(this.coins));localStorage.setItem('er_own',JSON.stringify(this.own))}catch(e){}}
  addCoins(n,msg){this.coins+=n;this.saveCoins();this.garage();if(msg)this.popup(msg);this.audio.coin()}
  buy(){const d=CARS[this.sel],p=PRICE[d.id];if(this.own[d.id]||this.coins<p)return;
+ if(this.carGate(d.id)){this.popup(this.carGate(d.id));return}
  this.coins-=p;this.own[d.id]=1;this.saveCoins();this.audio.init();this.audio.unlock();this.popup('اتفتحت: '+d.name);this.garage()}
  set(id,v){if(this.txt[id]!==v){this.txt[id]=v;$(id).textContent=v}}
  popup(t){const b=$('pops');if(b.children.length>2)b.firstChild.remove();const d=document.createElement('div');d.className='pop';d.textContent=t;b.appendChild(d);setTimeout(()=>d.remove(),1800)}

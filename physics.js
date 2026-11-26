@@ -8,7 +8,8 @@ const CARS=[
 {id:'empow',murr:1.1,name:'GAC إمباو',col:0x6b7a4a,shape:'fast',len:4.68,wid:1.83,m:1380,L:2.68,wf:.58,h:.54,cda:.66,mu:1.12,T:250,pk:4200,rl:6400,gr:[3.6,2.1,1.45,1.05,.8],fd:4.33,Rw:0.32,rwd:0,bf:12,br:13,bk:10.6,vt:58,aa:3.6,top:.78,acc:.8,hnd:.82,mass:.65,drift:.45},
 {id:'amg',murr:1.15,name:'مرسيدس AMG C63',col:0x20242a,shape:'amg',len:4.78,wid:1.84,m:1700,L:2.84,wf:.54,h:.53,cda:.88,mu:1.2,T:250,pk:4600,rl:7000,gr:[3.6,2.2,1.5,1.1,.85],fd:3.75,Rw:0.325,rwd:1,bf:12,br:13,bk:11,vt:70,aa:4.4,top:.9,acc:.9,hnd:.8,mass:.85,drift:.6},
 {id:'m4',murr:1.15,name:'BMW M4 كوبيه',col:0x2a4a9a,shape:'coupe',len:4.8,wid:1.89,m:1600,L:2.85,wf:.53,h:.5,cda:.88,mu:1.27,T:275,pk:5000,rl:7400,gr:[3.5,2.2,1.55,1.15,.9],fd:3.78,Rw:0.335,rwd:1,bf:13,br:14,bk:11.6,vt:74,aa:4.8,top:.94,acc:.95,hnd:.88,mass:.8,drift:.7},
-{id:'p911',murr:1.2,name:'بورشه 911 كاريرا',col:0xd9b300,shape:'sport',len:4.52,wid:1.9,m:1450,L:2.45,wf:.4,h:.46,cda:.88,mu:1.32,T:280,pk:5200,rl:7500,gr:[3.4,2.1,1.5,1.15,.92],fd:3.7,Rw:0.335,rwd:1,bf:13,br:14,bk:12,vt:74,aa:5.2,top:1,acc:1,hnd:.95,mass:.7,drift:.8}];
+{id:'p911',murr:1.2,name:'بورشه 911 كاريرا',col:0xd9b300,shape:'sport',len:4.52,wid:1.9,m:1450,L:2.45,wf:.4,h:.46,cda:.88,mu:1.32,T:280,pk:5200,rl:7500,gr:[3.4,2.1,1.5,1.15,.92],fd:3.7,Rw:0.335,rwd:1,bf:13,br:14,bk:12,vt:74,aa:5.2,top:1,acc:1,hnd:.95,mass:.7,drift:.8},
+{id:'lada',murr:1.08,name:'لادا 2107',col:0x88a2b8,shape:'boxy',len:4.264,wid:1.65,m:1040,L:2.42,wf:.54,h:.52,cda:.68,mu:1.02,T:76,pk:4800,rl:6800,gr:[3.75,2.06,1.4,1,.83],fd:4.3,Rw:0.29,rwd:1,bf:13,br:11.5,bk:10.2,vt:55,aa:3.4,top:.72,acc:.72,hnd:.7,mass:.4,drift:.9}];
 class Vehicle{
  constructor(d){this.d=d;this.opt={man:false,abs:true,tcs:true,sa:true};this.sreq=0;this.reset(0,0,0)}
  shift(dir){this.sreq=dir}
