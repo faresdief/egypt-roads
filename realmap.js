@@ -400,6 +400,14 @@ class RealMap{
   this.pUp=['عايز أروح D يا كابتن','لو سمحت يا أسطى، D','مشوار على D، متأخرش عليا','يلا بينا D يا معلم','D يا كابتن، وانت نجم'];
   this.pRu=['عجلة يا كابتن، ورايا معاد في D','يلا بسرعة يا أسطى، D ومتأخرش عليا','لو لحقتنا D بدري هزودلك الأجرة'];
   this.pDn=['كده تمام، اتفضل','ربنا يخليك يا كابتن','تسلم إيدك، وصلنا بالسلامة','ممنونك يا معلم'];
+  this.pCh=['الجو حلو النهاردة بالليل والله','انت سايق من زمان يا كابتن؟','الزحمة بقت مش طبيعية في كل حتة','يا ريت كل السواقين هاديين زيك','الراديو شغال ولا عطلان؟','انا نازل أقضي مشوار وأرجع تاني','خد بالك من المطباط هنا','القاهرة بالليل ليها حنية تانية','انت عارف الطرق كويس، باين عليك'];
+  this.pHit=['يا نهار أسود! خد بالك يا كابتن','هدى شوية يا أسطى، احنا مش في سباق','ربنا يستر.. الحمد لله عدت','متخفش، بس خد بالك بعد كده','يا ساتر! العربية سليمة؟','اهدى يا معلم، الروح غالية'];
+  this.pSpd=['بسرعة كده ليه يا كابتن؟ اهدى','انت طيار ولا سواق؟','يا راجل ارحمنا، قلل السرعة','ده أنا حسيت إني بطير','السرعة دي تقلق والله','الرادار هياخدنا لو فضلنا كده'];
+  this.pRain=['المطر نزل.. الطريق بقى صابون','خد بالك، الأرض بتزحلق في المطر','يا ريت المساحات شغالة','أنا بحب المشاوير في المطر بصراحة','الجو ده يستاهل شاي بالنعناع','متقربش من الميكروباصات في المطر'];
+  this.pRush=['الزحمة دي مش طبيعية النهاردة','ساعة الذروة دي هتجنني','كل دي عربيات جت منين؟','يا ريت الطريق يفضى شوية','عايزين كباري زيادة في البلد دي','خش من الحتة الفاضية يا أسطى'];
+  this.pFuel=['البنزين بيقل يا كابتن، عينك على العدة','لو العربية وقفت بينا هنمشي؟','في محطة بنزين قريبة؟','التنك قرب يخلص ولا إيه؟'];
+  this.pNear=['قربنا ولا لسه؟','هنزل هنا جنب الرصيف','تمام، أنا عارف المكان من هنا','قربنا، الحمد لله','بص، أنا نازل عند الشجرة دي'];
+  this.pZone=['إحنا دخلنا D كده؟ حلوة المنطقة دي','D ليها ذكريات كتير معايا','شوف D شكلها حلو بالليل','أنا اتربيت في D يا كابتن','زمان كانت D أهدى من كده','الشوارع في D ليها طعم تاني'];
   this.paxPlace()}
  paxPlace(){const pw=this.pways,pl=this.pl,rnd2=this.trnd,fx=this.fx;
   for(let t=0;t<60;t++){const e=pw[Math.floor(Math.random()*pw.length)],s=rnd2(8,e.L-8),pos=this.posAt(e,s);
@@ -416,7 +424,7 @@ class RealMap{
   if(fx.st===0){const d=Math.hypot(fx.pax.x-pl.x,fx.pax.z-pl.z);
    if(d>520)this.paxPlace();
    const e2=$('erFare');if(e2)e2.innerHTML='<small>أقرب راكب: '+m$(d)+'</small>';
-   if(d<5&&sp<8){fx.st=1;fx.dname=this.dests[Math.floor(Math.random()*this.dests.length)];fx.rush=Math.random()<.35;fx.hits=0;
+   if(d<5&&sp<8){fx.st=1;fx.dname=this.dests[Math.floor(Math.random()*this.dests.length)];fx.rush=Math.random()<.35;fx.hits=0;fx.chatT=t+5;fx.topSpd=0;fx.zoneSaid='';
     let zn=null;for(const z2 of this.zones||[])if(z2.n===fx.dname){zn=z2;break}
     let best=null;
     if(zn&&zn.nile){for(let t2=0;t2<80&&!best;t2++){const e3=this.pways[Math.floor(Math.random()*this.pways.length)],s3=this.trnd(8,e3.L-8),pos=this.posAt(e3,s3);
@@ -439,6 +447,16 @@ class RealMap{
   else{const d=Math.hypot(fx.dst.x-pl.x,fx.dst.z-pl.z);
    this.bcnD.position.set(fx.dst.x,13+fx.dst.y,fx.dst.z);this.bcnD.material.opacity=.22+.12*Math.sin(t*(fx.rush?8:3));
    if(fx.rush){fx.t-=dt;if(fx.t<=0){fx.rush=false;fx.fare=Math.round(fx.fare/1.5);g.popup('اتأخرنا شوية، بس يلا بينا')}}
+   if(sp>fx.topSpd)fx.topSpd=sp;
+   if(t>fx.chatT){fx.chatT=t+13+Math.random()*7;let pool=this.pCh;
+    if(fx.hitCd>1.2)pool=this.pHit;
+    else if(sp>105)pool=this.pSpd;
+    else if(this.wx&&this.wx.on)pool=this.pRain;
+    else if(this.rushOn)pool=this.pRush;
+    else if(this.fuel!==undefined&&this.fuel<15)pool=this.pFuel;
+    else if(d<150)pool=this.pNear;
+    else if(this.arCur&&this.arCur!==fx.zoneSaid){fx.zoneSaid=this.arCur;pool=this.pZone}
+    g.popup('الراكب: '+pool[Math.floor(Math.random()*pool.length)].replace('D',this.arCur||fx.dname))}
    const e2=$('erFare');if(e2)e2.innerHTML='<small>الوجهة: '+fx.dname+' - '+m$(d)+' ('+fx.fare+' ج)'+(fx.rush?' ⏱ '+Math.ceil(fx.t)+' ث':'')+'</small>';
    if(d<6&&sp<8){fx.st=0;if(this.buffTea>0){this.buffTea--;fx.fare+=Math.round(fx.fare*.15)}g.coins+=fx.fare;
     if(fx.tip){fx.tip=false;g.coins+=15;setTimeout(()=>g.popup('الراكب عجبته العربية النضيفة.. بقشيش +15'),900)}
@@ -446,6 +464,9 @@ class RealMap{
     else fx.streak=0;
     g.saveCoins();
     g.popup(this.pDn[Math.floor(Math.random()*this.pDn.length)]+' +'+fx.fare+' جنيه');g.audio.coin();
+    const st5=Math.max(1,Math.min(5,5-fx.hits-(fx.topSpd>120?1:0))),tip5=st5===5?20:st5===4?10:0;
+    if(tip5){g.coins+=tip5;g.saveCoins()}
+    setTimeout(()=>g.popup('الراكب: '+'⭐'.repeat(st5)+(st5>=4?' مشوار نضيف':st5===3?' مشوار عادي':' خد بالك المرة الجاية')+(tip5?'.. بقشيش +'+tip5:'')),1700);
     this.bcnD.visible=false;this.paxPlace()}}
   const em=$('erMoney');if(em&&em.textContent!==String(g.coins))em.textContent=g.coins}
  // ---------- v57: speed radars + police ----------
