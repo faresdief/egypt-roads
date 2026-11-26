@@ -909,10 +909,12 @@ class RealMap{
   const p=this.pl=new Vehicle(g.tuned(d));p.opt=g.opt;const sp2=this.spawn;p.reset(sp2.x,sp2.z,sp2.h);this.cy=sp2.y;
   this.pcar=S.makeCar(d,true);this.scene.add(this.pcar.g);this.ch=p.h;this.bump=0}
  build(){const g=this.g,w=g.world,sc3=this.scene=new T.Scene();
-  sc3.background=new T.Color(0x070b16);sc3.fog=new T.FogExp2(col(0x070b16),.0006);
+  sc3.background=new T.Color(0x0d1428);sc3.fog=new T.FogExp2(col(0x0d1428),.00075);
   this.hemi=new T.HemisphereLight(col(0x7f94c8),col(0x1e2028),.7);sc3.add(this.hemi);
   this.moon=new T.DirectionalLight(col(0xa8bce8),.75);this.moon.castShadow=true;{const s=this.moon.shadow;s.mapSize.set(1024,1024);Object.assign(s.camera,{left:-55,right:55,top:55,bottom:-55,near:1,far:400});s.camera.updateProjectionMatrix();s.bias=-.0005;s.normalBias=.05}sc3.add(this.moon,this.moon.target);
-  const gnd=new T.Mesh(new T.PlaneGeometry(30000,24000),new T.MeshStandardMaterial({color:col(0x24231f),roughness:1}));gnd.rotation.x=-Math.PI/2;gnd.position.set(100,-.03,2600);gnd.receiveShadow=true;sc3.add(gnd);
+  const gnd=new T.Mesh(new T.PlaneGeometry(30000,24000),new T.MeshStandardMaterial({color:col(0x4a463d),roughness:1,emissive:col(0x15130f),emissiveIntensity:1,map:(()=>{const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');x.fillStyle='#d8d4c8';x.fillRect(0,0,128,128);let sd=7;const r=()=>{sd=(sd*16807)%2147483647;return sd/2147483647};for(let i=0;i<900;i++){const g=150+r()*90|0;x.fillStyle='rgba('+g+','+(g-6)+','+(g-14)+','+(.25+r()*.4)+')';x.fillRect(r()*128,r()*128,1+r()*3,1+r()*3)}const t=new T.CanvasTexture(c);t.wrapS=t.wrapT=T.RepeatWrapping;t.repeat.set(1500,1200);t.anisotropy=4;return t})()}));gnd.rotation.x=-Math.PI/2;gnd.position.set(100,-.03,2600);gnd.receiveShadow=true;sc3.add(gnd);
+  {const c=document.createElement('canvas');c.width=4;c.height=256;const x=c.getContext('2d'),gr=x.createLinearGradient(0,0,0,256);gr.addColorStop(0,'#000104');gr.addColorStop(.5,'#010207');gr.addColorStop(.85,'#02040d');gr.addColorStop(1,'#050a1a');x.fillStyle=gr;x.fillRect(0,0,4,256);
+   const tx=new T.CanvasTexture(c),dome=new T.Mesh(new T.SphereGeometry(1500,24,12,0,Math.PI*2,0,Math.PI/2),new T.MeshBasicMaterial({map:tx,side:T.BackSide,fog:false,depthWrite:false}));dome.frustumCulled=false;dome.renderOrder=-10;sc3.add(dome);this.skyDome=dome}
   // decode ways to meter polylines with deck heights
   const ways=[];let bx0=1e9,bx1=-1e9,bz0=1e9,bz1=-1e9;
   const decodeWay=w2=>{const f=w2[4],n=f.length/2,pts=[];const H=w2[1]?Math.max(1,w2[2])*LH:0;
@@ -985,7 +987,7 @@ class RealMap{
    for(const w2 of ways){const p=w2.p,hw=W2[w2.c];
     for(let i=0;i<p.length-1;i++){const a=p[i],b=p[i+1],L=Math.hypot(b[0]-a[0],b[1]-a[1]);if(L<14)continue;const dx=(b[0]-a[0])/L,dz=(b[1]-a[1])/L,nx=-dz,nz=dx;
      for(let d=10;d<L;d+=42){const t=d/L,x=a[0]+(b[0]-a[0])*t,z=a[1]+(b[1]-a[1])*t;
-      for(const sd of[-1,1]){if(rnd()<.66)continue;
+      for(const sd of[-1,1]){if(rnd()<.5)continue;
        const dep=10+rnd()*13,w3=10+rnd()*15,off=hw+6+dep/2+rnd()*5,bx=x+nx*off*sd,bz=z+nz*off*sd;
        const core=Math.hypot(bx+300,bz-1600)<2300,pyr=Math.hypot(bx-PYX,bz-PYZ)<1300;
        if(!core&&!pyr)continue;if(pyr&&rnd()<.55)continue;
@@ -999,7 +1001,7 @@ class RealMap{
     for(const w2 of ways){const p=w2.p,hw=W2[w2.c];
      for(let i=0;i<p.length-1;i++){const a=p[i],b=p[i+1],L=Math.hypot(b[0]-a[0],b[1]-a[1]);if(L<14)continue;const dx=(b[0]-a[0])/L,dz=(b[1]-a[1])/L,nx=-dz,nz=dx;
       for(let d=10;d<L;d+=42){const t=d/L,x=a[0]+(b[0]-a[0])*t,z=a[1]+(b[1]-a[1])*t;
-       for(const sd of[-1,1]){if(r2()<.62)continue;
+       for(const sd of[-1,1]){if(r2()<.5)continue;
         const dep=10+r2()*13,w3=10+r2()*15,off=hw+6+dep/2+r2()*5,bx=x+nx*off*sd,bz=z+nz*off*sd;
         if(w2.c>3||w2.b)continue;
         let inD=false;for(const q of DZ)if(Math.hypot(bx-q[0],bz-q[1])<q[2]){inD=true;break}
@@ -1053,7 +1055,7 @@ class RealMap{
    for(const q2 of[[0,0,115,139],[215,-60,105,136],[430,90,52,65]]){const py=new T.Mesh(new T.ConeGeometry(q2[2],q2[3],4),m2);py.position.set(PYX+q2[0],q2[3]/2,PYZ+q2[1]);py.rotation.y=Math.PI/4;sc3.add(py)}}
 
   // the Nile: wide dark ribbons along water polylines
-  const wbc=new Map(),wmat=new T.MeshStandardMaterial({vertexColors:true,roughness:.08,metalness:.6,emissive:col(0x12395c),emissiveIntensity:1.35});
+  const wbc=new Map(),wmat=new T.MeshStandardMaterial({vertexColors:true,roughness:.08,metalness:.6,emissive:col(0x0c2540),emissiveIntensity:.95});
   for(const pl of this.data.n){for(let i=0;i<pl.length/2-1;i++){const a=[pl[2*i]/10,pl[2*i+1]/10],b=[pl[2*i+2]/10,pl[2*i+3]/10],dx=b[0]-a[0],dz=b[1]-a[1],L=Math.hypot(dx,dz);if(L<.01)continue;const nx=-dz/L,nz=dx/L,hw=170;
    const k=Math.floor((a[0]+b[0])/2/CH)+','+Math.floor((a[1]+b[1])/2/CH);if(!wbc.has(k))wbc.set(k,[[],[],[],[]]);const W3=wbc.get(k);
    quad(W3[0],W3[1],W3[2],W3[3],[a[0]+nx*hw,.02,a[1]+nz*hw],[a[0]-nx*hw,.02,a[1]-nz*hw],[b[0]-nx*hw,.02,b[1]-nz*hw],[b[0]+nx*hw,.02,b[1]+nz*hw],[0,1,0],[.05,.14,.24])}}
@@ -1710,7 +1712,7 @@ class RealMap{
   else if(g.view===0){const dist=5.7+sp*.011;px=p.x-sn*dist;pz=p.z-cs*dist;py=this.cy+2+sp*.003;lx=p.x+sn*8;lz=p.z+cs*8;ly=this.cy+1.1;fov=58+Math.min(34,sp*.62)}
   else{px=p.x+Math.sin(p.h)*.3;pz=p.z+Math.cos(p.h)*.3;py=this.cy+1.2;lx=p.x+Math.sin(p.h)*30;lz=p.z+Math.cos(p.h)*30;ly=this.cy+1.05;fov=68+Math.min(18,sp*.3)}
   this.bump*=Math.exp(-5*dt);const shk=(this.bump*.24+sp*.0009)*Math.sin(g.t*53);c.position.set(px,py+shk,pz);c.lookAt(lx,ly,lz);if(Math.abs(c.fov-fov)>.05){c.fov=fov;c.updateProjectionMatrix()}
-  this.moon.position.set(p.x+40,120,p.z+30);this.moon.target.position.set(p.x,0,p.z);this.moon.target.updateMatrixWorld();
+  if(this.skyDome)this.skyDome.position.set(p.x,-40,p.z);this.moon.position.set(p.x+40,120,p.z+30);this.moon.target.position.set(p.x,0,p.z);this.moon.target.updateMatrixWorld();
   const r=w.r;r.shadowMap.needsUpdate=true;r.clear();r.render(this.scene,c);
   $('realSpd').textContent=Math.round(sp*3.6);g.audio.prof=p.d.id;g.audio.atm=(this.wx&&this.wx.on)?'rain':'night';if(!g.paused)g.audio.update(p.rpm/p.d.rl,p.slip>.14&&sp>4,true,p.thr)}}
 S.RealMap=RealMap;})(window.SS);
