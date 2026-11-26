@@ -1195,6 +1195,8 @@ class RealMap{
   if(this.dlr)pin(this.dlr.x,this.dlr.z,'#7ec8ff',3.5);
   if(this.svc)for(const s3 of this.svc)pin(s3.x,s3.z,'#ff9f43',3);
   if(this.shop)for(const s3 of this.shop)pin(s3.x,s3.z,'#c98a4b',3);
+  ctx.fillStyle='rgba(226,233,255,.55)';ctx.font='9px sans-serif';ctx.textAlign='center';
+  for(const z2 of this.zones){if(z2.nile)continue;const dx2=z2.x-pl.x,dz2=z2.z-pl.z;if(dx2*dx2+dz2*dz2<RR)ctx.fillText(z2.n,X(z2.x,z2.z),Y(z2.x,z2.z)-4)}
   ctx.fillStyle='#ffd75e';ctx.strokeStyle='rgba(0,0,0,.5)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(C,C-7);ctx.lineTo(C-4.6,C+5.4);ctx.lineTo(C+4.6,C+5.4);ctx.closePath();ctx.fill();ctx.stroke();
   ctx.fillStyle='rgba(255,255,255,.85)';ctx.font='bold 10px sans-serif';ctx.textAlign='center';ctx.fillText('\u0634',C+sh*(C-13),C+ch*(C-13)+3.5);
   ctx.fillStyle='rgba(255,255,255,.5)';ctx.font='9px sans-serif';ctx.fillText(R+' \u0645',C,169);
