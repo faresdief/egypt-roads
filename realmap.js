@@ -7,7 +7,7 @@ const col=h=>new T.Color(h).convertSRGBToLinear();
 const W2=[8,7,6,4.5,3.5],TINT=[[.06,.06,.075],[.065,.065,.08],[.07,.07,.085],[.075,.075,.09],[.08,.08,.095]],LH=8;
 class RealMap{
  constructor(g){this.g=g;this.on=false;this.built=false;this.cy=0;this.initMenu();
-  addEventListener('keydown',e=>{if(!this.on)return;if(e.code==='KeyC')this.g.view=this.g.view?0:1;if(e.code==='KeyM'&&this.mapZs)this.mapR=this.mapZs[this.mapZi=(this.mapZi+1)%this.mapZs.length];if(e.code==='KeyR'&&this.wx)this.wx.forced=this.wx.forced===null?!this.wx.on:!this.wx.forced;if(e.code==='KeyV')this.photoTg();if(this.photo&&this.photo.on){if(e.code==='KeyQ')this.photo.dist=Math.min(30,this.photo.dist*1.18);if(e.code==='KeyE')this.photo.dist=Math.max(3.5,this.photo.dist/1.18)}})}
+  addEventListener('keydown',e=>{if(!this.on)return;if(e.code==='KeyC')this.g.view=this.g.view?0:1;if(e.code==='KeyM'&&this.mapZs)this.mapR=this.mapZs[this.mapZi=(this.mapZi+1)%this.mapZs.length];if(e.code==='KeyR'&&this.wx)this.wx.forced=this.wx.forced===null?!this.wx.on:!this.wx.forced;if(e.code==='KeyX'&&this.chain&&this.chain.on){this.chain.on=false;this.chain.cd=40;this.g.popup('لغيت السلسلة.. الشغل العادي رجع')}if(e.code==='KeyV')this.photoTg();if(this.photo&&this.photo.on){if(e.code==='KeyQ')this.photo.dist=Math.min(30,this.photo.dist*1.18);if(e.code==='KeyE')this.photo.dist=Math.max(3.5,this.photo.dist/1.18)}})}
  initMenu(){const m=document.querySelector('.modes-card');if(!m||$('realCard'))return;const c=document.createElement('div');c.className='card';c.id='realCard';
   c.innerHTML='<h2>طرق مصر</h2><p class="foot">قُد على طرقات القاهرة الحقيقية: من الزمالك على كوبري 6 أكتوبر لوسط البلد، وطريق الهرم لحد الأهرامات. بيانات الخريطة © OpenStreetMap contributors (ODbL)</p><button class="btn primary" id="realGo">قُد على كوبري أكتوبر</button>';m.parentNode.insertBefore(c,m);
   $('realGo').onclick=()=>{this.g.audio.init();this.start()}}
@@ -132,7 +132,7 @@ class RealMap{
   // spawn at the west end of the longest bridge way (6th October Bridge)
   let bw=null;for(const w2 of ways){if(!w2.b)continue;const cx=w2.p.reduce((a2,q2)=>a2+q2[0],0)/w2.p.length,cz=w2.p.reduce((a2,q2)=>a2+q2[1],0)/w2.p.length;if(Math.hypot(cx+300,cz-1600)>3400)continue;if(!bw||w2.p.length>bw.p.length)bw=w2}
   const si=Math.min(6,bw.p.length-2),sp0=bw.p[si],sp1=bw.p[si+1];const sq=this.query(sp0[0],sp0[1]);this.spawn={x:sp0[0],z:sp0[1],y:(sq?sq.y:sp0[2]||.06)+.02,h:Math.atan2(sp1[0]-sp0[0],sp1[1]-sp0[1])};
-  this.trafficBuild();this.rushBuild();this.wxBuild();this.pedBuild();this.fareBuild();this.dealerBuild();this.areaBuild();this.svcBuild();this.shopBuild();this.feluBuild();this.mosqueBuild();this.sphinxBuild();this.msBuild();this.rdrBuild();
+  this.trafficBuild();this.rushBuild();this.wxBuild();this.pedBuild();this.fareBuild();this.chainBuild();this.dealerBuild();this.areaBuild();this.svcBuild();this.shopBuild();this.feluBuild();this.mosqueBuild();this.sphinxBuild();this.msBuild();this.rdrBuild();
   // minimal HUD
   if(!$('realHud')){const h=document.createElement('div');h.id='realHud';h.hidden=true;h.style.cssText='position:fixed;inset:0;z-index:2;pointer-events:none;direction:rtl';
    h.innerHTML='<div style="position:absolute;top:calc(var(--sat) + 10px);left:50%;transform:translateX(-50%);padding:6px 16px;border-radius:14px" class="glass"><small>طرق مصر - © OpenStreetMap contributors</small></div>'+
@@ -142,6 +142,7 @@ class RealMap{
    +'<div class="glass" style="position:absolute;top:calc(var(--sat) + 48px);left:50%;transform:translateX(-50%);padding:3px 14px;border-radius:12px;display:none"><small id="erArea"></small></div>'
    +'<div class="glass" id="erMsnW" style="position:absolute;top:calc(var(--sat) + 48px);inset-inline-end:10px;padding:3px 14px;border-radius:12px;display:none"><small id="erMsn"></small></div>'
    +'<div class="glass" style="position:absolute;top:calc(var(--sat) + 86px);inset-inline-end:10px;padding:3px 14px;border-radius:12px;display:none"><small id="erRad"></small></div>'
+   +'<div class="glass" id="erChainW" style="position:absolute;top:calc(var(--sat) + 124px);inset-inline-end:10px;padding:3px 14px;border-radius:12px;display:none"><small id="erChain"></small></div>'
    +'<canvas id="erMap" width="176" height="176" style="position:absolute;bottom:calc(var(--sab) + 12px);inset-inline-end:10px;border-radius:50%;opacity:.94"></canvas>'
    +'<div class="glass" style="position:absolute;top:calc(var(--sat) + 48px);inset-inline-start:10px;padding:3px 14px;border-radius:12px;display:none"><small id="erRush"></small></div>'
    +'<div class="glass" style="position:absolute;top:calc(var(--sat) + 86px);inset-inline-start:10px;padding:3px 14px;border-radius:12px;display:none"><small id="erRain">\u{1F327} \u0645\u0637\u0631</small></div>'
@@ -443,7 +444,9 @@ class RealMap{
     if(fx.rush){fx.t=best.d/11+20;fx.fare=Math.round(fx.fare*1.5)}
     this.paxG.visible=false;this.bcnP.visible=false;this.bcnD.visible=true;
     if(fx.rush)g.popup(this.pRu[Math.floor(Math.random()*this.pRu.length)].replace('D',fx.dname));
-    else g.popup(this.pUp[Math.floor(Math.random()*this.pUp.length)].replace('D',fx.dname));g.audio.flash()}}
+    else g.popup(this.pUp[Math.floor(Math.random()*this.pUp.length)].replace('D',fx.dname));g.audio.flash();
+    if(this.chain&&this.chain.offer>0&&!this.chain.on){const ch=this.chain;ch.on=true;ch.offer=0;ch.leg=0;ch.legs=2+ch.lvl;
+     setTimeout(()=>g.popup('بدأت السلسلة! مشوار 1 من '+ch.legs+'.. الأجرة بتزيد مع كل مشوار (X للإلغاء)'),1200)}}}
   else{const d=Math.hypot(fx.dst.x-pl.x,fx.dst.z-pl.z);
    this.bcnD.position.set(fx.dst.x,13+fx.dst.y,fx.dst.z);this.bcnD.material.opacity=.22+.12*Math.sin(t*(fx.rush?8:3));
    if(fx.rush){fx.t-=dt;if(fx.t<=0){fx.rush=false;fx.fare=Math.round(fx.fare/1.5);g.popup('اتأخرنا شوية، بس يلا بينا')}}
@@ -458,7 +461,7 @@ class RealMap{
     else if(this.arCur&&this.arCur!==fx.zoneSaid){fx.zoneSaid=this.arCur;pool=this.pZone}
     g.popup('الراكب: '+pool[Math.floor(Math.random()*pool.length)].replace('D',this.arCur||fx.dname))}
    const e2=$('erFare');if(e2)e2.innerHTML='<small>الوجهة: '+fx.dname+' - '+m$(d)+' ('+fx.fare+' ج)'+(fx.rush?' ⏱ '+Math.ceil(fx.t)+' ث':'')+'</small>';
-   if(d<6&&sp<8){fx.st=0;if(this.buffTea>0){this.buffTea--;fx.fare+=Math.round(fx.fare*.15)}g.coins+=fx.fare;
+   if(d<6&&sp<8){fx.st=0;if(this.buffTea>0){this.buffTea--;fx.fare+=Math.round(fx.fare*.15)}if(this.chain&&this.chain.on)fx.fare=Math.round(fx.fare*(1+this.chain.leg*.5));g.coins+=fx.fare;
     if(fx.tip){fx.tip=false;g.coins+=15;setTimeout(()=>g.popup('الراكب عجبته العربية النضيفة.. بقشيش +15'),900)}
     if(fx.hits===0){fx.streak++;if(fx.streak%3===0){g.coins+=60;setTimeout(()=>g.popup('سلسلة نضيفة! '+fx.streak+' مشاوير من غير خبطة +60 جنيه'),900)}}
     else fx.streak=0;
@@ -467,8 +470,28 @@ class RealMap{
     const st5=Math.max(1,Math.min(5,5-fx.hits-(fx.topSpd>120?1:0))),tip5=st5===5?20:st5===4?10:0;
     if(tip5){g.coins+=tip5;g.saveCoins()}
     setTimeout(()=>g.popup('الراكب: '+'⭐'.repeat(st5)+(st5>=4?' مشوار نضيف':st5===3?' مشوار عادي':' خد بالك المرة الجاية')+(tip5?'.. بقشيش +'+tip5:'')),1700);
+    if(this.chain&&this.chain.on){const ch=this.chain;ch.leg++;
+     if(ch.leg>=ch.legs){ch.on=false;ch.cd=this.trnd(50,80);const bn=100+50*ch.lvl;g.coins+=bn;
+      ch.lvl=Math.min(5,ch.lvl+1);try{localStorage.setItem('er_chain',String(ch.lvl))}catch(e4){}
+      g.saveCoins();
+      setTimeout(()=>{g.popup('السلسلة خلصت! شغل نضيف يا معلم.. بونص +'+bn+' جنيه 🎉');g.audio.coin()},2600);
+      setTimeout(()=>g.popup('مستوى السلاسل بقى '+ch.lvl+'.. مشاوير أطول وأجرة أحسن 🔗'),4400)}
+     else setTimeout(()=>g.popup('مشوار '+ch.leg+' من '+ch.legs+' تمام! اللي بعده مستنيك 🔗'),2600)}
     this.bcnD.visible=false;this.paxPlace()}}
   const em=$('erMoney');if(em&&em.textContent!==String(g.coins))em.textContent=g.coins}
+ // ---------- v65: progressing mission chains (مشاوير متتالية) ----------
+ chainBuild(){let lvl=1;try{lvl=+localStorage.getItem('er_chain')||1}catch(e2){}lvl=Math.max(1,Math.min(5,lvl|0||1));
+  this.chain={on:false,leg:0,legs:3,lvl,offer:0,cd:45}}
+ chainUpd(dt){const ch=this.chain,g=this.g,fx=this.fx;
+  const eW=$('erChainW'),e=$('erChain');
+  if(ch.on){if(eW)eW.style.display='';if(e)e.innerHTML='<small>🔗 مشوار '+(ch.leg+1)+'/'+ch.legs+' - أجرة ×'+(1+ch.leg*.5)+'</small>'}
+  else if(eW)eW.style.display='none';
+  if(this.bcnP){const cc=(ch.on||ch.offer>0)?0xc77dff:0x35e08a;if(this.bcnP.material.color.getHex()!==cc)this.bcnP.material.color.set(cc)}
+  if(ch.on||!fx)return;
+  if(ch.offer>0){ch.offer-=dt;if(ch.offer<=0){ch.offer=0;ch.cd=this.trnd(35,55);g.popup('عرض الشغل المتوالي راح.. ممكن يتعرض تاني بعد شوية')}return}
+  if(fx.st!==0)return;
+  ch.cd-=dt;if(ch.cd<=0){ch.cd=0;ch.offer=25;const N=2+ch.lvl;
+   g.popup('عرض شغل متوالي يا كابتن! خد الراكب اللي جاي خلال 25 ثانية وابدأ سلسلة '+N+' مشاوير بأجرة بتزيد 🔗');g.audio.flash()}}
  // ---------- v57: speed radars + police ----------
  rdrBuild(){const cands=this.pways.filter(e=>e.hw>=7&&e.L>300);if(!cands.length)return;
   this.rd=[];
@@ -647,7 +670,7 @@ class RealMap{
   if(this.towerBc)this.towerBc.visible=Math.sin(this.g.t*2.4)>0;
   if(this.tlL){this.tlT=(this.tlT||0)+dt;if(this.tlT>5){this.tlT=0;this.tlP=!this.tlP;const cc=new T.Color();for(let k=0;k<this.tlN;k++)this.tlL.setColorAt(k,cc.set((k%2===0)===this.tlP?0xff3226:0x2fe06a));this.tlL.instanceColor.needsUpdate=true}}
   const p=this.pl,q=this.query(p.x,p.z);let ty=0;if(q){if(q.b&&q.d<q.hw+1.5)ty=q.y;else if(q.y>1&&q.d<q.hw+6)ty=q.y}
-  this.cy+=(ty-this.cy)*Math.min(1,5*dt);if(this.ag&&this.rushOn!==undefined)this.rushUpd(dt);if(this.agM)this.trafficUpd(dt);if(this.pdM)this.pedUpd(dt);if(this.fx)this.fareUpd(dt);if(this.dlr)this.dealerUpd(dt);if(this.fl)this.feluUpd(dt);if(this.zones)this.areaUpd(dt);if(this.ms)this.msUpd(dt);if(this.rd)this.rdrUpd(dt);if(this.map)this.mapUpd(dt);if(this.wx)this.wxUpd(dt);if(this.svc)this.svcUpd(dt);if(this.shop)this.shopUpd(dt)}
+  this.cy+=(ty-this.cy)*Math.min(1,5*dt);if(this.ag&&this.rushOn!==undefined)this.rushUpd(dt);if(this.agM)this.trafficUpd(dt);if(this.pdM)this.pedUpd(dt);if(this.fx)this.fareUpd(dt);if(this.chain)this.chainUpd(dt);if(this.dlr)this.dealerUpd(dt);if(this.fl)this.feluUpd(dt);if(this.zones)this.areaUpd(dt);if(this.ms)this.msUpd(dt);if(this.rd)this.rdrUpd(dt);if(this.map)this.mapUpd(dt);if(this.wx)this.wxUpd(dt);if(this.svc)this.svcUpd(dt);if(this.shop)this.shopUpd(dt)}
  sim(h){const g=this.g,p=this.pl,k=g.keys;let s=(k.right?1:0)-(k.left?1:0);if(g.opt.tilt&&matchMedia('(pointer:coarse)').matches)s=cl(s+(g.opt.inv?-1:1)*g.tilt/20,-1,1);s=cl(s+(g.wv||0),-1,1);
   const I={steer:s,thr:k.up?1:0,brk:k.down?1:0,hb:k.hb?1:0};p.grip=(this.onRoad(p.x,p.z)?1:.85)*(this.wx&&this.wx.on?.9:1);if(p.dmg>=100)I.thr=0;if(this.fuel!==undefined&&this.fuel<=0)I.thr*=.12;
   p.step(h,I);const B=this.bounds;if(p.x<B.x0)p.x=B.x0;if(p.x>B.x1)p.x=B.x1;if(p.z<B.z0)p.z=B.z0;if(p.z>B.z1)p.z=B.z1}
