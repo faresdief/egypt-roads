@@ -82,6 +82,12 @@ class RealMap{
    let L=0;const seg=[];for(let i=0;i<n;i++){const x=f[2*i]/10,z=f[2*i+1]/10;pts.push([x,z]);if(i)L+=Math.hypot(x-pts[i-1][0],z-pts[i-1][1]);seg.push(L)}
    for(let i=0;i<n;i++){const t=L?seg[i]/L:0,r=t<.5?Math.min(1,t/.12):Math.min(1,(1-t)/.12),s=r*r*(3-2*r);pts[i][2]=w2[1]?Math.max(.06,H*s):.06}
    const o={c:w2[0],b:w2[1],p:pts};for(const q of pts){if(q[0]<bx0)bx0=q[0];if(q[0]>bx1)bx1=q[0];if(q[1]<bz0)bz0=q[1];if(q[1]>bz1)bz1=q[1]}return o};
+  // v86: soften sharp corners on ground roads (unshared vertices, both legs >=8m, turn >20deg): cut the corner with two points
+  {const sv=new Map();for(const w2 of this.data.w){const f=w2[4];for(let i=0;i<f.length;i+=2){const k=f[i]+','+f[i+1];sv.set(k,(sv.get(k)||0)+1)}}
+   for(const w2 of this.data.w){if(w2[1]||w2[0]>2)continue;const f=w2[4],n=f.length/2;if(n<3)continue;const out=[f[0],f[1]];let ch=false;
+    for(let i=1;i<n-1;i++){const ax=f[2*i-2],az=f[2*i-1],bx=f[2*i],bz=f[2*i+1],cx=f[2*i+2],cz=f[2*i+3],ux=bx-ax,uz=bz-az,vx=cx-bx,vz=cz-bz,lu=Math.hypot(ux,uz),lv=Math.hypot(vx,vz);
+     if(lu>=80&&lv>=80&&sv.get(bx+','+bz)===1&&(ux*vx+uz*vz)/(lu*lv)<.9397){const t=.3;out.push(Math.round(bx-ux*t),Math.round(bz-uz*t),Math.round(bx+vx*t),Math.round(bz+vz*t));ch=true}else out.push(bx,bz)}
+    out.push(f[2*n-2],f[2*n-1]);if(ch)w2[4]=out}}
   for(const w2 of this.data.w)ways.push(decodeWay(w2));
   this.ways=ways;this.decodeWay=decodeWay;{const DB=this.data.bounds;this.bounds=DB?{x0:Math.min(DB[0],bx0-40),x1:Math.max(DB[1],bx1+40),z0:Math.min(DB[2],bz0-40),z1:Math.max(DB[3],bz1+40)}:{x0:bx0-40,x1:bx1+40,z0:bz0-40,z1:bz1+40}}
   // v75: merged road ribbons per 6km chunk + dashes + piers per chunk; visibility ring around player
