@@ -162,10 +162,10 @@ class RealMap{
     for(let i=0;i<p.length-1;i++){const a=p[i],b=p[i+1],dx=b[0]-a[0],dz=b[1]-a[1],L=Math.hypot(dx,dz);if(L<.01)continue;const nx=-dz/L,nz=dx/L,y0=a[2]||.06,y1=b[2]||.06;
      quad(rp,rn,rc,ri,[a[0]+nx*hw,y0,a[1]+nz*hw],[a[0]-nx*hw,y0,a[1]-nz*hw],[b[0]-nx*hw,y1,b[1]-nz*hw],[b[0]+nx*hw,y1,b[1]+nz*hw],[0,1,0],t2);
      if(w2.c<=2){const lw=.14;dp.push(a[0]+nx*lw,(y0+.02),a[1]+nz*lw,a[0]-nx*lw,(y0+.02),a[1]-nz*lw,b[0]-nx*lw,(y1+.02),b[1]-nz*lw,b[0]+nx*lw,(y1+.02),b[1]+nz*lw);for(let q2=0;q2<4;q2++){dn.push(0,1,0);dc.push(.5,.48,.4)}const k2=dp.length/3-4;du.push(0,0,1,0,1,1,0,1);di.push(k2,k2+2,k2+1,k2,k2+3,k2+2)}
-     if(!w2.b&&w2.c>=1&&w2.c<=3&&L>28){const hh=Math.sin(a[0]*12.9898+a[1]*78.233)*43758.5453;if(hh-Math.floor(hh)<.3)bmp.push([(a[0]+b[0])/2,(y0+y1)/2,(a[1]+b[1])/2,Math.atan2(dx,dz),hw])}
+     if(!w2.b&&w2.c>=2&&w2.c<=3&&L>28){const hh=Math.sin(a[0]*12.9898+a[1]*78.233)*43758.5453;if(hh-Math.floor(hh)<.3)bmp.push([(a[0]+b[0])/2,(y0+y1)/2,(a[1]+b[1])/2,Math.atan2(dx,dz),hw])}
      if(!w2.b&&w2.c>=1&&w2.c<=2&&L>40){const h3=Math.sin(a[1]*39.346+a[0]*11.135)*43758.5453,f3=h3-Math.floor(h3);if(f3<.22){const sd=f3<.11?1:-1,off=hw+1.7,t3=.4+f3*2;ksk.push([a[0]+dx*t3*L/L*L*.0+(b[0]-a[0])*t3+nx*off*sd,(y0+y1)/2+.1,a[1]+(b[1]-a[1])*t3+nz*off*sd,Math.atan2(dx,dz),f3])}}
      if(!w2.b&&w2.c<=2){const sw0=hw+.15,sw1=hw+(w2.c<=1?2.8:2.2),sh=.1,sc2=[.2,.2,.23],kc=[.3,.3,.32];
-      for(const s of[-1,1]){quad(rp,rn,rc,ri,[a[0]+nx*sw0*s,y0+sh,a[1]+nz*sw0*s],[a[0]+nx*sw1*s,y0+sh,a[1]+nz*sw1*s],[b[0]+nx*sw1*s,y1+sh,b[1]+nz*sw1*s],[b[0]+nx*sw0*s,y1+sh,b[1]+nz*sw0*s],[0,1,0],sc2);
+      for(const s of[-1,1]){const so=hw+1.4;let blk=false;for(const tt of[.12,.5,.88]){if(this.insideRoad(a[0]+dx*tt+nx*so*s,a[1]+dz*tt+nz*so*s,y0+(y1-y0)*tt,.1)){blk=true;break}}if(blk)continue;quad(rp,rn,rc,ri,[a[0]+nx*sw0*s,y0+sh,a[1]+nz*sw0*s],[a[0]+nx*sw1*s,y0+sh,a[1]+nz*sw1*s],[b[0]+nx*sw1*s,y1+sh,b[1]+nz*sw1*s],[b[0]+nx*sw0*s,y1+sh,b[1]+nz*sw0*s],[0,1,0],sc2);
        quad(rp,rn,rc,ri,[a[0]+nx*hw*s,y0+sh,a[1]+nz*hw*s],[b[0]+nx*hw*s,y1+sh,b[1]+nz*hw*s],[b[0]+nx*hw*s,y1,b[1]+nz*hw*s],[a[0]+nx*hw*s,y0,a[1]+nz*hw*s],[-nx*s,0,-nz*s],kc)}}
      if(w2.c<=1){const ew=.09,eo=hw-.55;for(const s of[-1,1]){dp.push(a[0]+nx*(eo+ew)*s,y0+.02,a[1]+nz*(eo+ew)*s,a[0]+nx*(eo-ew)*s,y0+.02,a[1]+nz*(eo-ew)*s,b[0]+nx*(eo-ew)*s,y1+.02,b[1]+nz*(eo-ew)*s,b[0]+nx*(eo+ew)*s,y1+.02,b[1]+nz*(eo+ew)*s);for(let q2=0;q2<4;q2++){dn.push(0,1,0);dc.push(.62,.6,.52)}const k3=dp.length/3-4;du.push(0,0,1,0,1,1,0,1);di.push(k3,k3+2,k3+1,k3,k3+3,k3+2)}}
      barsFor(w2,a,b,rp,rn,rc,ri);
@@ -180,7 +180,7 @@ class RealMap{
     ksk.forEach((q2,i)=>{const kk=Math.floor(q2[4]*1000)%5;o6.position.set(q2[0],q2[1]+1.1,q2[2]);o6.rotation.set(0,q2[3],0);o6.scale.set(1,1,1);o6.updateMatrix();kb.setMatrixAt(i,o6.matrix);kb.setColorAt(i,c6.setHex(PK[kk]));
      o6.position.set(q2[0],q2[1]+2.4,q2[2]);o6.updateMatrix();ks.setMatrixAt(i,o6.matrix);ks.setColorAt(i,c6.setHex(SG[kk]))});grp.add(kb,ks)}
    if(bmp.length){const bi=new T.InstancedMesh(new T.BoxGeometry(1,.14,.7),new T.MeshStandardMaterial({color:col(0x9a8420),roughness:.8,emissive:col(0x2a2208),emissiveIntensity:.8}),bmp.length),o5=new T.Object3D();
-    bmp.forEach((q2,i)=>{o5.position.set(q2[0],q2[1]+.05,q2[2]);o5.rotation.set(0,q2[3],0);o5.scale.set(q2[4]*1.9,1,1);o5.updateMatrix();bi.setMatrixAt(i,o5.matrix)});bi.receiveShadow=true;grp.add(bi)}
+    bmp.forEach((q2,i)=>{o5.position.set(q2[0],q2[1]+.05,q2[2]);o5.rotation.set(0,q2[3],0);o5.scale.set(q2[4]*1.6,1,1);o5.updateMatrix();bi.setMatrixAt(i,o5.matrix)});bi.receiveShadow=true;grp.add(bi)}
    if(rp.length){const rm=mk(rp,rn,rc,ri,null,null,roadMat);rm.receiveShadow=true;grp.add(rm)}
    if(dp.length)grp.add(mk(dp,dn,dc,di,du,null,dashMat));
    const prs=[];for(const w2 of cwl){if(!w2.b)continue;const p=w2.p;let acc=0;
