@@ -950,7 +950,7 @@ class RealMap{
   this.chunks=new Map();this.CH=CH;
   const quad=(P,N,C,I2,a,b,c2,d2,n2,t2)=>{const k=P.length/3;P.push(a[0],a[1],a[2],b[0],b[1],b[2],c2[0],c2[1],c2[2],d2[0],d2[1],d2[2]);for(let q2=0;q2<4;q2++){N.push(n2[0],n2[1],n2[2]);C.push(t2[0],t2[1],t2[2])}I2.push(k,k+2,k+1,k,k+3,k+2)};
   const mk=(P,N,C,I2,uv,U2,mat)=>{const gg=new T.BufferGeometry();gg.setAttribute('position',new T.Float32BufferAttribute(P,3));gg.setAttribute('normal',new T.Float32BufferAttribute(N,3));gg.setAttribute('color',new T.Float32BufferAttribute(C,3));if(uv)gg.setAttribute('uv',new T.Float32BufferAttribute(uv,2));gg.setIndex(I2);return new T.Mesh(gg,mat)};
-  const roadMat=new T.MeshStandardMaterial({vertexColors:true,roughness:.85,metalness:.05,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1});this.roadM=roadMat;
+  const roadMat=new T.MeshStandardMaterial({vertexColors:true,side:T.DoubleSide,roughness:.85,metalness:.05,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1});this.roadM=roadMat;
   const dashMat=new T.MeshBasicMaterial({vertexColors:true,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
   const pierMat=new T.MeshStandardMaterial({color:col(0x55534e),roughness:.95});
   // v82: static obstacle hash (buildings, poles, kiosks, bridge parapets) + car collision
@@ -984,15 +984,15 @@ class RealMap{
     if(n[0]*o[0]+n[1]*o[1]+n[2]*o[2]<0)quad(rp,rn,rc,ri,d,c,b,a,o,col2);else quad(rp,rn,rc,ri,a,b,c,d,o,col2)};
    for(const s of[-1,1]){const A=[px+nx*hf*s,y0,pz+nz*hf*s],B=[qx+nx*hf*s,y1,qz+nz*hf*s];fc([A[0],A[1]+hh,A[2]],[B[0],B[1]+hh,B[2]],B,A,[nx*s,0,nz*s])}
    fc([px+nx*hf,y0+hh,pz+nz*hf],[qx+nx*hf,y1+hh,qz+nz*hf],[qx-nx*hf,y1+hh,qz-nz*hf],[px-nx*hf,y0+hh,pz-nz*hf],[0,1,0])};
-  const barsFor=(w2,a,b,rp,rn,rc,ri)=>{const dx=b[0]-a[0],dz=b[1]-a[1],L=Math.hypot(dx,dz);if(L<24||w2.b||w2.c>2)return;const ux=dx/L,uz=dz/L,nx=-uz,nz=ux,hw=W2[w2.c],y0=a[2]||.06,y1=b[2]||.06,ym=(y0+y1)/2;if(Math.max(y0,y1)>2.5)return;
+  const barsFor=(w2,a,b,rp,rn,rc,ri)=>{const dx=b[0]-a[0],dz=b[1]-a[1],L=Math.hypot(dx,dz);if(L<3||w2.b||w2.c>2)return;const ux=dx/L,uz=dz/L,nx=-uz,nz=ux,hw=W2[w2.c],y0=a[2]||.06,y1=b[2]||.06,ym=(y0+y1)/2;if(Math.max(y0,y1)>2.5)return;
    const mx=(a[0]+b[0])/2,mz=(a[1]+b[1])/2;
    // corniche: segment runs roughly parallel to the water edge ~100-260m from the Nile centreline
    const wn=w2.c<=1?waterNear(mx,mz):null;let rs=0;
    if(wn&&wn.d>100&&wn.d<260&&Math.abs(wn.ux*ux+wn.uz*uz)>.85){const sd=((wn.px-mx)*nx+(wn.pz-mz)*nz)>0?1:-1;rs=sd}
-   const np=Math.floor((L-3)/6);
-   for(let k=0;k<np;k++){const t0=(1.5+k*(L-3)/np)/L,t1=(1.5+(k+1)*(L-3)/np)/L,ax=a[0]+dx*t0,az=a[1]+dz*t0,bx=a[0]+dx*t1,bz=a[1]+dz*t1,ya=y0+(y1-y0)*t0,yb=y0+(y1-y0)*t1;
+   const np=Math.max(1,Math.floor((L-.5)/6));
+   for(let k=0;k<np;k++){const t0=(.25+k*(L-.5)/np)/L,t1=(.25+(k+1)*(L-.5)/np)/L,ax=a[0]+dx*t0,az=a[1]+dz*t0,bx=a[0]+dx*t1,bz=a[1]+dz*t1,ya=y0+(y1-y0)*t0,yb=y0+(y1-y0)*t1;
     if(rs){const o=hw+3.1,px=ax+nx*o*rs,pz=az+nz*o*rs,qx=bx+nx*o*rs,qz=bz+nz*o*rs;
-     if(!(this.insideRoad(px,pz,ya,.8)||this.insideRoad(qx,qz,yb,.8)||this.insideRoad((px+qx)/2,(pz+qz)/2,ym,.8))){barBox(rp,rn,rc,ri,px,pz,qx,qz,ya,yb,.9,.22,[.27,.265,.26]);this.obsS(px,pz,qx,qz,.25,ym)}}
+     if(!(this.insideRoad(px,pz,ya,.8)||this.insideRoad(qx,qz,yb,.8)||this.insideRoad((px+qx)/2,(pz+qz)/2,ym,.8))){barBox(rp,rn,rc,ri,px,pz,qx,qz,ya,yb,.9,.22,[.3,.29,.28]);this.obsS(px,pz,qx,qz,.25,ym)}}
     if(w2.c<=1){const cx=(ax+bx)/2,cz=(az+bz)/2;let bd=null;
      for(let ddx=-1;ddx<=1;ddx++)for(let ddz=-1;ddz<=1;ddz++){const L2=this.hash.get(Math.floor(cx/CS+ddx)+','+Math.floor(cz/CS+ddz));if(!L2)continue;
       for(const q2 of L2){const o2=ways[q2[0]];if(o2===w2||o2.b||o2.c>1)continue;const p2=o2.p,c0=p2[q2[1]],c1=p2[q2[1]+1],ex=c1[0]-c0[0],ez=c1[1]-c0[1],el=Math.hypot(ex,ez);if(el<8)continue;
@@ -1016,8 +1016,15 @@ class RealMap{
      barsFor(w2,a,b,rp,rn,rc,ri);
      if(w2.b&&L>.5){const np=Math.max(1,Math.ceil(L/5));for(const s of[-1,1])for(let k=0;k<np;k++){const t0=k/np,t1=(k+1)/np,px=a[0]+(b[0]-a[0])*t0+nx*(hw+.3)*s,pz=a[1]+(b[1]-a[1])*t0+nz*(hw+.3)*s,qx=a[0]+(b[0]-a[0])*t1+nx*(hw+.3)*s,qz=a[1]+(b[1]-a[1])*t1+nz*(hw+.3)*s,ya=y0+(y1-y0)*t0,yb=y0+(y1-y0)*t1;
       if(this.insideRoad(px,pz,ya,.05)||this.insideRoad(qx,qz,yb,.05)||this.insideRoad((px+qx)/2,(pz+qz)/2,(ya+yb)/2,.05))continue;this.obsS(px,pz,qx,qz,.3,(ya+yb)/2)}}
-     if(w2.b){const ph=1.1;for(const s of[-1,1])quad(rp,rn,rc,ri,[a[0]+nx*hw*s,y0,a[1]+nz*hw*s],[a[0]+nx*(hw+.5)*s,y0,a[1]+nz*(hw+.5)*s],[b[0]+nx*(hw+.5)*s,y1,b[1]+nz*(hw+.5)*s],[b[0]+nx*hw*s,y1,b[1]+nz*hw*s],[0,1,0],[.16,.15,.14]),
-      quad(rp,rn,rc,ri,[a[0]+nx*hw*s,y0+ph,a[1]+nz*hw*s],[b[0]+nx*hw*s,y1+ph,b[1]+nz*hw*s],[b[0]+nx*hw*s,y1,b[1]+nz*hw*s],[a[0]+nx*hw*s,y0,a[1]+nz*hw*s],[-nx*s,0,-nz*s],[.18,.17,.16])}}}
+     if(w2.b){const ph=1.1,mt=(i2,j2)=>{const A=p[i2],B=p[j2];const l1=Math.hypot(B[0]-A[0],B[1]-A[1])||1;return[-(B[1]-A[1])/l1,(B[0]-A[0])/l1]};
+      const ma=i>0?mt(i-1,i):[nx,nz],mb=i<p.length-2?mt(i+1,i+2):[nx,nz];
+      const mix=(u,v)=>{let mx=u[0]+v[0],mz=u[1]+v[1];const l=Math.hypot(mx,mz);if(l<.3)return[u[0],u[1]];mx/=l;mz/=l;const k=Math.min(1.8,1/Math.max(.55,mx*u[0]+mz*u[1]));return[mx*k,mz*k]};
+      const na=i>0?mix(ma,[nx,nz]):[nx,nz],nb=i<p.length-2?mix([nx,nz],mb):[nx,nz];
+      for(const s of[-1,1]){const ia=[a[0]+na[0]*hw*s,a[1]+na[1]*hw*s],oa=[a[0]+na[0]*(hw+.5)*s,a[1]+na[1]*(hw+.5)*s],ib=[b[0]+nb[0]*hw*s,b[1]+nb[1]*hw*s],ob=[b[0]+nb[0]*(hw+.5)*s,b[1]+nb[1]*(hw+.5)*s];
+       quad(rp,rn,rc,ri,[ia[0],y0,ia[1]],[oa[0],y0,oa[1]],[ob[0],y1,ob[1]],[ib[0],y1,ib[1]],[0,1,0],[.16,.15,.14]);
+       quad(rp,rn,rc,ri,[ia[0],y0+ph,ia[1]],[ib[0],y1+ph,ib[1]],[ib[0],y1,ib[1]],[ia[0],y0,ia[1]],[-nx*s,0,-nz*s],[.18,.17,.16]);
+       quad(rp,rn,rc,ri,[oa[0],y0+ph,oa[1]],[ob[0],y1+ph,ob[1]],[ob[0],y1,ob[1]],[oa[0],y0,oa[1]],[nx*s,0,nz*s],[.36,.35,.34]);
+       quad(rp,rn,rc,ri,[ia[0],y0+ph,ia[1]],[oa[0],y0+ph,oa[1]],[ob[0],y1+ph,ob[1]],[ib[0],y1+ph,ib[1]],[0,1,0],[.2,.19,.18])}}}}
    for(let i=ksk.length-1;i>=0;i--)if(this.insideRoad(ksk[i][0],ksk[i][2],ksk[i][1]-.1,1.4))ksk.splice(i,1);
    ksk.forEach(q2=>this.obsC(q2[0],q2[2],.85,q2[1]-.1));
    const grp=new T.Group();
