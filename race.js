@@ -15,10 +15,10 @@ function restyleMenu(g){const menu=$('menu');if(!menu||$('skyline'))return;
   svgB='<svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>';
  mkI(svgT,'تحدي اليوم',()=>openTo('dCard'));mkI(svgC,'المسيرة',()=>openTo('carCard'));mkI(svgB,'كل القائمة',()=>{dr.hidden=!dr.hidden});
  const chips=document.createElement('div');chips.id='chips';
- chips.innerHTML='<button class="chip on" data-c="race">سباق</button><button class="chip" data-c="night">سباق ليلي</button><button class="chip" data-c="roam">مدينة التاكسي</button><button class="chip" data-c="real">القاهرة الحقيقية</button>';
- grid.appendChild(chips);g.chip='race';
+ chips.innerHTML='<button class="chip" data-c="race">سباق</button><button class="chip" data-c="night">سباق ليلي</button><button class="chip on" data-c="roam">مدينة التاكسي</button><button class="chip" data-c="real">القاهرة الحقيقية</button>';
+ grid.appendChild(chips);g.chip='roam';
  const goB=$('go'),LBL={race:'ابدأ السباق',night:'ابدأ السباق الليلي',roam:'ابدأ الشغل في المدينة',real:'قُد القاهرة الحقيقية'};
- chips.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{g.chip=b.dataset.c;chips.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x===b));goB.textContent=LBL[g.chip]||'ابدأ السباق';
+ $('go').textContent='ابدأ الشغل في المدينة';chips.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{g.chip=b.dataset.c;chips.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x===b));goB.textContent=LBL[g.chip]||'ابدأ السباق';
   if(g.chip==='race'||g.chip==='night'){const mb=document.querySelector('#modes [data-m="'+(g.chip==='night'?'night':'race')+'"]');if(mb)mb.click()}});
  goB.onclick=()=>{g.audio.init();
   if(g.chip==='roam'&&g.roam){g.roam.start();return}
