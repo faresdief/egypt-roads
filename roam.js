@@ -119,23 +119,33 @@ class Roam{
   this.bl={};const rects=(i,j)=>this.bl[i*100+j]||(this.bl[i*100+j]=[]);this.lms=[];this.park=[];this.zt=[];
   const add=(i,j,x0,z0,x1,z1,h,tint)=>{geo.box(x0,z0,x1,z1,0,h,tint);rects(i,j).push({x0:x0-.2,z0:z0-.2,x1:x1+.2,z1:z1+.2})};
   const extra=new T.Group();
+  const dtl={sf:[],tk:[]},hsh=v=>{v=Math.imul(v^(v>>>15),2246822519);v^=v>>>13;v=Math.imul(v,3266489917);v^=v>>>16;return(v>>>0)/4294967296};
   for(let i=0;i<NB;i++)for(let j=0;j<NB;j++){const x0=sc(i)+HWN,x1=sc(i+1)-HWN,z0=sc(j)+hwEW(j),z1=sc(j+1)-hwEW(j+1);
    o.position.set((x0+x1)/2,.1,(z0+z1)/2);o.scale.set(x1-x0,.2,z1-z0);o.updateMatrix();walk.setMatrixAt(wq++,o.matrix);o.scale.set(1,1,1);
    const ix=i-(NB-1)/2,jz=j-(NB-1)/2,r=Math.hypot(ix,jz-.5),bx0=x0+5,bx1=x1-5,bz0=z0+5,bz1=z1-5,cx=(bx0+bx1)/2,cz=(bz0+bz1)/2;
    const special=(i===5&&j===5)?'tower':(i===3&&j===7)?'mosque':(i===7&&j===7)?'hub':(i===NB-1&&j===5)?'airport':(i===6&&j===5)?'opera':(i===4&&j===5)?'club':(i===0&&j===0)?'pyramids':(i===NB-1)?'park':(i===2&&j===3||i===8&&j===3)?'plaza':null;
    if(special==='pyramids'){const sd=new T.Mesh(new T.PlaneGeometry(bx1-bx0+8,bz1-bz0+8),new T.MeshStandardMaterial({color:col(0x7d6c48),roughness:1,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}));sd.rotation.x=-Math.PI/2;sd.position.set(cx,.25,cz);extra.add(sd);
-    for(const q of[[cx-16,cz-8,13,21],[cx+10,cz+10,10,16],[cx+14,cz-16,6.5,10]]){const py=new T.Mesh(new T.ConeGeometry(q[2],q[3],4),new T.MeshStandardMaterial({color:col(0xb59a6a),roughness:.95,emissive:col(0x2a2114),emissiveIntensity:.4}));py.position.set(q[0],q[3]/2+.25,q[1]);py.rotation.y=Math.PI/4;extra.add(py);rects(i,j).push({x0:q[0]-q[2]*.7,z0:q[1]-q[2]*.7,x1:q[0]+q[2]*.7,z1:q[1]+q[2]*.7})}
-    {const pz0=z0+3,pz1=cz+2,pl=pz1-pz0,pxc=cx-2.5;
+    const pym=new T.MeshStandardMaterial({color:col(0xc2a674),roughness:.95,emissive:col(0x4a3a20),emissiveIntensity:.75}),cap=new T.MeshBasicMaterial({color:col(0xffd27a)});
+    for(const q of[[cx-20,cz-10,52,33],[cx+32,cz-2,26,17],[cx+32,cz+30,15,9.5]]){const sd2=q[2],h=q[3],py=new T.Mesh(new T.ConeGeometry(sd2*.7071,h,4),pym);py.position.set(q[0],h/2+.25,q[1]);py.rotation.y=Math.PI/4;extra.add(py);
+     const ct=new T.Mesh(new T.ConeGeometry(sd2*.7071*.07,h*.07,4),cap);ct.position.set(q[0],h*.965+.25,q[1]);ct.rotation.y=Math.PI/4;extra.add(ct);
+     rects(i,j).push({x0:q[0]-sd2/2,z0:q[1]-sd2/2,x1:q[0]+sd2/2,z1:q[1]+sd2/2})}
+    {const pxc=cx+14,pz0=z0+3,pz1=cz+14,pl=pz1-pz0;
      const pth=new T.Mesh(new T.PlaneGeometry(5,pl),new T.MeshStandardMaterial({color:col(0xa08a5a),roughness:1,polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4}));pth.rotation.x=-Math.PI/2;pth.position.set(pxc,.27,(pz0+pz1)/2);extra.add(pth);
      const gc=document.createElement('canvas');gc.width=256;gc.height=64;const gx=gc.getContext('2d');gx.fillStyle='#2a1d0c';gx.fillRect(0,0,256,64);gx.strokeStyle='#e8b94a';gx.lineWidth=4;gx.strokeRect(4,4,248,56);gx.fillStyle='#ffd878';gx.font='700 38px Tahoma,Arial,sans-serif';gx.textAlign='center';gx.textBaseline='middle';gx.fillText('الأهرامات',128,34);
      const gt=new T.CanvasTexture(gc);gt.encoding=T.sRGBEncoding;const gm=new T.MeshStandardMaterial({map:gt,emissiveMap:gt,emissive:0xffffff,emissiveIntensity:.8,roughness:.6}),stone=new T.MeshStandardMaterial({color:col(0xb59a6a),roughness:.9,emissive:col(0x2a2114),emissiveIntensity:.4});
      for(const sx of[-4.6,4.6]){const p=new T.Mesh(new T.BoxGeometry(1.4,7,1.4),stone);p.position.set(pxc+sx,3.5,pz0);extra.add(p);rects(i,j).push({x0:pxc+sx-.8,z0:pz0-.8,x1:pxc+sx+.8,z1:pz0+.8})}
      const bm=new T.Mesh(new T.BoxGeometry(10.4,2.4,.8),gm);bm.position.set(pxc,7.6,pz0);extra.add(bm);
      const trm=new T.MeshStandardMaterial({color:col(0x5a4328),roughness:.9}),lfm=new T.MeshStandardMaterial({color:col(0x2f5a2c),roughness:.8,emissive:col(0x0c1c0c),emissiveIntensity:.4});
-     for(let q=0;q<5;q++)for(const sx of[-5.5,5.5]){const pz=pz0+9+q*Math.max(4,(pl-12)/4),px=pxc+sx,h=5.5+(q%2)*1.2;const tr=new T.Mesh(new T.CylinderGeometry(.22,.34,h,5),trm);tr.position.set(px,h/2,pz);extra.add(tr);
+     for(let q=0;q<5;q++)for(const sx of[-4.2,4.2]){const pz=pz0+9+q*Math.max(4,(pl-12)/4),px=pxc+sx,h=5.5+(q%2)*1.2;const tr=new T.Mesh(new T.CylinderGeometry(.22,.34,h,5),trm);tr.position.set(px,h/2,pz);extra.add(tr);
       for(let a=0;a<6;a++){const lf=new T.Mesh(new T.ConeGeometry(.5,3.2,4),lfm);lf.position.set(px+Math.cos(a*1.047)*1.3,h+.1,pz+Math.sin(a*1.047)*1.3);lf.rotation.set(Math.sin(a*1.047)*1.1,0,-Math.cos(a*1.047)*1.1);extra.add(lf)}
       rects(i,j).push({x0:px-.5,z0:pz-.5,x1:px+.5,z1:pz+.5})}
-     const lamp=new T.MeshBasicMaterial({color:col(0xffd27a)});for(const sx of[-2.8,2.8])for(let q=1;q<4;q++){const lp=new T.Mesh(new T.SphereGeometry(.28,6,5),lamp);lp.position.set(pxc+sx,.6,pz0+3+q*((pl-4)/4));extra.add(lp)}}
+     const lamp=new T.MeshBasicMaterial({color:col(0xffd27a)});for(const sx of[-2.8,2.8])for(let q=1;q<4;q++){const lp=new T.Mesh(new T.SphereGeometry(.28,6,5),lamp);lp.position.set(pxc+sx,.6,pz0+3+q*((pl-4)/4));extra.add(lp)}
+     const spm=new T.MeshStandardMaterial({color:col(0xb9a068),roughness:.95,emissive:col(0x3a2c16),emissiveIntensity:.7}),sz=cz+27;
+     const bd=new T.Mesh(new T.BoxGeometry(5.2,3.6,13),spm);bd.position.set(pxc,2.05,sz);extra.add(bd);
+     const hd=new T.Mesh(new T.BoxGeometry(3.4,4,3.4),spm);hd.position.set(pxc,4.6,sz-5.4);extra.add(hd);
+     const nm=new T.Mesh(new T.BoxGeometry(5.4,3.8,1),spm);nm.position.set(pxc,4.4,sz-3.7);extra.add(nm);
+     const pw=new T.Mesh(new T.BoxGeometry(1.6,1.2,5),spm);for(const sx of[-1.6,1.6]){const p2=pw.clone();p2.position.set(pxc+sx,.85,sz-9.5);extra.add(p2)}
+     rects(i,j).push({x0:pxc-2.8,z0:sz-11,x1:pxc+2.8,z1:sz+6.5})}
     this.pyr={x:cx,z:cz};continue}
    if(special==='airport'){this.park.push({x0:bx0,z0:bz0,x1:bx1,z1:bz1});this.airpt={x:cx,z:cz};
     const rw2=new T.Mesh(new T.PlaneGeometry(74,14),new T.MeshStandardMaterial({color:col(0x232428),roughness:.9}));rw2.rotation.x=-Math.PI/2;rw2.position.set(cx,.22,cz+18);extra.add(rw2);
@@ -156,17 +166,24 @@ class Roam{
    if(zam){for(let k=0;k<5;k++){const f=(k+.5)/5;const e=.9+((k*7+i*3+j)%5)*.1;this.zt.push([x0+2.5,z0+5+f*(z1-z0-10),e],[x1-2.5,z0+5+f*(z1-z0-10),e],[x0+5+f*(x1-x0-10),z0+2.5,e],[x0+5+f*(x1-x0-10),z1-2.5,e])}}
    const nx=core?1+(rn()<.4?1:0):old?2+(rn()<.5?1:0):1+Math.floor(rn()*3),nz=core?1+(rn()<.4?1:0):old?2+(rn()<.5?1:0):1+Math.floor(rn()*3),gw=(bx1-bx0)/nx,gd=(bz1-bz0)/nz;
    for(let a=0;a<nx;a++)for(let b=0;b<nz;b++){if(rn()<.08)continue;const lx0=bx0+a*gw+1.5+rn()*2,lx1=bx0+(a+1)*gw-1.5-rn()*2,lz0=bz0+b*gd+1.5+rn()*2,lz1=bz0+(b+1)*gd-1.5-rn()*2;if(lx1-lx0<8||lz1-lz0<8)continue;
-    const hh=Math.round((lo+Math.pow(rn(),1.5)*(hi-lo))/3.5)*3.5,tt=tint.map(v=>v*(.85+rn()*.2));add(i,j,lx0,lz0,lx1,lz1,hh,tt);if(hh>45&&rn()<.7){const ix0=lx0+(lx1-lx0)*.2,ix1=lx1-(lx1-lx0)*.2,iz0=lz0+(lz1-lz0)*.2,iz1=lz1-(lz1-lz0)*.2;geo.box(ix0,iz0,ix1,iz1,hh,hh+14,tt)}}}
+    const hh=Math.round((lo+Math.pow(rn(),1.5)*(hi-lo))/3.5)*3.5,tt=tint.map(v=>v*(.85+rn()*.2));add(i,j,lx0,lz0,lx1,lz1,hh,tt);{const hv=hsh(i*7919+j*104729+a*31+b*17+1);for(let fc=0;fc<4;fc++){const hf=hsh(i*7919+j*104729+a*31+b*17+fc*977+5),fl=(fc<2?lx1-lx0:lz1-lz0),w=Math.min(6,fl-4);if(w>2&&hf>.5){const t=hsh(i*977+j*353+a*13+b*5+fc*7+9);dtl.sf.push([fc,fc===0?lz0:fc===1?lz1:fc===2?lx0:lx1,(fc<2?lx0:lz0)+2+w/2+t*(fl-4-w),w,Math.floor(hsh(i*31+j*57+a+b*3+fc)*4)])}}if(hh<=42&&hv<.6)dtl.tk.push([(lx0+lx1)/2+(hv-.3)*(lx1-lx0)*.4,hh,(lz0+lz1)/2+(hsh(a*5+b*9+i+j*13)-.5)*(lz1-lz0)*.4])}if(hh>45&&rn()<.7){const ix0=lx0+(lx1-lx0)*.2,ix1=lx1-(lx1-lx0)*.2,iz0=lz0+(lz1-lz0)*.2,iz1=lz1-(lz1-lz0)*.2;geo.box(ix0,iz0,ix1,iz1,hh,hh+14,tt)}}}
   walk.count=wq;walk.receiveShadow=true;sc3.add(walk);const bm=geo.mesh(this.winM);bm.receiveShadow=false;sc3.add(bm);sc3.add(extra);
+  // building details: lit shop fronts with awnings, rooftop water tanks (instanced, skipped on low)
+  if(!this.low){const n1=dtl.sf.length,aw=new T.InstancedMesh(new T.BoxGeometry(1,1,1),new T.MeshStandardMaterial({color:0xffffff,roughness:.8,emissive:col(0x1a1208),emissiveIntensity:.5}),n1),sw2=new T.InstancedMesh(new T.BoxGeometry(1,1,1),new T.MeshBasicMaterial({color:0xffffff}),n1),oo=new T.Object3D(),AC=[0xb03a2e,0x2e7d4f,0x2a5ea8,0xc9892b],WC=[0xc99a58,0xd8bb80,0x8fb0cf,0xcf8d58],cc=new T.Color();
+   dtl.sf.forEach((q,n)=>{const[fc,pl,al,w,ci]=q,sx=fc<2?al:pl,sz=fc<2?pl:al,dx=fc===2?-1:fc===3?1:0,dz=fc===0?-1:fc===1?1:0,ry=fc<2?0:Math.PI/2,sg=fc===0||fc===2?-1:1;
+    oo.rotation.set(0,ry,0);oo.position.set(sx+dx*.65,3.4,sz+dz*.65);oo.scale.set(w+.4,.2,1.3);oo.updateMatrix();aw.setMatrixAt(n,oo.matrix);aw.setColorAt(n,cc.setHex(AC[ci]));
+    oo.position.set(sx+dx*.07,1.7,sz+dz*.07);oo.scale.set(w,2.3,.14);oo.updateMatrix();sw2.setMatrixAt(n,oo.matrix);sw2.setColorAt(n,cc.setHex(WC[(ci+1)%4]))});
+   sc3.add(aw,sw2);
+   const tk=new T.InstancedMesh(new T.CylinderGeometry(1.1,1.1,2,7),new T.MeshStandardMaterial({color:col(0x8a8f96),roughness:.7,emissive:col(0x14181c),emissiveIntensity:.5}),dtl.tk.length);dtl.tk.forEach((q,n)=>{oo.rotation.set(0,0,0);oo.position.set(q[0],q[1]+1,q[2]);oo.scale.set(1,1,1);oo.updateMatrix();tk.setMatrixAt(n,oo.matrix)});sc3.add(tk)}
   // street name signs: one pole per block corner, two green boards (EW street, NS street)
   {const EWN=['شارع التحرير','شارع رمسيس','شارع الهرم','شارع قصر العيني','طريق صلاح سالم'],NSN=['شارع النيل','شارع الجمهورية','شارع الأزهر','شارع فيصل'];
-   const mkb=t=>{const c=document.createElement('canvas');c.width=256;c.height=64;const x=c.getContext('2d');x.fillStyle='#0f5a3a';x.fillRect(0,0,256,64);x.strokeStyle='#e8efe8';x.lineWidth=3;x.strokeRect(3,3,250,58);x.fillStyle='#f4f8f4';x.font='700 30px Tahoma,Arial,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(t,128,34);const tx=new T.CanvasTexture(c);tx.encoding=T.sRGBEncoding;return new T.MeshStandardMaterial({map:tx,emissiveMap:tx,emissive:0xffffff,emissiveIntensity:.45,roughness:.7})};
+   const mkb=t=>{const c=document.createElement('canvas');c.width=256;c.height=64;const x=c.getContext('2d');x.beginPath();x.moveTo(0,0);x.lineTo(213,0);x.lineTo(256,32);x.lineTo(213,64);x.lineTo(0,64);x.closePath();x.fillStyle='#0f5a3a';x.fill();x.strokeStyle='#e8efe8';x.lineWidth=5;x.stroke();x.fillStyle='#f4f8f4';x.font='700 29px Tahoma,Arial,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(t,106,34);const tx=new T.CanvasTexture(c);tx.encoding=T.sRGBEncoding;return new T.MeshStandardMaterial({map:tx,emissiveMap:tx,emissive:0xffffff,emissiveIntensity:.45,roughness:.7})};
    const ewL=EWN.map(()=>[]),nsL=NSN.map(()=>[]),pp=[];
    for(let i=0;i<NB;i++)for(let j=0;j<NB;j++){const px=sc(i)+HWN+3,pz=sc(j)+hwEW(j)+3;pp.push([px,pz]);ewL[j===BLV?4:j%4].push([px,pz]);nsL[i%4].push([px,pz]);rects(i,j).push({x0:px-.4,z0:pz-.4,x1:px+.4,z1:pz+.4})}
    const pol=new T.InstancedMesh(new T.CylinderGeometry(.09,.11,5.6,5),new T.MeshStandardMaterial({color:col(0x6c7075),metalness:.5,roughness:.6}),pp.length),pg=new T.Object3D();pp.forEach((p,n)=>{pg.position.set(p[0],2.8,p[1]);pg.updateMatrix();pol.setMatrixAt(n,pg.matrix)});sc3.add(pol);
-   const bg=new T.PlaneGeometry(4.6,1.15);
+   const ash=new T.Shape();ash.moveTo(-2.3,.575);ash.lineTo(1.7,.575);ash.lineTo(2.5,0);ash.lineTo(1.7,-.575);ash.lineTo(-2.3,-.575);ash.closePath();const bg=new T.ShapeGeometry(ash);{const ps=bg.attributes.position,uv=bg.attributes.uv;for(let q=0;q<ps.count;q++)uv.setXY(q,(ps.getX(q)+2.3)/4.8,(ps.getY(q)+.575)/1.15)}
    const mk2=(L,txt,ry,dy)=>{if(!L.length)return;const im=new T.InstancedMesh(bg,mkb(txt),L.length*2);L.forEach((p,n)=>{for(let f=0;f<2;f++){pg.position.set(p[0],5.1+dy,p[1]);pg.rotation.set(0,ry+f*Math.PI,0);pg.updateMatrix();im.setMatrixAt(n*2+f,pg.matrix)}});pg.rotation.set(0,0,0);sc3.add(im)};
-   EWN.forEach((t,n)=>mk2(ewL[n],t,Math.PI/2,0));NSN.forEach((t,n)=>mk2(nsL[n],t,0,-1.3))}
+   EWN.forEach((t,n)=>mk2(ewL[n],t,0,0));NSN.forEach((t,n)=>mk2(nsL[n],t,Math.PI/2,-1.3))}
   // trees in parks and along the boulevard median
   const nt=this.park.length*26+NB*6+NB*4+this.zt.length,tr=new T.InstancedMesh(new T.CylinderGeometry(.18,.28,5,6),new T.MeshStandardMaterial({color:col(0x5a4630),roughness:1}),nt),cr=new T.InstancedMesh(new T.ConeGeometry(2.4,5.5,7),new T.MeshStandardMaterial({color:col(0x1f5a2a),roughness:.95}),nt);let tq=0;
   const tree=(x,z,s)=>{o.position.set(x,2.5*s,z);o.scale.set(s,s,s);o.rotation.set(0,rn()*6,0);o.updateMatrix();tr.setMatrixAt(tq,o.matrix);o.position.y=6.8*s;o.updateMatrix();cr.setMatrixAt(tq++,o.matrix)};
@@ -429,6 +446,7 @@ pickKind(){const d=this.d;if(d.ch<CH.length&&CH[d.ch].k!=='any')return CH[d.ch].
   if(this.tl){const pa=Math.abs(Math.sin(p.h))>Math.abs(Math.cos(p.h))?'ew':'ns';
    for(const k2 in this.tl){const l=this.tl[k2],x0=sc(l.i),z0=sc(l.j);if(Math.abs(x0-p.x)<R&&Math.abs(z0-p.z)<R){const st=this.tlState(l),go=pa==='ew'?st==='ew':st==='ns',am=pa==='ew'?st==='ewa':st==='nsa';x.fillStyle=go?'#3fe070':am?'#ffb020':'#ff4030';x.fillRect(x0*k-2,z0*k-2,4,4)}}}
   x.fillStyle='rgba(255,255,255,.6)';for(const a of this.ag){if(Math.abs(a.veh.x-p.x)<R&&Math.abs(a.veh.z-p.z)<R){x.fillRect(a.veh.x*k-1.5,a.veh.z*k-1.5,3,3)}}
+  if(this.pyr){const dx=this.pyr.x-p.x,dz=this.pyr.z-p.z,dd=Math.hypot(dx,dz),s=dd>R*.85?R*.85/dd:1,mx=(p.x+dx*s)*k,mz=(p.z+dz*s)*k;x.fillStyle='#ffd27a';x.strokeStyle='#3a2a10';x.lineWidth=1.5;x.beginPath();x.moveTo(mx,mz-6);x.lineTo(mx+6,mz+4);x.lineTo(mx-6,mz+4);x.closePath();x.fill();x.stroke()}
   if(t){const dx=t.x-p.x,dz=t.z-p.z,dd=Math.hypot(dx,dz),s=dd>R*.9?R*.9/dd:1;x.fillStyle=this.job.stage==='pickup'?'#30ff80':'#ff9a1f';x.beginPath();x.arc((p.x+dx*s)*k,(p.z+dz*s)*k,5,0,7);x.fill();x.strokeStyle='#fff';x.lineWidth=1.5;x.stroke()}
   x.restore();x.save();x.translate(S2/2,S2/2);x.fillStyle='#FF8A1F';x.beginPath();x.moveTo(0,-7);x.lineTo(5,6);x.lineTo(-5,6);x.closePath();x.fill();x.restore()}
 }
