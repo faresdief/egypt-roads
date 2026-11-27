@@ -1115,10 +1115,10 @@ for(let q=0;q<n;q++){const bd2=Object.assign({},CARS[pick([0,1,2,3])]);if(bd2.id
 for(let q=0;q<2;q++){const s=new T.Mesh(new T.SphereGeometry(.17,8,6),new T.MeshBasicMaterial({color:0xffa020,fog:false}));s.position.set(cs[0].x+(P.ew?(q?1.8:-1.8):0),1.05,cs[0].z+(P.ew?0:(q?1.8:-1.8)));g2.add(s);be.push(s)}
 this.scene.add(g2);this.inc.push({g:g2,cs,be,t:110});this.g.popup('في حادثة على طريقك: خد بالك')}
 // ---------- traffic ----------
-spawnTraffic(){const n=this.low?6:this.coarse?10:16;this.ag=[];for(let k=0;k<n;k++)this.newAgent()}
+spawnTraffic(){const n=this.low?6:this.coarse?10:20;this.ag=[];for(let k=0;k<n;k++)this.newAgent()}
 newAgent(a){const pl=this.pl,base=CARS[[0,1,1,2,3,1,4][Math.floor(Math.random()*7)]],def=Object.assign({},base);if(base.id!=='taxi')def.col=pick([0x9da1a6,0xeeeeee,0x2a3140,0x7a1f1f,0x244a6a,0x6b6b60,0xb8b2a0,0x1a1a1c]);
 let ag=a;if(!ag){ag={def,car:S.makeCar(def,false),veh:{x:0,z:0,h:0,ax:0,ay:0,vx:0,dl:0,brk:0}};ag.car.g.traverse(o=>{if(o.isMesh)o.castShadow=false});this.scene.add(ag.car.g);this.ag.push(ag)}
-for(let t=0;t<30;t++){const ax=Math.random()<.5,dir=Math.random()<.5?1:-1,px=ax?pl.x:pl.z,off=(Math.random()<.5?-1:1)*rnd(90,380);let pos=cl(px+off,sc(0)+12,sc(NB)-12);let line=Math.round(((ax?pl.z:pl.x)/PITCH)+NB/2+Math.floor(rnd(-2.5,2.5)));line=cl(line,0,NB);
+for(let t=0;t<30;t++){const ax=Math.random()<.5,dir=Math.random()<.5?1:-1,px=ax?pl.x:pl.z,off=(Math.random()<.5?-1:1)*rnd(90,380);let pos=cl(px+off,sc(0)+12,sc(NB)-12);let line=Math.round(((ax?pl.z:pl.x)/PITCH)+NB/2+Math.floor(rnd(-2.5,2.5)));line=cl(line,0,NB);if(!this.low&&Math.random()<.4)line=BLV;
 const x=ax?pos:sc(line),z=ax?sc(line):pos;if(Math.hypot(x-pl.x,z-pl.z)<70)continue;let ok=true;for(const o of this.ag)if(o!==ag&&Math.hypot(o.veh.x-x,o.veh.z-z)<14){ok=false;break}if(!ok)continue;
 ag.ax=ax;ag.dir=dir;ag.line=line;ag.pos=pos;const idx=pos/PITCH+NB/2;ag.nk=dir>0?Math.floor(idx+1e-6)+1:Math.ceil(idx-1e-6)-1;ag.nk=cl(ag.nk,0,NB);
 ag.lane=(ax&&line===BLV)?pick([4.5,10]):4;ag.cruise=rnd(8.5,14);ag.v=ag.cruise*.8;ag.ox=ag.oz=0;ag.stall=0;ag.ghost=0;const H=this.hdg(ag);ag.veh.h=H;const r=this.right(H);ag.ox=r[0]*ag.lane;ag.oz=r[1]*ag.lane;ag.veh.x=x+ag.ox;ag.veh.z=z+ag.oz;return ag}
