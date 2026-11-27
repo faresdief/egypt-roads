@@ -969,6 +969,17 @@ class Roam{
    const special=(i===5&&j===5)?'tower':(i===3&&j===7)?'mosque':(i===7&&j===7)?'hub':(i===NB-1&&j===5)?'airport':(i===6&&j===5)?'opera':(i===4&&j===5)?'club':(i===0&&j===0)?'pyramids':(i===NB-1)?'park':(i===2&&j===3||i===8&&j===3)?'plaza':null;
    if(special==='pyramids'){const sd=new T.Mesh(new T.PlaneGeometry(bx1-bx0+8,bz1-bz0+8),new T.MeshStandardMaterial({color:col(0x7d6c48),roughness:1,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}));sd.rotation.x=-Math.PI/2;sd.position.set(cx,.25,cz);extra.add(sd);
     for(const q of[[cx-16,cz-8,13,21],[cx+10,cz+10,10,16],[cx+14,cz-16,6.5,10]]){const py=new T.Mesh(new T.ConeGeometry(q[2],q[3],4),new T.MeshStandardMaterial({color:col(0xb59a6a),roughness:.95,emissive:col(0x2a2114),emissiveIntensity:.4}));py.position.set(q[0],q[3]/2+.25,q[1]);py.rotation.y=Math.PI/4;extra.add(py);rects(i,j).push({x0:q[0]-q[2]*.7,z0:q[1]-q[2]*.7,x1:q[0]+q[2]*.7,z1:q[1]+q[2]*.7})}
+    {const pz0=z0+3,pz1=cz+2,pl=pz1-pz0,pxc=cx-2.5;
+     const pth=new T.Mesh(new T.PlaneGeometry(5,pl),new T.MeshStandardMaterial({color:col(0xa08a5a),roughness:1,polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4}));pth.rotation.x=-Math.PI/2;pth.position.set(pxc,.27,(pz0+pz1)/2);extra.add(pth);
+     const gc=document.createElement('canvas');gc.width=256;gc.height=64;const gx=gc.getContext('2d');gx.fillStyle='#2a1d0c';gx.fillRect(0,0,256,64);gx.strokeStyle='#e8b94a';gx.lineWidth=4;gx.strokeRect(4,4,248,56);gx.fillStyle='#ffd878';gx.font='700 38px Tahoma,Arial,sans-serif';gx.textAlign='center';gx.textBaseline='middle';gx.fillText('الأهرامات',128,34);
+     const gt=new T.CanvasTexture(gc);gt.encoding=T.sRGBEncoding;const gm=new T.MeshStandardMaterial({map:gt,emissiveMap:gt,emissive:0xffffff,emissiveIntensity:.8,roughness:.6}),stone=new T.MeshStandardMaterial({color:col(0xb59a6a),roughness:.9,emissive:col(0x2a2114),emissiveIntensity:.4});
+     for(const sx of[-4.6,4.6]){const p=new T.Mesh(new T.BoxGeometry(1.4,7,1.4),stone);p.position.set(pxc+sx,3.5,pz0);extra.add(p);rects(i,j).push({x0:pxc+sx-.8,z0:pz0-.8,x1:pxc+sx+.8,z1:pz0+.8})}
+     const bm=new T.Mesh(new T.BoxGeometry(10.4,2.4,.8),gm);bm.position.set(pxc,7.6,pz0);extra.add(bm);
+     const trm=new T.MeshStandardMaterial({color:col(0x5a4328),roughness:.9}),lfm=new T.MeshStandardMaterial({color:col(0x2f5a2c),roughness:.8,emissive:col(0x0c1c0c),emissiveIntensity:.4});
+     for(let q=0;q<5;q++)for(const sx of[-5.5,5.5]){const pz=pz0+9+q*Math.max(4,(pl-12)/4),px=pxc+sx,h=5.5+(q%2)*1.2;const tr=new T.Mesh(new T.CylinderGeometry(.22,.34,h,5),trm);tr.position.set(px,h/2,pz);extra.add(tr);
+      for(let a=0;a<6;a++){const lf=new T.Mesh(new T.ConeGeometry(.5,3.2,4),lfm);lf.position.set(px+Math.cos(a*1.047)*1.3,h+.1,pz+Math.sin(a*1.047)*1.3);lf.rotation.set(Math.sin(a*1.047)*1.1,0,-Math.cos(a*1.047)*1.1);extra.add(lf)}
+      rects(i,j).push({x0:px-.5,z0:pz-.5,x1:px+.5,z1:pz+.5})}
+     const lamp=new T.MeshBasicMaterial({color:col(0xffd27a)});for(const sx of[-2.8,2.8])for(let q=1;q<4;q++){const lp=new T.Mesh(new T.SphereGeometry(.28,6,5),lamp);lp.position.set(pxc+sx,.6,pz0+3+q*((pl-4)/4));extra.add(lp)}}
     this.pyr={x:cx,z:cz};continue}
    if(special==='airport'){this.park.push({x0:bx0,z0:bz0,x1:bx1,z1:bz1});this.airpt={x:cx,z:cz};
     const rw2=new T.Mesh(new T.PlaneGeometry(74,14),new T.MeshStandardMaterial({color:col(0x232428),roughness:.9}));rw2.rotation.x=-Math.PI/2;rw2.position.set(cx,.22,cz+18);extra.add(rw2);
