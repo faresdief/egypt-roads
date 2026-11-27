@@ -253,11 +253,13 @@ class RealMap{
         occ.add(key);const h=10+r2()*(r2()<.12?55:26);
         bpos.push([bx,h,bz,w3,dep,Math.atan2(dx,dz),.42+r2()*.32,sd,nx,nz])}}}}}
    if(bpos.length){bpos.forEach(b2=>this.obsB(b2[0],b2[2],b2[3]/2,b2[4]/2,b2[5]));this.bldTypes(bpos);const wtx=S.winTex(),bm=new T.MeshStandardMaterial({map:wtx.map,emissiveMap:wtx.em,emissive:0xffffff,emissiveIntensity:1.1,vertexColors:true,roughness:.85});
-    bm.onBeforeCompile=sh=>{sh.fragmentShader=sh.fragmentShader.replace('gl_FragColor = vec4( outgoingLight, diffuseColor.a );','gl_FragColor = vec4( outgoingLight + vColor.rgb*vec3(.15,.17,.24)+vec3(.02,.025,.04), diffuseColor.a );')};
+    wtx.map.wrapS=wtx.map.wrapT=T.RepeatWrapping;wtx.em.wrapS=wtx.em.wrapT=T.RepeatWrapping;
+    bm.onBeforeCompile=sh=>{sh.vertexShader='attribute vec2 instUV;\n'+sh.vertexShader.replace('#include <uv_vertex>','#ifdef USE_UV\nvUv = ( uvTransform * vec3( uv * instUV, 1 ) ).xy;\n#endif');sh.fragmentShader=sh.fragmentShader.replace('gl_FragColor = vec4( outgoingLight, diffuseColor.a );','gl_FragColor = vec4( outgoingLight + vColor.rgb*vec3(.15,.17,.24)+vec3(.02,.025,.04), diffuseColor.a );')};
     const o2=new T.Object3D(),cc=new T.Color(),byC=new Map(),bg=new T.BoxGeometry(1,1,1);
     bpos.forEach((b2,k)=>{const ck=Math.floor(b2[0]/CH)+','+Math.floor(b2[2]/CH);if(!byC.has(ck))byC.set(ck,[]);byC.get(ck).push(k)});
     for(const[ck,ids]of byC){const bs=new T.InstancedMesh(bg,bm,ids.length);
      ids.forEach((k,j)=>{const b2=bpos[k];o2.position.set(b2[0],b2[1]/2,b2[2]);o2.rotation.set(0,b2[5],0);o2.scale.set(b2[3],b2[1],b2[4]);o2.updateMatrix();bs.setMatrixAt(j,o2.matrix);const pc=this.bldPal(k),bb=Math.min(1,b2[6]*1.3+.12);cc.setRGB(bb*pc[0],bb*.97*pc[1],bb*.9*pc[2]);bs.setColorAt(j,cc)});
+     {const ua=new Float32Array(ids.length*2);ids.forEach((k,j)=>{const b2=bpos[k];const tall=b2[1]>28;ua[2*j]=tall?Math.max(1,Math.round(Math.max(b2[3],b2[4])/8)):1;ua[2*j+1]=tall?Math.max(1,Math.round(b2[1]/10)):1});bs.geometry=bg.clone();bs.geometry.setAttribute('instUV',new T.InstancedBufferAttribute(ua,2))}
      bs.receiveShadow=true;cGrp(ck).add(bs)}
     this.nBld=bpos.length;this.bldDeco(bpos,cGrp,CH)}}
   const mkLamps=(wl,grpOf)=>{let lp=[];
@@ -280,10 +282,14 @@ class RealMap{
    const gg2=new T.BufferGeometry();gg2.setAttribute('position',new T.BufferAttribute(pa,3));
    const st=new T.Points(gg2,new T.PointsMaterial({color:0xafc4ee,size:2.4,sizeAttenuation:false,transparent:true,opacity:.8,fog:false,depthWrite:false}));st.frustumCulled=false;sc3.add(st);
    const spr=new T.Sprite(new T.SpriteMaterial({map:S.glowTex(),color:0xbfd4ff,fog:false,depthWrite:false}));spr.scale.set(1600,1600,1);spr.position.set(5200,3800,-4200);sc3.add(spr)}
-  {const N3=120,o2=new T.Object3D(),cc=new T.Color(),sm=new T.InstancedMesh(new T.BoxGeometry(1,1,1),new T.MeshStandardMaterial({vertexColors:true,roughness:.95}),N3);
+  {const N3=120,o2=new T.Object3D(),cc=new T.Color(),wt3=S.winTex(),sg3=new T.BoxGeometry(1,1,1),ua3=new Float32Array(N3*2),sm3=new T.MeshStandardMaterial({map:wt3.map,emissiveMap:wt3.em,emissive:0xffffff,emissiveIntensity:.9,vertexColors:true,roughness:.95});
+   wt3.map.wrapS=wt3.map.wrapT=wt3.em.wrapS=wt3.em.wrapT=T.RepeatWrapping;
+   sm3.onBeforeCompile=sh=>{sh.vertexShader='attribute vec2 instUV;\n'+sh.vertexShader.replace('#include <uv_vertex>','#ifdef USE_UV\nvUv = ( uvTransform * vec3( uv * instUV, 1 ) ).xy;\n#endif')};
+   const sm=new T.InstancedMesh(sg3,sm3,N3);
    for(let k=0;k<N3;k++){const th=k/N3*6.283+rnd()*.2,r=1400+rnd()*800,h=45+rnd()*130,w3=25+rnd()*45;
-    o2.position.set(Math.cos(th)*r,h/2,1600+Math.sin(th)*r);o2.rotation.set(0,rnd()*3,0);o2.scale.set(w3,h,w3);o2.updateMatrix();sm.setMatrixAt(k,o2.matrix);
+    o2.position.set(Math.cos(th)*r,h/2,1600+Math.sin(th)*r);o2.rotation.set(0,rnd()*3,0);o2.scale.set(w3,h,w3);o2.updateMatrix();sm.setMatrixAt(k,o2.matrix);ua3[2*k]=Math.max(1,Math.round(w3/8));ua3[2*k+1]=Math.max(1,Math.round(h/10));
     cc.setRGB(.05+rnd()*.04,.06+rnd()*.04,.09+rnd()*.05);sm.setColorAt(k,cc)}
+   sg3.setAttribute('instUV',new T.InstancedBufferAttribute(ua3,2));
    o2.rotation.set(0,0,0);o2.scale.set(1,1,1);sc3.add(sm)}
   if(this.data.tl&&this.data.tl.length){const tl=this.data.tl.filter(q2=>{const u=this.query(q2[0]+6,q2[1]+6);return u&&u.d<30&&u.y<2});
    if(tl.length){const o2=new T.Object3D(),cc=new T.Color();
@@ -313,11 +319,11 @@ class RealMap{
   this.trafficBuild();this.rushBuild();this.wxBuild();this.pedBuild();this.fareBuild();this.chainBuild();this.dealerBuild();this.areaBuild();this.svcBuild();this.shopBuild();this.feluBuild();this.mosqueBuild();this.sphinxBuild();this.msBuild();this.rdrBuild();this.decoBuild();
   // minimal HUD
   if(!$('realHud')){const h=document.createElement('div');h.id='realHud';h.hidden=true;h.style.cssText='position:fixed;inset:0;z-index:2;pointer-events:none;direction:rtl';
-   h.innerHTML='<div style="position:absolute;top:calc(var(--sat) + 10px);left:50%;transform:translateX(-50%);padding:6px 16px;border-radius:14px" class="glass"><small>طرق مصر - © OpenStreetMap contributors</small></div>'+
+   h.innerHTML='<style>@media(max-width:560px){#erAreaW{top:auto!important;bottom:calc(var(--sab) + 100px)!important}#erMap{inset-inline-end:auto!important;inset-inline-start:10px!important;top:calc(var(--sat) + 50px)!important;bottom:auto!important;width:104px!important;height:104px!important}}</style><div style="position:absolute;top:calc(var(--sat) + 1px);left:50%;transform:translateX(-50%);padding:0 6px;font-size:9px;line-height:11px;opacity:.55;white-space:nowrap;color:#cfd6e4"><small style="font-size:9px">© OpenStreetMap contributors</small></div>'+
    '<div class="glass" style="position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--sab) + 12px);padding:6px 18px;border-radius:16px;text-align:center"><b id="realSpd" style="font-size:28px">0</b> <small>كم/س</small></div>'
    +'<div class="glass" style="position:absolute;top:calc(var(--sat) + 10px);inset-inline-start:10px;padding:6px 14px;border-radius:14px"><small>💰 <b id="erMoney">0</b> جنيه</small></div>'
    +'<div class="glass" id="erFare" style="position:absolute;top:calc(var(--sat) + 10px);inset-inline-end:10px;padding:6px 14px;border-radius:14px"><small>دور على راكب يا كابتن</small></div>'
-   +'<div class="glass" style="position:absolute;top:calc(var(--sat) + 48px);left:50%;transform:translateX(-50%);padding:3px 14px;border-radius:12px;display:none"><small id="erArea"></small></div>'
+   +'<div class="glass" id="erAreaW" style="position:absolute;top:calc(var(--sat) + 48px);left:50%;transform:translateX(-50%);padding:3px 14px;border-radius:12px;display:none"><small id="erArea"></small></div>'
    +'<div class="glass" id="erMsnW" style="position:absolute;top:calc(var(--sat) + 48px);inset-inline-end:10px;padding:3px 14px;border-radius:12px;display:none"><small id="erMsn"></small></div>'
    +'<div class="glass" style="position:absolute;top:calc(var(--sat) + 86px);inset-inline-end:10px;padding:3px 14px;border-radius:12px;display:none"><small id="erRad"></small></div>'
    +'<div class="glass" id="erChainW" style="position:absolute;top:calc(var(--sat) + 124px);inset-inline-end:10px;padding:3px 14px;border-radius:12px;display:none"><small id="erChain"></small></div>'
