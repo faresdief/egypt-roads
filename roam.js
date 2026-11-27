@@ -123,30 +123,7 @@ class Roam{
   for(let i=0;i<NB;i++)for(let j=0;j<NB;j++){const x0=sc(i)+HWN,x1=sc(i+1)-HWN,z0=sc(j)+hwEW(j),z1=sc(j+1)-hwEW(j+1);
    o.position.set((x0+x1)/2,.1,(z0+z1)/2);o.scale.set(x1-x0,.2,z1-z0);o.updateMatrix();walk.setMatrixAt(wq++,o.matrix);o.scale.set(1,1,1);
    const ix=i-(NB-1)/2,jz=j-(NB-1)/2,r=Math.hypot(ix,jz-.5),bx0=x0+5,bx1=x1-5,bz0=z0+5,bz1=z1-5,cx=(bx0+bx1)/2,cz=(bz0+bz1)/2;
-   const special=(i===5&&j===5)?'tower':(i===3&&j===7)?'mosque':(i===7&&j===7)?'hub':(i===NB-1&&j===5)?'airport':(i===6&&j===5)?'opera':(i===4&&j===5)?'club':(i===0&&j===0)?'pyramids':(i===NB-1)?'park':(i===2&&j===3||i===8&&j===3)?'plaza':null;
-   if(special==='pyramids'){const sd=new T.Mesh(new T.PlaneGeometry(bx1-bx0+8,bz1-bz0+8),new T.MeshStandardMaterial({color:col(0x7d6c48),roughness:1,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}));sd.rotation.x=-Math.PI/2;sd.position.set(cx,.25,cz);extra.add(sd);
-    const pym=new T.MeshStandardMaterial({color:col(0xc2a674),roughness:.95,emissive:col(0x4a3a20),emissiveIntensity:.75}),cap=new T.MeshBasicMaterial({color:col(0xffd27a)});
-    for(const q of[[cx-20,cz-10,52,33],[cx+32,cz-2,26,17],[cx+32,cz+30,15,9.5]]){const sd2=q[2],h=q[3],py=new T.Mesh(new T.ConeGeometry(sd2*.7071,h,4),pym);py.position.set(q[0],h/2+.25,q[1]);py.rotation.y=Math.PI/4;extra.add(py);
-     const ct=new T.Mesh(new T.ConeGeometry(sd2*.7071*.07,h*.07,4),cap);ct.position.set(q[0],h*.965+.25,q[1]);ct.rotation.y=Math.PI/4;extra.add(ct);
-     rects(i,j).push({x0:q[0]-sd2/2,z0:q[1]-sd2/2,x1:q[0]+sd2/2,z1:q[1]+sd2/2})}
-    {const pxc=cx+14,pz0=z0+3,pz1=cz+14,pl=pz1-pz0;
-     const pth=new T.Mesh(new T.PlaneGeometry(5,pl),new T.MeshStandardMaterial({color:col(0xa08a5a),roughness:1,polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4}));pth.rotation.x=-Math.PI/2;pth.position.set(pxc,.27,(pz0+pz1)/2);extra.add(pth);
-     const gc=document.createElement('canvas');gc.width=256;gc.height=64;const gx=gc.getContext('2d');gx.fillStyle='#2a1d0c';gx.fillRect(0,0,256,64);gx.strokeStyle='#e8b94a';gx.lineWidth=4;gx.strokeRect(4,4,248,56);gx.fillStyle='#ffd878';gx.font='700 38px Tahoma,Arial,sans-serif';gx.textAlign='center';gx.textBaseline='middle';gx.fillText('الأهرامات',128,34);
-     const gt=new T.CanvasTexture(gc);gt.encoding=T.sRGBEncoding;const gm=new T.MeshStandardMaterial({map:gt,emissiveMap:gt,emissive:0xffffff,emissiveIntensity:.8,roughness:.6}),stone=new T.MeshStandardMaterial({color:col(0xb59a6a),roughness:.9,emissive:col(0x2a2114),emissiveIntensity:.4});
-     for(const sx of[-4.6,4.6]){const p=new T.Mesh(new T.BoxGeometry(1.4,7,1.4),stone);p.position.set(pxc+sx,3.5,pz0);extra.add(p);rects(i,j).push({x0:pxc+sx-.8,z0:pz0-.8,x1:pxc+sx+.8,z1:pz0+.8})}
-     const bm=new T.Mesh(new T.BoxGeometry(10.4,2.4,.8),gm);bm.position.set(pxc,7.6,pz0);extra.add(bm);
-     const trm=new T.MeshStandardMaterial({color:col(0x5a4328),roughness:.9}),lfm=new T.MeshStandardMaterial({color:col(0x2f5a2c),roughness:.8,emissive:col(0x0c1c0c),emissiveIntensity:.4});
-     for(let q=0;q<5;q++)for(const sx of[-4.2,4.2]){const pz=pz0+9+q*Math.max(4,(pl-12)/4),px=pxc+sx,h=5.5+(q%2)*1.2;const tr=new T.Mesh(new T.CylinderGeometry(.22,.34,h,5),trm);tr.position.set(px,h/2,pz);extra.add(tr);
-      for(let a=0;a<6;a++){const lf=new T.Mesh(new T.ConeGeometry(.5,3.2,4),lfm);lf.position.set(px+Math.cos(a*1.047)*1.3,h+.1,pz+Math.sin(a*1.047)*1.3);lf.rotation.set(Math.sin(a*1.047)*1.1,0,-Math.cos(a*1.047)*1.1);extra.add(lf)}
-      rects(i,j).push({x0:px-.5,z0:pz-.5,x1:px+.5,z1:pz+.5})}
-     const lamp=new T.MeshBasicMaterial({color:col(0xffd27a)});for(const sx of[-2.8,2.8])for(let q=1;q<4;q++){const lp=new T.Mesh(new T.SphereGeometry(.28,6,5),lamp);lp.position.set(pxc+sx,.6,pz0+3+q*((pl-4)/4));extra.add(lp)}
-     const spm=new T.MeshStandardMaterial({color:col(0xb9a068),roughness:.95,emissive:col(0x3a2c16),emissiveIntensity:.7}),sz=cz+27;
-     const bd=new T.Mesh(new T.BoxGeometry(5.2,3.6,13),spm);bd.position.set(pxc,2.05,sz);extra.add(bd);
-     const hd=new T.Mesh(new T.BoxGeometry(3.4,4,3.4),spm);hd.position.set(pxc,4.6,sz-5.4);extra.add(hd);
-     const nm=new T.Mesh(new T.BoxGeometry(5.4,3.8,1),spm);nm.position.set(pxc,4.4,sz-3.7);extra.add(nm);
-     const pw=new T.Mesh(new T.BoxGeometry(1.6,1.2,5),spm);for(const sx of[-1.6,1.6]){const p2=pw.clone();p2.position.set(pxc+sx,.85,sz-9.5);extra.add(p2)}
-     rects(i,j).push({x0:pxc-2.8,z0:sz-11,x1:pxc+2.8,z1:sz+6.5})}
-    this.pyr={x:cx,z:cz};continue}
+   const special=(i===5&&j===5)?'tower':(i===3&&j===7)?'mosque':(i===7&&j===7)?'hub':(i===NB-1&&j===5)?'airport':(i===6&&j===5)?'opera':(i===4&&j===5)?'club':(i===0&&j===0)?'park':(i===NB-1)?'park':(i===2&&j===3||i===8&&j===3)?'plaza':null;
    if(special==='airport'){this.park.push({x0:bx0,z0:bz0,x1:bx1,z1:bz1});this.airpt={x:cx,z:cz};
     const rw2=new T.Mesh(new T.PlaneGeometry(74,14),new T.MeshStandardMaterial({color:col(0x232428),roughness:.9}));rw2.rotation.x=-Math.PI/2;rw2.position.set(cx,.22,cz+18);extra.add(rw2);
     const tm=new T.Mesh(new T.BoxGeometry(26,8,12),new T.MeshStandardMaterial({color:col(0x8a929c),roughness:.6,emissive:col(0x22303c),emissiveIntensity:.5}));tm.position.set(cx-18,4,cz-14);extra.add(tm);
@@ -175,11 +152,42 @@ class Roam{
     oo.position.set(sx+dx*.07,1.7,sz+dz*.07);oo.scale.set(w,2.3,.14);oo.updateMatrix();sw2.setMatrixAt(n,oo.matrix);sw2.setColorAt(n,cc.setHex(WC[(ci+1)%4]))});
    sc3.add(aw,sw2);
    const tk=new T.InstancedMesh(new T.CylinderGeometry(1.1,1.1,2,7),new T.MeshStandardMaterial({color:col(0x8a8f96),roughness:.7,emissive:col(0x14181c),emissiveIntensity:.5}),dtl.tk.length);dtl.tk.forEach((q,n)=>{oo.rotation.set(0,0,0);oo.position.set(q[0],q[1]+1,q[2]);oo.scale.set(1,1,1);oo.updateMatrix();tk.setMatrixAt(n,oo.matrix)});sc3.add(tk)}
+  // standalone Giza desert west of the city, reached by a sand road along street 1
+  {const zr=sc(1),RX0=sc(0)-HWN,sandM=(c,pf)=>new T.MeshStandardMaterial({color:col(c),roughness:1,emissive:col(0x4a3a1c),emissiveIntensity:.9,polygonOffset:true,polygonOffsetFactor:pf,polygonOffsetUnits:pf});this.desR=[];const dR=this.desR;
+   const sp=new T.Mesh(new T.PlaneGeometry(1050,780),sandM(0x8a7650,-3));sp.rotation.x=-Math.PI/2;sp.position.set(-1525,.2,-510);sc3.add(sp);
+   const rdl=RX0-1340,rd=new T.Mesh(new T.PlaneGeometry(RX0+1340-0,9),sandM(0xa8925f,-4));rd.rotation.x=-Math.PI/2;rd.position.set((RX0-1340)/2+RX0/2-RX0/2+(-1340+RX0)/2-(RX0-1340)/2+(RX0-1340)/2,.27,zr);
+   {const x0=-1340,x1=RX0;rd.geometry.dispose();rd.geometry=new T.PlaneGeometry(x1-x0,9);rd.position.set((x0+x1)/2,.27,zr)}sc3.add(rd);
+   const pl=new T.Mesh(new T.CircleGeometry(22,24),sandM(0xa8925f,-4));pl.rotation.x=-Math.PI/2;pl.position.set(-1345,.27,zr);sc3.add(pl);
+   const pym=new T.MeshStandardMaterial({color:col(0xc9ad78),roughness:.95,emissive:col(0x5a4524),emissiveIntensity:.9,fog:false}),cap=new T.MeshBasicMaterial({color:col(0xffd27a),fog:false});
+   for(const q of[[-1620,-620,140,89],[-1750,-440,126,84],[-1880,-330,62,39],[-1505,-690,20,13],[-1505,-660,20,13],[-1505,-630,20,13]]){const sd2=q[2],h=q[3],py=new T.Mesh(new T.ConeGeometry(sd2*.7071,h,4),pym);py.position.set(q[0],h/2+.25,q[1]);py.rotation.y=Math.PI/4;sc3.add(py);
+    const ct=new T.Mesh(new T.ConeGeometry(sd2*.7071*.07,h*.07,4),cap);ct.position.set(q[0],h*.965+.25,q[1]);ct.rotation.y=Math.PI/4;sc3.add(ct);dR.push({x0:q[0]-sd2/2,z0:q[1]-sd2/2,x1:q[0]+sd2/2,z1:q[1]+sd2/2})}
+   const bm2=new T.Mesh(new T.CylinderGeometry(1.6,1.6,260,6,1,true),new T.MeshBasicMaterial({color:0xffd27a,transparent:true,opacity:.28,blending:T.AdditiveBlending,depthWrite:false,fog:false}));bm2.position.set(-1620,89+130,-620);sc3.add(bm2);
+   const spm=new T.MeshStandardMaterial({color:col(0xc2a674),roughness:.95,emissive:col(0x4a3820),emissiveIntensity:.85,fog:false}),sx0=-1425;
+   const bdy=new T.Mesh(new T.BoxGeometry(46,11,16),spm);bdy.position.set(sx0-4,6,zr);sc3.add(bdy);
+   const hdy=new T.Mesh(new T.BoxGeometry(11,13,11),spm);hdy.position.set(sx0+22,14.5,zr);sc3.add(hdy);
+   const nmy=new T.Mesh(new T.BoxGeometry(5,15,18),spm);nmy.position.set(sx0+18,10,zr);sc3.add(nmy);
+   for(const dz of[-5.5,5.5]){const pw=new T.Mesh(new T.BoxGeometry(18,4,4.5),spm);pw.position.set(sx0+33,2.2,zr+dz);sc3.add(pw)}
+   dR.push({x0:sx0-28,z0:zr-9,x1:sx0+43,z1:zr+9});
+   // gate at the city end of the road
+   const gx=RX0-60,gc=document.createElement('canvas');gc.width=256;gc.height=64;const gcx=gc.getContext('2d');gcx.fillStyle='#2a1d0c';gcx.fillRect(0,0,256,64);gcx.strokeStyle='#e8b94a';gcx.lineWidth=4;gcx.strokeRect(4,4,248,56);gcx.fillStyle='#ffd878';gcx.font='700 38px Tahoma,Arial,sans-serif';gcx.textAlign='center';gcx.textBaseline='middle';gcx.fillText('الأهرامات',128,34);
+   const gt=new T.CanvasTexture(gc);gt.encoding=T.sRGBEncoding;const gm=new T.MeshStandardMaterial({map:gt,emissiveMap:gt,emissive:0xffffff,emissiveIntensity:.8,roughness:.6}),stone=new T.MeshStandardMaterial({color:col(0xb59a6a),roughness:.9,emissive:col(0x2a2114),emissiveIntensity:.4});
+   for(const sz of[-6.2,6.2]){const p=new T.Mesh(new T.BoxGeometry(1.8,9,1.8),stone);p.position.set(gx,4.5,zr+sz);sc3.add(p);dR.push({x0:gx-1.1,z0:zr+sz-1.1,x1:gx+1.1,z1:zr+sz+1.1})}
+   const gb=new T.Mesh(new T.BoxGeometry(.9,3.2,14),gm);gb.position.set(gx,10,zr);gb.material=[stone,stone,stone,stone,gm,gm];sc3.add(gb);
+   const gb2=new T.Mesh(new T.PlaneGeometry(14,3.2),gm);gb2.position.set(gx+.5,10,zr);gb2.rotation.y=Math.PI/2;sc3.add(gb2);const gb3=gb2.clone();gb3.position.set(gx-.5,10,zr);gb3.rotation.y=-Math.PI/2;sc3.add(gb3);
+   // palms and lamps along the road
+   const trm=new T.MeshStandardMaterial({color:col(0x5a4328),roughness:.9}),lfm=new T.MeshStandardMaterial({color:col(0x2f5a2c),roughness:.8,emissive:col(0x0c1c0c),emissiveIntensity:.4}),lamp=new T.MeshBasicMaterial({color:col(0xffd27a)});
+   for(let q=0;q<14;q++)for(const sz of[-8.5,8.5]){const px=gx-30-q*(280/13),h=5.5+(q%2)*1.2;const tr=new T.Mesh(new T.CylinderGeometry(.22,.34,h,5),trm);tr.position.set(px,h/2,zr+sz);sc3.add(tr);
+    for(let a=0;a<6;a++){const lf=new T.Mesh(new T.ConeGeometry(.5,3.2,4),lfm);lf.position.set(px+Math.cos(a*1.047)*1.3,h+.1,zr+sz+Math.sin(a*1.047)*1.3);lf.rotation.set(Math.sin(a*1.047)*1.1,0,-Math.cos(a*1.047)*1.1);sc3.add(lf)}
+    dR.push({x0:px-.5,z0:zr+sz-.5,x1:px+.5,z1:zr+sz+.5})}
+   const nl=34,lim=new T.InstancedMesh(new T.SphereGeometry(.3,6,5),lamp,nl*2),oo2=new T.Object3D();for(let q=0;q<nl;q++)for(let f=0;f<2;f++){oo2.position.set(RX0-80-q*(1260-160)/nl,.6,zr+(f?5:-5));oo2.updateMatrix();lim.setMatrixAt(q*2+f,oo2.matrix)}sc3.add(lim);
+   // dunes just outside the walls (no collision needed)
+   const dn=new T.InstancedMesh(new T.SphereGeometry(1,8,5),sandM(0x9a8458,0),26);for(let q=0;q<26;q++){const a=q/26*6.283+hsh(q)*.3,cxd=-1525+Math.cos(a)*(560+hsh(q+40)*90),czd=-510+Math.sin(a)*(430+hsh(q+80)*80);if(cxd>-1020){oo2.position.set(-2150-hsh(q)*200,0,-510+(hsh(q+3)-.5)*900)}else oo2.position.set(cxd,0,czd);const w2=50+hsh(q+9)*60;oo2.scale.set(w2,6+hsh(q+17)*8,w2*.7);oo2.rotation.set(0,hsh(q+5)*3,0);oo2.updateMatrix();dn.setMatrixAt(q,oo2.matrix)}sc3.add(dn);
+   this.pyr={x:-1620,z:-620};this.pyrGate={x:gx,z:zr}}
   // street name signs: one pole per block corner, two green boards (EW street, NS street)
-  {const EWN=['شارع التحرير','شارع رمسيس','شارع الهرم','شارع قصر العيني','طريق صلاح سالم'],NSN=['شارع النيل','شارع الجمهورية','شارع الأزهر','شارع فيصل'];
+  {const EWN=['شارع التحرير','شارع رمسيس','شارع الهرم','شارع قصر العيني','طريق صلاح سالم','شارع الأهرامات'],NSN=['شارع النيل','شارع الجمهورية','شارع الأزهر','شارع فيصل'];
    const mkb=t=>{const c=document.createElement('canvas');c.width=256;c.height=64;const x=c.getContext('2d');x.beginPath();x.moveTo(0,0);x.lineTo(213,0);x.lineTo(256,32);x.lineTo(213,64);x.lineTo(0,64);x.closePath();x.fillStyle='#0f5a3a';x.fill();x.strokeStyle='#e8efe8';x.lineWidth=5;x.stroke();x.fillStyle='#f4f8f4';x.font='700 29px Tahoma,Arial,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(t,106,34);const tx=new T.CanvasTexture(c);tx.encoding=T.sRGBEncoding;return new T.MeshStandardMaterial({map:tx,emissiveMap:tx,emissive:0xffffff,emissiveIntensity:.45,roughness:.7})};
    const ewL=EWN.map(()=>[]),nsL=NSN.map(()=>[]),pp=[];
-   for(let i=0;i<NB;i++)for(let j=0;j<NB;j++){const px=sc(i)+HWN+3,pz=sc(j)+hwEW(j)+3;pp.push([px,pz]);ewL[j===BLV?4:j%4].push([px,pz]);nsL[i%4].push([px,pz]);rects(i,j).push({x0:px-.4,z0:pz-.4,x1:px+.4,z1:pz+.4})}
+   for(let i=0;i<NB;i++)for(let j=0;j<NB;j++){const px=sc(i)+HWN+3,pz=sc(j)+hwEW(j)+3;pp.push([px,pz]);ewL[j===BLV?4:j===1?5:j%4].push([px,pz]);nsL[i%4].push([px,pz]);rects(i,j).push({x0:px-.4,z0:pz-.4,x1:px+.4,z1:pz+.4})}
    const pol=new T.InstancedMesh(new T.CylinderGeometry(.09,.11,5.6,5),new T.MeshStandardMaterial({color:col(0x6c7075),metalness:.5,roughness:.6}),pp.length),pg=new T.Object3D();pp.forEach((p,n)=>{pg.position.set(p[0],2.8,p[1]);pg.updateMatrix();pol.setMatrixAt(n,pg.matrix)});sc3.add(pol);
    const ash=new T.Shape();ash.moveTo(-2.3,.575);ash.lineTo(1.7,.575);ash.lineTo(2.5,0);ash.lineTo(1.7,-.575);ash.lineTo(-2.3,-.575);ash.closePath();const bg=new T.ShapeGeometry(ash);{const ps=bg.attributes.position,uv=bg.attributes.uv;for(let q=0;q<ps.count;q++)uv.setXY(q,(ps.getX(q)+2.3)/4.8,(ps.getY(q)+.575)/1.15)}
    const mk2=(L,txt,ry,dy)=>{if(!L.length)return;const im=new T.InstancedMesh(bg,mkb(txt),L.length*2);L.forEach((p,n)=>{for(let f=0;f<2;f++){pg.position.set(p[0],5.1+dy,p[1]);pg.rotation.set(0,ry+f*Math.PI,0);pg.updateMatrix();im.setMatrixAt(n*2+f,pg.matrix)}});pg.rotation.set(0,0,0);sc3.add(im)};
@@ -332,7 +340,9 @@ class Roam{
     p.x+=nx*ov;p.z+=nz*ov;const wv=p.wv(),vin=wv[0]*nx+wv[1]*nz;if(vin<0){p.setWv((wv[0]-1.25*vin*nx)*.96,(wv[1]-1.25*vin*nz)*.96);this.hit(-vin,cx-nx*.9,cz-nz*.9)}}};
   for(let i=i0-1;i<=i0+1;i++)for(let j=j0-1;j<=j0+1;j++){const L=this.bl[i*100+j];if(L)for(const r of L)wrect(r)}
   if(Math.abs(p.z-sc(BLV))<6)for(const r of this.med)wrect(r);
-  const B=this.bounds;if(p.x<B.x0||p.x>B.x1||p.z<B.z0||p.z>B.z1){const cx=cl(p.x,B.x0,B.x1),cz=cl(p.z,B.z0,B.z1),nx=p.x<B.x0?1:p.x>B.x1?-1:0,nz=p.z<B.z0?1:p.z>B.z1?-1:0;p.x=cx;p.z=cz;const wv=p.wv(),vin=wv[0]*nx+wv[1]*nz;if(vin<0){p.setWv(wv[0]-1.4*vin*nx,wv[1]-1.4*vin*nz);this.hit(-vin*.5)}}
+  if(p.x<-690&&this.desR)for(const r of this.desR)wrect(r);
+  const B=this.bounds;if(p.x<B.x0&&this.desR){const zr2=sc(1),D=[[-2050,-1000,-900,-120],[-1000,B.x0-1,zr2-8,zr2+8]];let ok=false;for(const q of D)if(p.x>=q[0]&&p.x<=q[1]&&p.z>=q[2]&&p.z<=q[3])ok=true;if(!ok){let bd=1e9,bx=0,bz=0;for(const q of D){const cx=cl(p.x,q[0],q[1]),cz=cl(p.z,q[2],q[3]),dd=Math.hypot(p.x-cx,p.z-cz);if(dd<bd){bd=dd;bx=cx;bz=cz}}const nx=bd>0?(bx-p.x)/bd:1,nz=bd>0?(bz-p.z)/bd:0;p.x=bx;p.z=bz;const wv=p.wv(),vin=wv[0]*nx+wv[1]*nz;if(vin<0){p.setWv(wv[0]-1.4*vin*nx,wv[1]-1.4*vin*nz);this.hit(-vin*.5)}}}
+  else if(p.x<B.x0||p.x>B.x1||p.z<B.z0||p.z>B.z1){const cx=cl(p.x,B.x0,B.x1),cz=cl(p.z,B.z0,B.z1),nx=p.x<B.x0?1:p.x>B.x1?-1:0,nz=p.z<B.z0?1:p.z>B.z1?-1:0;p.x=cx;p.z=cz;const wv=p.wv(),vin=wv[0]*nx+wv[1]*nz;if(vin<0){p.setWv(wv[0]-1.4*vin*nx,wv[1]-1.4*vin*nz);this.hit(-vin*.5)}}
   for(const a of this.ag){const v=a.veh,dx=p.x-v.x,dz=p.z-v.z,d2=dx*dx+dz*dz;if(d2>30)continue;
    for(const o1 of[-1.1,1.1])for(const o2 of[-1.1,1.1]){const px=p.x+sn*o1,pz=p.z+cs*o1,ax=v.x+Math.sin(v.h)*o2,az=v.z+Math.cos(v.h)*o2,ddx=px-ax,ddz=pz-az,dd=Math.hypot(ddx,ddz);
     if(dd<1.95&&dd>.001){const nx=ddx/dd,nz=ddz/dd,ov=1.95-dd;p.x+=nx*ov*.7;p.z+=nz*ov*.7;a.ox-=nx*ov*.25;a.oz-=nz*ov*.25;

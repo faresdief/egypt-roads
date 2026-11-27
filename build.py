@@ -18,7 +18,7 @@ MODULES = ['physics.js', 'carbody.js', 'carspecs.js', 'audio.js',
 
 html = open('index.html', encoding='utf8').read()
 css = open('styles.css', encoding='utf8').read()
-mods = [open(m, encoding='utf8').read() for m in MODULES]
+mods = [re.sub(r'(?m)^[ \t]+', '', open(m, encoding='utf8').read()) for m in MODULES]  # drop leading indentation to keep index.html under 256 KB
 
 out, n = re.subn(r'<style>\n?.*?</style>',
                  lambda m: '<style>\n' + css + '</style>',
