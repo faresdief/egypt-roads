@@ -1,15 +1,20 @@
 #!/usr/bin/env python3
-"""Rebuild index.html for the standalone طرق مصر site (Cairo free-roam only).
-Splices styles.css + 10 JS modules into the 10 inline <script> slots of the
-template. Run after editing a module or the CSS:
+"""Rebuild index.html from styles.css and the JS source modules.
+
+index.html is the self-contained page served on GitHub Pages. Its inline
+<style> is styles.css and its 10 inline <script> blocks (excluding the
+Three.js CDN tag) are, in order:
+  physics.js, carbody.js, carspecs.js, audio.js, world.js, fx.js, network.js, roam.js, realmap.js, race.js
+This script re-splices those files into index.html. Run it after editing a
+module or the CSS:
+
   python3 build.py            # rewrite index.html in place
-  python3 build.py --check    # only verify sync
+  python3 build.py --check    # only verify index.html is in sync (exit 1 if not)
 """
 import re, sys
 
 MODULES = ['physics.js', 'carbody.js', 'carspecs.js', 'audio.js',
-           'world.js', 'fx.js', 'textures.js', 'quality.js', 'realmap.js',
-           'engine.js']
+           'world.js', 'fx.js', 'network.js', 'roam.js', 'realmap.js', 'race.js']
 
 html = open('index.html', encoding='utf8').read()
 css = open('styles.css', encoding='utf8').read()
