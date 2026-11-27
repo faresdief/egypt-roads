@@ -1035,10 +1035,10 @@ class Roam{
   try{if(!this.built)this.build()}catch(e){console.error(e);g.popup('المدينة مش متاحة على الجهاز ده');return}
   this.prevAtm=g.atm;g.atm='night';g.world.atm('night');this.scene.environment=g.world.rt.texture;
   this.low=!!g.opt.low;this.moon.castShadow=!this.low&&!this.coarse;
-  this.mkCar(true);this.on=true;g.state='ROAM';g.paused=false;g.keys={};this.job=null;this.jobWait=1.5;this.rep=0;this.boardT=0;this.chat=0;this.incT=30;this.mkDay();this.spawnTraffic();
+  this.mkCar(true);this.on=true;g.state='ROAM';g.paused=false;g.keys={};this.job=null;this.jobWait=1.5;this.taxi=['verna','taxi'].includes(CARS[g.sel].id);this.rep=0;this.boardT=0;this.chat=0;this.incT=30;this.mkDay();this.spawnTraffic();
   document.body.classList.toggle('low',this.low);
   ['menu','over','pause','hud','count'].forEach(i=>{const e=$(i);if(e)e.hidden=true});$('rhud').hidden=false;g.shiftUi();$('touch').hidden=!g.coarse;$('rbL').classList.toggle('on',!!g.hl);g.audio.init();
-  this.uiFull();this.dlg=false;const d=this.d;if(d.ch<CH.length&&d.seen!==d.ch){d.seen=d.ch;this.save();this.showDlg('الفصل '+(d.ch+1)+': '+CH[d.ch].t,CH[d.ch].txt)}else this.popupLater('مدينة القاهرة بالليل. دوّر على راكب (الدايرة الخضرا)',200)
+  this.uiFull();this.dlg=false;const d=this.d;if(this.taxi&&d.ch<CH.length&&d.seen!==d.ch){d.seen=d.ch;this.save();this.showDlg('الفصل '+(d.ch+1)+': '+CH[d.ch].t,CH[d.ch].txt)}else this.popupLater('مدينة القاهرة بالليل. دوّر على راكب (الدايرة الخضرا)',200)
   if(!this.d.tlSeen){this.d.tlSeen=1;this.save();this.popupLater('جديد: إشارات مرور شغالة على التقاطعات الكبيرة - الأحمر يعني قف، وعدّيتها عليك غرامة',3000)}}
  popupLater(t,ms){setTimeout(()=>{if(this.on)this.g.popup(t)},ms)}
  stop(){if(!this.on)return;{const w=this.g.world;if(this.pm0)w.prMax=this.pm0}this.d.fuel=this.fuel;this.save();this.on=false;this.dlg=false;$('rdlg').hidden=true;if($('rshop'))$('rshop').hidden=true;if($('rmis'))$('rmis').hidden=true;this.g.audio.music&&this.g.audio.music(0);this.radioS=0;this.dq=[];const g=this.g;$('rhud').hidden=true;if(this.pcar)this.scene.remove(this.pcar.g);this.clearJob();for(const a of this.ag)this.scene.remove(a.car.g);this.ag=[];for(const c of this.inc)this.scene.remove(c.g);this.inc=[];this.scene.environment=null;
@@ -1167,7 +1167,7 @@ pickKind(){const d=this.d;if(d.ch<CH.length&&CH[d.ch].k!=='any')return CH[d.ch].
   this.job=j;this.g.popup(KIND[k][0]+': '+name);this.g.audio.coin()}
  skip(){if(!this.on)return;if(this.job&&this.job.stage==='ride'){this.g.popup('مينفعش تسيب الراكب في نص الطريق');return}this.clearJob();this.jobWait=.6}
  jobStep(dt){const p=this.pl,j=this.job;
-  if(!j){this.jobWait-=dt;if(this.jobWait<=0)this.newJob();return}
+  if(!j){if(this.taxi){this.jobWait-=dt;if(this.jobWait<=0)this.newJob()}return}
   if(j.stage==='pickup'){const d=Math.hypot(p.x-j.pu.x,p.z-j.pu.z);if(d<9&&p.speed<3.2){this.boardT+=dt;if(this.boardT>=.9){this.boardT=0;this.board()}}else this.boardT=Math.max(0,this.boardT-dt*2)}
   else if(j.stage==='ride'){j.t+=dt;j.left=j.tmax-j.t;const wp=j.wi<j.wps.length?j.wps[j.wi]:null;
    if(wp){if(Math.hypot(p.x-wp.x,p.z-wp.z)<16){j.wi++;this.g.audio.coin();this.g.popup('معلم: '+wp.n);this.setMk(j.wi<j.wps.length?0x40a0ff:0xff9a1f,j.wi<j.wps.length?j.wps[j.wi]:j.dr,j.wi<j.wps.length?14:9)}}
@@ -1239,7 +1239,7 @@ pickKind(){const d=this.d;if(d.ch<CH.length&&CH[d.ch].k!=='any')return CH[d.ch].
   this.hud();g.audio.prof=d.id;g.audio.atm='night';if(!g.paused)g.audio.update(p.rpm/d.rl,p.slip>.14&&sp>4,true,p.thr)}
  uiFull(){const d=this.d,g=this.g;$('rCoins').textContent=g.coins;$('rRank').textContent=this.rank()+(d.rateN?' ★'+d.rate:'');$('rLvl').textContent='مستوى '+d.lvl;$('rXp').style.width=Math.round(100*d.xp/XPN(d.lvl))+'%'}
  tgt(){const j=this.job;if(!j)return null;if(j.stage==='pickup')return j.pu;return j.wi<j.wps.length?j.wps[j.wi]:j.dr}
- hud(){const g=this.g,p=this.pl,j=this.job,t=this.tgt();g.set('rSpd',String(Math.round(Math.max(0,p.vx)*3.6)));const dm=Math.round(p.dmg);g.set('rDmg',dm+'%');g.set('rFuel',Math.max(0,Math.round(this.fuel))+'%');$('rFuel').style.color=this.fuel<20?'#ff5a5a':'';const rb=$('rbR');rb.hidden=!(p.dmg>=8);const atSh=this.shop&&Math.hypot(p.x-this.shop.x,p.z-this.shop.z)<12;if(!rb.hidden)rb.textContent=(atSh?'ورشة أرخص ':'ورشة ')+Math.round(p.dmg*(atSh?1:1.5))+' ج';
+ hud(){const g=this.g,p=this.pl,j=this.job,t=this.tgt();{const jc=document.querySelector('#rhud .rjob');if(jc)jc.style.display=this.taxi?'':'none';for(const id of['rbA','rbS']){const e=$(id);if(e)e.style.display=this.taxi?'':'none'}}g.set('rSpd',String(Math.round(Math.max(0,p.vx)*3.6)));const dm=Math.round(p.dmg);g.set('rDmg',dm+'%');g.set('rFuel',Math.max(0,Math.round(this.fuel))+'%');$('rFuel').style.color=this.fuel<20?'#ff5a5a':'';const rb=$('rbR');rb.hidden=!(p.dmg>=8);const atSh=this.shop&&Math.hypot(p.x-this.shop.x,p.z-this.shop.z)<12;if(!rb.hidden)rb.textContent=(atSh?'ورشة أرخص ':'ورشة ')+Math.round(p.dmg*(atSh?1:1.5))+' ج';
   if(this.lastCoins!==g.coins){this.lastCoins=g.coins;this.uiFull()}
   const J=$('rJobT'),S1=$('rJobS'),D=$('rJobD'),ar=$('rArr');
   if(!j){J.textContent='دوّر على راكب...';S1.textContent=this.d.ch<CH.length?'الفصل '+(this.d.ch+1)+': '+CH[this.d.ch].t+' ('+this.d.cp+'/'+CH[this.d.ch].n+')':'';const m0=this.d.day&&this.d.day.list?this.d.day.list.find(m=>m.p<m.n):null;D.textContent=m0?'مهمة: '+m0.t+' ('+Math.min(m0.p,m0.n)+'/'+m0.n+')':'';ar.style.opacity=.2}
@@ -1481,15 +1481,11 @@ function restyleMenu(g){const menu=$('menu');if(!menu||$('skyline'))return;
   svgC='<svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v4.5a5 5 0 0 1-10 0V4zM7 6.5H4v1a3 3 0 0 0 3 3M17 6.5h3v1a3 3 0 0 1-3 3"/></svg>',
   svgB='<svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>';
  mkI(svgT,'تحدي اليوم',()=>openTo('dCard'));mkI(svgC,'المسيرة',()=>openTo('carCard'));mkI(svgB,'كل القائمة',()=>{dr.hidden=!dr.hidden});
- const chips=document.createElement('div');chips.id='chips';
- chips.innerHTML='<button class="chip" data-c="race">سباق</button><button class="chip" data-c="night">سباق ليلي</button><button class="chip on" data-c="roam">مدينة التاكسي</button><button class="chip" data-c="real">القاهرة الحقيقية</button>';
- grid.appendChild(chips);g.chip='roam';
- const goB=$('go'),LBL={race:'ابدأ السباق',night:'ابدأ السباق الليلي',roam:'ابدأ الشغل في المدينة',real:'قُد القاهرة الحقيقية'};
- $('go').textContent='ابدأ الشغل في المدينة';chips.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{g.chip=b.dataset.c;chips.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x===b));goB.textContent=LBL[g.chip]||'ابدأ السباق';
-  if(g.chip==='race'||g.chip==='night'){const mb=document.querySelector('#modes [data-m="'+(g.chip==='night'?'night':'race')+'"]');if(mb)mb.click()}});
+ g.chip='roam';
+ const goB=$('go'),isTaxi=()=>{try{return['verna','taxi'].includes(S.CARS[g.sel].id)}catch(e){return true}},upd=()=>{goB.textContent=isTaxi()?'ابدأ شغل التاكسي':'سوق في القاهرة'};
+ upd();const pk0=g.pick;if(typeof pk0==='function')g.pick=function(...a){const r=pk0.apply(this,a);upd();return r};
  goB.onclick=()=>{g.audio.init();
-  if(g.chip==='roam'&&g.roam){g.roam.start();return}
-  if(g.chip==='real'&&g.real){g.real.start();return}
+  if(g.roam){g.roam.start();return}
   g.career=0;g.start()};
 }
 const KM={ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',ArrowUp:'up',KeyW:'up',ArrowDown:'down',KeyS:'down',Space:'hb'};
