@@ -27,7 +27,7 @@ h3{font-size:22px;font-weight:700;text-align:center}
 .hero{position:relative;padding:0;overflow:hidden}.hero #pv{display:block;width:100%;aspect-ratio:16/9}
 .nav{position:absolute;top:42%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--glass);border:1px solid var(--hair);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
 .prev{right:12px}.next{left:12px}
-.carinfo{position:absolute;left:0;right:0;bottom:14px;text-align:center}.carinfo b{font-size:19px;font-weight:700}
+.carinfo{position:static;padding:4px 0 14px;text-align:center}.carinfo b{font-size:19px;font-weight:700}
 .dots{display:flex;justify-content:center;gap:7px;margin-top:8px}.dots i{width:7px;height:7px;border-radius:50%;background:var(--s3)}.dots i.on{background:var(--gold)}
 .st{display:grid;grid-template-columns:118px 1fr;align-items:center;gap:12px;padding:10px 0;font-size:14px}.st+.st{border-top:1px solid var(--s2)}
 .st i{display:block;height:6px;border-radius:3px;background:var(--s2);overflow:hidden}.st b{display:block;height:100%;background:var(--gold);border-radius:3px}
