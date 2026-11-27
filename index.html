@@ -978,15 +978,15 @@ class RealMap{
     if(n[0]*o[0]+n[1]*o[1]+n[2]*o[2]<0)quad(rp,rn,rc,ri,d,c,b,a,o,col2);else quad(rp,rn,rc,ri,a,b,c,d,o,col2)};
    for(const s of[-1,1]){const A=[px+nx*hf*s,y0,pz+nz*hf*s],B=[qx+nx*hf*s,y1,qz+nz*hf*s];fc([A[0],A[1]+hh,A[2]],[B[0],B[1]+hh,B[2]],B,A,[nx*s,0,nz*s])}
    fc([px+nx*hf,y0+hh,pz+nz*hf],[qx+nx*hf,y1+hh,qz+nz*hf],[qx-nx*hf,y1+hh,qz-nz*hf],[px-nx*hf,y0+hh,pz-nz*hf],[0,1,0])};
-  const barsFor=(w2,a,b,rp,rn,rc,ri)=>{const dx=b[0]-a[0],dz=b[1]-a[1],L=Math.hypot(dx,dz);if(L<24||w2.b||w2.c>2)return;const ux=dx/L,uz=dz/L,nx=-uz,nz=ux,hw=W2[w2.c],y0=a[2]||.06,y1=b[2]||.06,ym=(y0+y1)/2;
+  const barsFor=(w2,a,b,rp,rn,rc,ri)=>{const dx=b[0]-a[0],dz=b[1]-a[1],L=Math.hypot(dx,dz);if(L<24||w2.b||w2.c>2)return;const ux=dx/L,uz=dz/L,nx=-uz,nz=ux,hw=W2[w2.c],y0=a[2]||.06,y1=b[2]||.06,ym=(y0+y1)/2;if(Math.max(y0,y1)>2.5)return;
    const mx=(a[0]+b[0])/2,mz=(a[1]+b[1])/2;
    // corniche: segment runs roughly parallel to the water edge ~100-260m from the Nile centreline
    const wn=w2.c<=1?waterNear(mx,mz):null;let rs=0;
    if(wn&&wn.d>100&&wn.d<260&&Math.abs(wn.ux*ux+wn.uz*uz)>.85){const sd=((wn.px-mx)*nx+(wn.pz-mz)*nz)>0?1:-1;rs=sd}
-   const np=Math.floor((L-16)/6);
-   for(let k=0;k<np;k++){const t0=(8+k*(L-16)/np)/L,t1=(8+(k+1)*(L-16)/np)/L,ax=a[0]+dx*t0,az=a[1]+dz*t0,bx=a[0]+dx*t1,bz=a[1]+dz*t1,ya=y0+(y1-y0)*t0,yb=y0+(y1-y0)*t1;
+   const np=Math.floor((L-3)/6);
+   for(let k=0;k<np;k++){const t0=(1.5+k*(L-3)/np)/L,t1=(1.5+(k+1)*(L-3)/np)/L,ax=a[0]+dx*t0,az=a[1]+dz*t0,bx=a[0]+dx*t1,bz=a[1]+dz*t1,ya=y0+(y1-y0)*t0,yb=y0+(y1-y0)*t1;
     if(rs){const o=hw+3.1,px=ax+nx*o*rs,pz=az+nz*o*rs,qx=bx+nx*o*rs,qz=bz+nz*o*rs;
-     if(!(this.insideRoad(px,pz,ya,.8)||this.insideRoad(qx,qz,yb,.8)||this.insideRoad((px+qx)/2,(pz+qz)/2,ym,.8))){barBox(rp,rn,rc,ri,px,pz,qx,qz,ya,yb,.9,.22,[.42,.41,.39]);this.obsS(px,pz,qx,qz,.25,ym)}}
+     if(!(this.insideRoad(px,pz,ya,.8)||this.insideRoad(qx,qz,yb,.8)||this.insideRoad((px+qx)/2,(pz+qz)/2,ym,.8))){barBox(rp,rn,rc,ri,px,pz,qx,qz,ya,yb,.9,.22,[.27,.265,.26]);this.obsS(px,pz,qx,qz,.25,ym)}}
     if(w2.c<=1){const cx=(ax+bx)/2,cz=(az+bz)/2;let bd=null;
      for(let ddx=-1;ddx<=1;ddx++)for(let ddz=-1;ddz<=1;ddz++){const L2=this.hash.get(Math.floor(cx/CS+ddx)+','+Math.floor(cz/CS+ddz));if(!L2)continue;
       for(const q2 of L2){const o2=ways[q2[0]];if(o2===w2||o2.b||o2.c>1)continue;const p2=o2.p,c0=p2[q2[1]],c1=p2[q2[1]+1],ex=c1[0]-c0[0],ez=c1[1]-c0[1],el=Math.hypot(ex,ez);if(el<8)continue;
@@ -995,7 +995,7 @@ class RealMap{
        if(!bd||gap<bd.gap){let oi=wIdx.get(o2);if(oi===undefined){oi=ways.indexOf(o2);wIdx.set(o2,oi)}bd={gap,lat:(lat+lat2)/2,oi}}}}
      if(bd){let mi=wIdx.get(w2);if(mi===undefined){mi=ways.indexOf(w2);wIdx.set(w2,mi)}
       if(mi<bd.oi){const h=bd.lat/2,px=ax+nx*h,pz=az+nz*h,qx=bx+nx*h,qz=bz+nz*h;
-       if(!(this.insideRoad(px,pz,ya,.3)||this.insideRoad(qx,qz,yb,.3)||this.insideRoad((px+qx)/2,(pz+qz)/2,ym,.3))){barBox(rp,rn,rc,ri,px,pz,qx,qz,ya,yb,.8,.25,[.4,.39,.37]);this.obsS(px,pz,qx,qz,.28,ym)}}}}}};
+       if(!(this.insideRoad(px,pz,ya,.3)||this.insideRoad(qx,qz,yb,.3)||this.insideRoad((px+qx)/2,(pz+qz)/2,ym,.3))){barBox(rp,rn,rc,ri,px,pz,qx,qz,ya,yb,.8,.25,[.26,.255,.25]);this.obsS(px,pz,qx,qz,.28,ym)}}}}}};
   const buildCh=(ck,cwl,store)=>{const rp=[],rn=[],rc=[],ri=[],dp=[],dn=[],du=[],dc=[],di=[],bmp=[],ksk=[];
    for(const w2 of cwl){const p=w2.p,hw=W2[w2.c],t2=TINT[w2.c];
     for(let i=0;i<p.length-1;i++){const a=p[i],b=p[i+1],dx=b[0]-a[0],dz=b[1]-a[1],L=Math.hypot(dx,dz);if(L<.01)continue;const nx=-dz/L,nz=dx/L,y0=a[2]||.06,y1=b[2]||.06;
@@ -1045,11 +1045,14 @@ class RealMap{
    for(const q2 of L2){const w2=ways[q2[0]],p=w2.p,a=p[q2[1]],b=p[q2[1]+1],abx=b[0]-a[0],abz=b[1]-a[1],ll=abx*abx+abz*abz;if(ll<.001)continue;let t=((x-a[0])*abx+(z-a[1])*abz)/ll;t=cl(t,0,1);
     const px=a[0]+abx*t,pz=a[1]+abz*t,d=Math.hypot(x-px,z-pz),hw=W2[w2.c],y=(a[2]||.06)+((b[2]||.06)-(a[2]||.06))*t;
     if(Math.abs(y-cy)>3)continue;if(!best||d<best.d)best={d,y,hw,b:w2.b}}}return best};
+  this.insideRoadAny=(x,z,m)=>{for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++){const L2=this.hash.get(Math.floor(x/CS+dx)+','+Math.floor(z/CS+dz));if(!L2)continue;
+   for(const q2 of L2){const w2=ways[q2[0]],p=w2.p,a=p[q2[1]],b=p[q2[1]+1],abx=b[0]-a[0],abz=b[1]-a[1],ll=abx*abx+abz*abz;if(ll<.001)continue;let t=((x-a[0])*abx+(z-a[1])*abz)/ll;t=cl(t,0,1);
+    if(Math.hypot(x-(a[0]+abx*t),z-(a[1]+abz*t))<W2[w2.c]+m)return true}}return false};
   this.insideRoad=(x,z,cy,m)=>{for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++){const L2=this.hash.get(Math.floor(x/CS+dx)+','+Math.floor(z/CS+dz));if(!L2)continue;
    for(const q2 of L2){const w2=ways[q2[0]],p=w2.p,a=p[q2[1]],b=p[q2[1]+1],abx=b[0]-a[0],abz=b[1]-a[1],ll=abx*abx+abz*abz;if(ll<.001)continue;let t=((x-a[0])*abx+(z-a[1])*abz)/ll;t=cl(t,0,1);
     const d=Math.hypot(x-(a[0]+abx*t),z-(a[1]+abz*t)),y=(a[2]||.06)+((b[2]||.06)-(a[2]||.06))*t;if(d<W2[w2.c]+m&&Math.abs(y-cy)<2.5)return true}}return false};
   for(const [ck,cwl] of cways)buildCh(ck,cwl,this.chunks);
-  const fpOK=(bx,bz,w3,dep,ang)=>{const c=Math.cos(ang),s2=Math.sin(ang),hx=w3/2+.8,hz=dep/2+.8;for(const[ux,uz]of[[0,0],[1,1],[1,-1],[-1,1],[-1,-1],[1,0],[-1,0],[0,1],[0,-1]]){const lx=ux*hx,lz=uz*hz;if(this.insideRoad(bx+lx*c+lz*s2,bz-lx*s2+lz*c,0,.6))return false}return true};
+  const fpOK=(bx,bz,w3,dep,ang)=>{const c=Math.cos(ang),s2=Math.sin(ang),hx=w3/2+.8,hz=dep/2+.8;for(const ux of[-1,-.5,0,.5,1])for(const uz of[-1,-.5,0,.5,1]){const lx=ux*hx,lz=uz*hz;if(this.insideRoadAny(bx+lx*c+lz*s2,bz-lx*s2+lz*c,.6))return false}return true};
   // v45: night-city look - buildings with lit windows, street lamps, sky, skyline, signals, pyramids
   const rnd=(s2=>()=>{s2|=0;s2=s2+0x6D2B79F5|0;let t=Math.imul(s2^s2>>>15,1|s2);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296})(77);
   const PYX=-9230,PYZ=8932;
