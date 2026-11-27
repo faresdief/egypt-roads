@@ -116,13 +116,13 @@ class Roam{
   // blocks: sidewalks, buildings
   const wtx=winTex();this.winM=new T.MeshStandardMaterial({map:wtx.map,emissiveMap:wtx.em,emissive:0xffffff,emissiveIntensity:1.25,vertexColors:true,roughness:.85});
   const geo=new Geo(),walk=new T.InstancedMesh(new T.BoxGeometry(1,1,1),new T.MeshStandardMaterial({color:col(0x55565b),roughness:.95}),NB*NB);let wq=0;
-  this.bl={};const rects=(i,j)=>this.bl[i*100+j]||(this.bl[i*100+j]=[]);this.lms=[];this.park=[];
+  this.bl={};const rects=(i,j)=>this.bl[i*100+j]||(this.bl[i*100+j]=[]);this.lms=[];this.park=[];this.zt=[];
   const add=(i,j,x0,z0,x1,z1,h,tint)=>{geo.box(x0,z0,x1,z1,0,h,tint);rects(i,j).push({x0:x0-.2,z0:z0-.2,x1:x1+.2,z1:z1+.2})};
   const extra=new T.Group();
   for(let i=0;i<NB;i++)for(let j=0;j<NB;j++){const x0=sc(i)+HWN,x1=sc(i+1)-HWN,z0=sc(j)+hwEW(j),z1=sc(j+1)-hwEW(j+1);
    o.position.set((x0+x1)/2,.1,(z0+z1)/2);o.scale.set(x1-x0,.2,z1-z0);o.updateMatrix();walk.setMatrixAt(wq++,o.matrix);o.scale.set(1,1,1);
    const ix=i-(NB-1)/2,jz=j-(NB-1)/2,r=Math.hypot(ix,jz-.5),bx0=x0+5,bx1=x1-5,bz0=z0+5,bz1=z1-5,cx=(bx0+bx1)/2,cz=(bz0+bz1)/2;
-   const special=(i===5&&j===5)?'tower':(i===3&&j===7)?'mosque':(i===7&&j===7)?'hub':(i===NB-1&&j===5)?'airport':(i===0&&j===0)?'pyramids':(i===NB-1)?'park':(i===2&&j===3||i===8&&j===3)?'plaza':null;
+   const special=(i===5&&j===5)?'tower':(i===3&&j===7)?'mosque':(i===7&&j===7)?'hub':(i===NB-1&&j===5)?'airport':(i===6&&j===5)?'opera':(i===4&&j===5)?'club':(i===0&&j===0)?'pyramids':(i===NB-1)?'park':(i===2&&j===3||i===8&&j===3)?'plaza':null;
    if(special==='pyramids'){const sd=new T.Mesh(new T.PlaneGeometry(bx1-bx0+8,bz1-bz0+8),new T.MeshStandardMaterial({color:col(0x7d6c48),roughness:1,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}));sd.rotation.x=-Math.PI/2;sd.position.set(cx,.25,cz);extra.add(sd);
     for(const q of[[cx-16,cz-8,13,21],[cx+10,cz+10,10,16],[cx+14,cz-16,6.5,10]]){const py=new T.Mesh(new T.ConeGeometry(q[2],q[3],4),new T.MeshStandardMaterial({color:col(0xb59a6a),roughness:.95,emissive:col(0x2a2114),emissiveIntensity:.4}));py.position.set(q[0],q[3]/2+.25,q[1]);py.rotation.y=Math.PI/4;extra.add(py);rects(i,j).push({x0:q[0]-q[2]*.7,z0:q[1]-q[2]*.7,x1:q[0]+q[2]*.7,z1:q[1]+q[2]*.7})}
     this.pyr={x:cx,z:cz};continue}
@@ -137,16 +137,21 @@ class Roam{
     for(const[sx,sz]of[[-22,-22],[22,22]]){add(i,j,cx+sx-2,cz+sz-2,cx+sx+2,cz+sz+2,36,[.85,.82,.75]);const tp=new T.Mesh(new T.ConeGeometry(2.6,7,10),new T.MeshStandardMaterial({color:col(0x3f8f78),emissive:col(0x2fd0a0),emissiveIntensity:1.2}));tp.position.set(cx+sx,39.5,cz+sz);extra.add(tp)}this.mosque={x:cx,z:cz};continue}
    if(special==='hub'){const cn=new T.Mesh(new T.BoxGeometry(46,.8,24),new T.MeshStandardMaterial({color:col(0xf2b705),emissive:col(0xf2b705),emissiveIntensity:.9}));cn.position.set(cx,6,cz);extra.add(cn);
     for(const sx of[-21,21])for(const sz of[-10,10]){const pl=new T.Mesh(new T.BoxGeometry(.6,6,.6),new T.MeshStandardMaterial({color:col(0x444444)}));pl.position.set(cx+sx,3,cz+sz);extra.add(pl)}this.hub={x:cx,z:cz};continue}
+   if(special==='opera'){add(i,j,cx-24,cz-14,cx+24,cz+14,11,[.93,.89,.8]);const od=new T.Mesh(new T.SphereGeometry(9,18,10,0,6.283,0,1.57),new T.MeshStandardMaterial({color:col(0x2f7f86),roughness:.5,emissive:col(0x0d3a40),emissiveIntensity:.6}));od.position.set(cx,11,cz);extra.add(od);
+    for(const sx of[-16,-8,8,16]){const ar=new T.Mesh(new T.BoxGeometry(2.4,7,.6),new T.MeshStandardMaterial({color:col(0xf0e2c0),emissive:col(0xffd890),emissiveIntensity:.5}));ar.position.set(cx+sx,3.6,cz+14.4);extra.add(ar)}this.opera={x:cx,z:cz};continue}
+   if(special==='club'){this.park.push({x0:bx0,z0:bz0,x1:bx1,z1:bz1});this.gez={x:cx,z:cz};continue}
    if(special==='park'||special==='plaza'){this.park.push({x0:bx0,z0:bz0,x1:bx1,z1:bz1});continue}
-   const core=r<2.4,mid=r<4.4,old=i<=3&&j<=3,lo=core?30:mid?14:7,hi=core?92:mid?42:20,tint=core?[.78,.84,.95]:old?[.95,.85,.7]:mid?[.92,.88,.82]:[.88,.88,.86];
+   const zam=i>=4&&i<=6&&j>=4&&j<=6,core=!zam&&r<2.4,mid=r<4.4,old=i<=3&&j<=3,lo=zam?8:core?30:mid?14:7,hi=zam?24:core?92:mid?42:20,tint=zam?[.97,.91,.78]:core?[.78,.84,.95]:old?[.95,.85,.7]:mid?[.92,.88,.82]:[.88,.88,.86];
+   if(zam){for(let k=0;k<5;k++){const f=(k+.5)/5;const e=.9+((k*7+i*3+j)%5)*.1;this.zt.push([x0+2.5,z0+5+f*(z1-z0-10),e],[x1-2.5,z0+5+f*(z1-z0-10),e],[x0+5+f*(x1-x0-10),z0+2.5,e],[x0+5+f*(x1-x0-10),z1-2.5,e])}}
    const nx=core?1+(rn()<.4?1:0):old?2+(rn()<.5?1:0):1+Math.floor(rn()*3),nz=core?1+(rn()<.4?1:0):old?2+(rn()<.5?1:0):1+Math.floor(rn()*3),gw=(bx1-bx0)/nx,gd=(bz1-bz0)/nz;
    for(let a=0;a<nx;a++)for(let b=0;b<nz;b++){if(rn()<.08)continue;const lx0=bx0+a*gw+1.5+rn()*2,lx1=bx0+(a+1)*gw-1.5-rn()*2,lz0=bz0+b*gd+1.5+rn()*2,lz1=bz0+(b+1)*gd-1.5-rn()*2;if(lx1-lx0<8||lz1-lz0<8)continue;
     const hh=Math.round((lo+Math.pow(rn(),1.5)*(hi-lo))/3.5)*3.5,tt=tint.map(v=>v*(.85+rn()*.2));add(i,j,lx0,lz0,lx1,lz1,hh,tt);if(hh>45&&rn()<.7){const ix0=lx0+(lx1-lx0)*.2,ix1=lx1-(lx1-lx0)*.2,iz0=lz0+(lz1-lz0)*.2,iz1=lz1-(lz1-lz0)*.2;geo.box(ix0,iz0,ix1,iz1,hh,hh+14,tt)}}}
   walk.count=wq;walk.receiveShadow=true;sc3.add(walk);const bm=geo.mesh(this.winM);bm.receiveShadow=false;sc3.add(bm);sc3.add(extra);
   // trees in parks and along the boulevard median
-  const nt=this.park.length*26+NB*6+NB*4,tr=new T.InstancedMesh(new T.CylinderGeometry(.18,.28,5,6),new T.MeshStandardMaterial({color:col(0x5a4630),roughness:1}),nt),cr=new T.InstancedMesh(new T.ConeGeometry(2.4,5.5,7),new T.MeshStandardMaterial({color:col(0x1f5a2a),roughness:.95}),nt);let tq=0;
+  const nt=this.park.length*26+NB*6+NB*4+this.zt.length,tr=new T.InstancedMesh(new T.CylinderGeometry(.18,.28,5,6),new T.MeshStandardMaterial({color:col(0x5a4630),roughness:1}),nt),cr=new T.InstancedMesh(new T.ConeGeometry(2.4,5.5,7),new T.MeshStandardMaterial({color:col(0x1f5a2a),roughness:.95}),nt);let tq=0;
   const tree=(x,z,s)=>{o.position.set(x,2.5*s,z);o.scale.set(s,s,s);o.rotation.set(0,rn()*6,0);o.updateMatrix();tr.setMatrixAt(tq,o.matrix);o.position.y=6.8*s;o.updateMatrix();cr.setMatrixAt(tq++,o.matrix)};
   for(const p of this.park)for(let k=0;k<26;k++)tree(p.x0+rn()*(p.x1-p.x0),p.z0+rn()*(p.z1-p.z0),.8+rn()*.6);
+  for(const p of this.zt)tree(p[0],p[1],p[2]);
   for(let i=0;i<NB;i++)for(let k=0;k<6&&tq<nt;k++)tree(sc(i)+10+k*18,sc(BLV),.9);
   for(let k=0;k<NB*4&&tq<nt;k++)tree(sc(0)-HWN-2.4,sc(0)+10+k*(NB*PITCH-20)/(NB*4),1.15);
   tr.count=cr.count=tq;o.scale.set(1,1,1);o.rotation.set(0,0,0);sc3.add(tr,cr);
@@ -304,7 +309,7 @@ class Roam{
   const lg=new T.Mesh(new T.BoxGeometry(.4,.8,.25),new T.MeshStandardMaterial({color:col(0x2a2f3a)}));lg.position.y=.4;g.add(lg);return g}
  clearJob(){const j=this.job;if(j){if(j.mk)this.scene.remove(j.mk);if(j.mk2)this.scene.remove(j.mk2);if(j.pp)this.scene.remove(j.pp);if(j.bc)this.scene.remove(j.bc.g)}this.job=null}
 pickKind(){const d=this.d;if(d.ch<CH.length&&CH[d.ch].k!=='any')return CH[d.ch].k;const x=Math.random();if(x<.36)return'fare';if(x<.51)return'rush';if(x<.63)return'gentle';if(x<.73)return'tour';if(x<.85)return'delivery';if(x<.92)return'rescue';if(x<.96)return d.lvl>=2?'vip':'fare';return d.lvl>=3?'airport':'fare'}
- lmarks(){const o=[];for(const[l,n]of[[this.tower,'برج القاهرة'],[this.mosque,'الجامع'],[this.hub,'موقف التاكسي'],...(this.sts||[]).map(q=>[q,'بنزينة']),[this.shop,'الورشة'],[this.airpt,'المطار'],[this.pyr,'الأهرامات'],[this.nile,'كورنيش النيل']]){if(!l)continue;const q=this.nearNode(l.x,l.z);o.push({x:sc(q.i),z:sc(q.j),n})}return o}
+ lmarks(){const o=[];for(const[l,n]of[[this.tower,'برج القاهرة'],[this.opera,'دار الأوبرا'],[this.gez,'نادي الجزيرة'],[this.mosque,'الجامع'],[this.hub,'موقف التاكسي'],...(this.sts||[]).map(q=>[q,'بنزينة']),[this.shop,'الورشة'],[this.airpt,'المطار'],[this.pyr,'الأهرامات'],[this.nile,'كورنيش النيل']]){if(!l)continue;const q=this.nearNode(l.x,l.z);o.push({x:sc(q.i),z:sc(q.j),n})}return o}
  setMk(c,pos,r){if(this.job.mk)this.scene.remove(this.job.mk);const m=this.mkMarker(c,r||9);m.position.set(pos.x,0,pos.z);this.scene.add(m);this.job.mk=m}
  newJob(){const p=this.pl,k=this.pickKind(),pu=this.randPoint(p.x,p.z,140,420),dr=this.randPoint(pu.x,pu.z,320,880);let dist=Math.abs(pu.x-dr.x)+Math.abs(pu.z-dr.z),name=k==='delivery'?'طلب مطعم':pick(NAMES);
   if(k==='vip')name=pick(VIPS);
