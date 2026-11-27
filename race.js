@@ -14,15 +14,11 @@ function restyleMenu(g){const menu=$('menu');if(!menu||$('skyline'))return;
   svgC='<svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v4.5a5 5 0 0 1-10 0V4zM7 6.5H4v1a3 3 0 0 0 3 3M17 6.5h3v1a3 3 0 0 1-3 3"/></svg>',
   svgB='<svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>';
  mkI(svgT,'تحدي اليوم',()=>openTo('dCard'));mkI(svgC,'المسيرة',()=>openTo('carCard'));mkI(svgB,'كل القائمة',()=>{dr.hidden=!dr.hidden});
- const chips=document.createElement('div');chips.id='chips';
- chips.innerHTML='<button class="chip" data-c="race">سباق</button><button class="chip" data-c="night">سباق ليلي</button><button class="chip on" data-c="roam">مدينة التاكسي</button><button class="chip" data-c="real">القاهرة الحقيقية</button>';
- grid.appendChild(chips);g.chip='roam';
- const goB=$('go'),LBL={race:'ابدأ السباق',night:'ابدأ السباق الليلي',roam:'ابدأ الشغل في المدينة',real:'قُد القاهرة الحقيقية'};
- $('go').textContent='ابدأ الشغل في المدينة';chips.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{g.chip=b.dataset.c;chips.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x===b));goB.textContent=LBL[g.chip]||'ابدأ السباق';
-  if(g.chip==='race'||g.chip==='night'){const mb=document.querySelector('#modes [data-m="'+(g.chip==='night'?'night':'race')+'"]');if(mb)mb.click()}});
+ g.chip='roam';
+ const goB=$('go'),isTaxi=()=>{try{return['verna','taxi'].includes(S.CARS[g.sel].id)}catch(e){return true}},upd=()=>{goB.textContent=isTaxi()?'ابدأ شغل التاكسي':'سوق في القاهرة'};
+ upd();const pk0=g.pick;if(typeof pk0==='function')g.pick=function(...a){const r=pk0.apply(this,a);upd();return r};
  goB.onclick=()=>{g.audio.init();
-  if(g.chip==='roam'&&g.roam){g.roam.start();return}
-  if(g.chip==='real'&&g.real){g.real.start();return}
+  if(g.roam){g.roam.start();return}
   g.career=0;g.start()};
 }
 const KM={ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',ArrowUp:'up',KeyW:'up',ArrowDown:'down',KeyS:'down',Space:'hb'};
