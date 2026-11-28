@@ -1013,7 +1013,7 @@ const nmy=new T.Mesh(new T.BoxGeometry(5,15,18),spm);nmy.position.set(sx0+18,10,
 for(const dz of[-5.5,5.5]){const pw=new T.Mesh(new T.BoxGeometry(18,4,4.5),spm);pw.position.set(sx0+33,2.2,zr+dz);sc3.add(pw)}
 dR.push({x0:sx0-28,z0:zr-9,x1:sx0+43,z1:zr+9});
 // gate at the city end of the road
-const gx=RX0-60,gc=document.createElement('canvas');gc.width=256;gc.height=64;const gcx=gc.getContext('2d');gcx.fillStyle='#2a1d0c';gcx.fillRect(0,0,256,64);gcx.strokeStyle='#e8b94a';gcx.lineWidth=4;gcx.strokeRect(4,4,248,56);gcx.fillStyle='#ffd878';gcx.font='700 38px Tahoma,Arial,sans-serif';gcx.textAlign='center';gcx.textBaseline='middle';gcx.fillText('الأهرامات',128,34);
+const gx=-812,gc=document.createElement('canvas');gc.width=256;gc.height=64;const gcx=gc.getContext('2d');gcx.fillStyle='#2a1d0c';gcx.fillRect(0,0,256,64);gcx.strokeStyle='#e8b94a';gcx.lineWidth=4;gcx.strokeRect(4,4,248,56);gcx.fillStyle='#ffd878';gcx.font='700 38px Tahoma,Arial,sans-serif';gcx.textAlign='center';gcx.textBaseline='middle';gcx.fillText('الأهرامات',128,34);
 const gt=new T.CanvasTexture(gc);gt.encoding=T.sRGBEncoding;const gm=new T.MeshStandardMaterial({map:gt,emissiveMap:gt,emissive:0xffffff,emissiveIntensity:.8,roughness:.6}),stone=new T.MeshStandardMaterial({color:col(0xb59a6a),roughness:.9,emissive:col(0x2a2114),emissiveIntensity:.4});
 for(const sz of[-6.2,6.2]){const p=new T.Mesh(new T.BoxGeometry(1.8,9,1.8),stone);p.position.set(gx,4.5,zr+sz);sc3.add(p);dR.push({x0:gx-1.1,z0:zr+sz-1.1,x1:gx+1.1,z1:zr+sz+1.1})}
 const gb=new T.Mesh(new T.BoxGeometry(.9,3.2,14),gm);gb.position.set(gx,10,zr);gb.material=[stone,stone,stone,stone,gm,gm];sc3.add(gb);
@@ -1041,7 +1041,7 @@ const nt=this.park.length*26+NB*6+NB*4+this.zt.length,tr=new T.InstancedMesh(new
 const tree=(x,z,s)=>{o.position.set(x,2.5*s,z);o.scale.set(s,s,s);o.rotation.set(0,rn()*6,0);o.updateMatrix();tr.setMatrixAt(tq,o.matrix);o.position.y=6.8*s;o.updateMatrix();cr.setMatrixAt(tq++,o.matrix)};
 for(const p of this.park)for(let k=0;k<26;k++)tree(p.x0+rn()*(p.x1-p.x0),p.z0+rn()*(p.z1-p.z0),.8+rn()*.6);
 for(const p of this.zt)tree(p[0],p[1],p[2]);
-for(let i=0;i<NB;i++)for(let k=0;k<6&&tq<nt;k++)tree(sc(i)+10+k*18,sc(BLV),.9);
+for(let i=0;i<NB;i++)for(let k=0;k<6&&tq<nt;k++){const tx=sc(i)+10+k*18;if(Math.abs(tx+270)<7||Math.abs(tx-330)<7)continue;tree(tx,sc(BLV),.9)}
 for(let k=0;k<NB*4&&tq<nt;k++)tree(sc(0)-HWN-2.4,sc(0)+10+k*(NB*PITCH-20)/(NB*4),1.15);
 tr.count=cr.count=tq;o.scale.set(1,1,1);o.rotation.set(0,0,0);sc3.add(tr,cr);
 // boulevard median (solid)
@@ -1060,6 +1060,32 @@ this.bounds={x0:sc(0)-HWN-14,x1:sc(NB)+HWN-1,z0:sc(0)-HWN-14,z1:sc(NB)+HWN+14};
 {const B=this.bounds,wm=new T.MeshStandardMaterial({color:col(0x3a3d46),emissive:col(0xff7a1a),emissiveIntensity:.22,roughness:.8}),W=(cx,cz,sx,sz)=>{const m=new T.Mesh(new T.BoxGeometry(sx,1.3,sz),wm);m.position.set(cx,.65,cz);sc3.add(m)};
 const w0=B.x1-B.x0+4,d0=B.z1-B.z0+4;W((B.x0+B.x1)/2,B.z0-1,w0,1.2);W((B.x0+B.x1)/2,B.z1+1,w0,1.2);W(B.x0-1,(B.z0+B.z1)/2,1.2,d0);W(B.x1+1,(B.z0+B.z1)/2,1.2,d0)}
 {const wt2=new T.Mesh(new T.PlaneGeometry(80,NB*PITCH+300),new T.MeshStandardMaterial({color:col(0x0d2a44),roughness:.15,metalness:.4,emissive:col(0x0a2438),emissiveIntensity:.7}));wt2.rotation.x=-Math.PI/2;wt2.position.set(this.bounds.x0-52,-.01,0);sc3.add(wt2);this.nile={x:sc(0),z:sc(5)}}
+// v53: Nile bridge over the river on the desert road, plus two footbridges over the boulevard (merged into 2 meshes)
+{const BR=new Geo(),LIT=new Geo(),ST=[.80,.80,.78],CN=[.74,.74,.72],AS=[.17,.18,.20],DK=[.26,.28,.32];
+const bar=(G,ax,ay,az,bx,by,bz,w,t)=>{const dx=bx-ax,dy=by-ay,L=Math.hypot(dx,dy)||1,px=-dy/L*w/2,py=dx/L*w/2,zz=w/2;
+G.quad([ax+px,ay+py,az+zz],[bx+px,by+py,bz+zz],[bx-px,by-py,bz+zz],[ax-px,ay-py,az+zz],[0,0,1],[[0,0],[1,0],[1,1],[0,1]],t);
+G.quad([ax+px,ay+py,az-zz],[ax-px,ay-py,az-zz],[bx-px,by-py,bz-zz],[bx+px,by+py,bz-zz],[0,0,-1],[[0,0],[1,0],[1,1],[0,1]],t)};
+const zr=sc(1),BX0=-688,BX1=-794,dy=.32,sp=(BX0-BX1)/2,mx=(BX0+BX1)/2;
+BR.box(BX0,zr-5.6,BX1,zr+5.6,.02,dy-.04,ST);
+BR.box(BX0,zr-4.7,BX1,zr+4.7,dy-.04,dy,AS);
+for(const s of[-1,1]){BR.box(BX0,zr+s*5.6-.3,BX1,zr+s*5.6+.3,dy-.04,dy+1.05,ST);LIT.box(BX0,zr+s*5.6-.1,BX1,zr+s*5.6+.1,dy+1.05,dy+1.14,[1,1,1])}
+for(const px of[-708,-736,-764])for(const s of[-1,1])BR.box(px-1.2,zr+s*3.5-1.2,px+1.2,zr+s*3.5+1.2,-.12,dy-.04,ST);
+for(const s of[-1,1]){const z=zr+s*5.6,N=16;let pv=null;
+for(let k=0;k<=N;k++){const x=BX0+(BX1-BX0)*k/N,u=(x-mx)/sp,y=dy+8.4*(1-u*u);if(pv){bar(BR,pv[0],pv[1],z,x,y,z,.9,ST);bar(LIT,pv[0],pv[1]+.55,z,x,y+.55,z,.2,[1,1,1])}pv=[x,y]}
+for(let k=1;k<N;k+=2){const x=BX0+(BX1-BX0)*k/N,u=(x-mx)/sp,y=dy+8.4*(1-u*u);bar(BR,x,y,z,x,dy+1.05,z,.13,DK)}
+for(let k=0;k<=8;k+=2){const x=BX0+(BX1-BX0)*k/8;BR.box(x-.16,z-.16,x+.16,z+.16,dy+1.05,dy+4.4,DK);LIT.box(x-.42,z-.42,x+.42,z+.42,dy+4.4,dy+4.8,[1,1,1])}}
+this.brg={x:mx,z:zr};
+for(const bx of[sc(3)+30,sc(8)+30]){const z0=sc(BLV)-HWB-2.5,z1=sc(BLV)+HWB+2.5,ty=6.9;
+BR.box(bx-1.5,z0,bx+1.5,z1,ty-.6,ty,CN);
+for(const s of[-1,1])BR.box(bx+s*1.5-.16,z0,bx+s*1.5+.16,z1,ty,ty+1.0,CN);
+for(const ez of[z0,z1]){BR.box(bx-1.8,ez-1.8,bx+1.8,ez+1.8,0,ty-.6,CN);
+bar(BR,bx-11,.05,ez,bx-1.8,ty-.6,ez,2.3,CN);
+for(const s of[-1,1])bar(BR,bx-11,.95,ez+s*1.05,bx-1.8,ty+.3,ez+s*1.05,.13,DK)}
+for(const lz of[z0+8,(z0+z1)/2,z1-8]){BR.box(bx+.9,lz-.12,bx+1.14,lz+.12,ty,ty+3.0,DK);LIT.box(bx+.86,lz-.16,bx+1.18,lz+.16,ty+3.0,ty+3.3,[1,1,1])}}
+for(const q of[[sc(3)+30,3],[sc(8)+30,8]]){const bx=q[0],bi=q[1],z0=sc(BLV)-HWB-2.5,z1=sc(BLV)+HWB+2.5;
+rects(bi,5).push({x0:bx-1.9,z0:z0-1.9,x1:bx+1.9,z1:z0+1.9});rects(bi,5).push({x0:bx-11.4,z0:z0-1.25,x1:bx-1.8,z1:z0+1.25});
+rects(bi,6).push({x0:bx-1.9,z0:z1-1.9,x1:bx+1.9,z1:z1+1.9});rects(bi,6).push({x0:bx-11.4,z0:z1-1.25,x1:bx-1.8,z1:z1+1.25})}
+const bm5=BR.mesh(new T.MeshStandardMaterial({vertexColors:true,roughness:.85,metalness:.05,emissive:col(0x1e2632),emissiveIntensity:.9})),lm5=LIT.mesh(new T.MeshBasicMaterial({color:col(0xffe2b4)}));bm5.name='brg53';lm5.name='brg53lit';sc3.add(bm5,lm5);}
 if(!this.low){const N2=650,pa=new Float32Array(N2*3);for(let q=0;q<N2;q++){pa[q*3]=rnd(-36,36);pa[q*3+1]=rnd(0,34);pa[q*3+2]=rnd(-36,36)}const gg=new T.BufferGeometry();gg.setAttribute('position',new T.BufferAttribute(pa,3));this.rainPts=new T.Points(gg,new T.PointsMaterial({color:0x9fb8dd,size:.16,transparent:true,opacity:.55,depthWrite:false,fog:false}));this.rainPts.visible=false;this.rainPts.frustumCulled=false;sc3.add(this.rainPts)}
 this.rain={on:false,t:50+Math.random()*70};this.mkCops(sc3);
 this.built=true}
